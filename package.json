@@ -1,8 +1,7 @@
 {
   "name": "daily-grind-tracker",
   "version": "1.0.0",
-  "description": "A polished, responsive frontend for a personal productivity dashboard, using the supplied Daily Grind Tracker artwork as its visual baseline.",
-  "main": "app.js",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "build": "echo 'Build complete'",
