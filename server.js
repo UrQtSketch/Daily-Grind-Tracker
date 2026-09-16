@@ -138,10 +138,10 @@ app.use((req, res, next) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`=========================================`);
   console.log(`Daily Grind Tracker Server Running!`);
-  console.log(`URL: http://localhost:${PORT}`);
-  console.log(`Health: http://localhost:${PORT}/api/health`);
+  console.log(`Port: ${PORT}`);
+  console.log(`Health: /api/health`);
   console.log(`=========================================`);
 });
