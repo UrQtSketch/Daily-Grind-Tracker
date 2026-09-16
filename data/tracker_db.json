@@ -1,0 +1,497 @@
+{
+  "users": [
+    {
+      "id": "262bcc41-da22-4d86-a0ed-0cd1256870dc",
+      "name": "Kabir Verma",
+      "email": "kabir@test.com",
+      "salt": "2ab626e3dbc183d2737875d305d1542a",
+      "hash": "fada0f1382e42176380faedc2e96cee55ed063c3ccb5b8e3571dea9857a94f7b3009c9e307ff8a82409e162e9747b83155e177cfbac4c56e18ef1a0aafc73b10",
+      "createdAt": "2026-09-16T04:11:03.338Z"
+    },
+    {
+      "id": "c73bf5ef-cd7d-46b9-8e37-9e195d81d9f0",
+      "name": "Sneha Roy",
+      "email": "sneha@test.com",
+      "salt": "a4a06dbde719f4259c9b09ad4b08f4d5",
+      "hash": "33b3e60ac134591e75a6d468bcb905bfc0c2a37d868ee75af6958a7da8f99f6fe5ce76cf5c6ea581e861fec1183f81b9dd9ede1ab4be0cc9a28aeb7ca3648fd6",
+      "createdAt": "2026-09-16T04:11:10.250Z"
+    },
+    {
+      "id": "66a7f3d8-37bf-4f24-8489-2a98c279a0f6",
+      "name": "deepak",
+      "email": "deepak222@gmail.com",
+      "salt": "f9eadfb5f7209a3a5d1fe277301cf343",
+      "hash": "f86b787ee8c83dd4266a30eb44ffb50e6ea82090d61f7b0ec12f7fb0c83e981d56b035d48a503a0b829fdd4ad2c1935eb07d981cc5ee3281389c40e7a3f9eb7c",
+      "createdAt": "2026-09-16T04:18:04.640Z"
+    },
+    {
+      "id": "550d18a9-90d5-408f-98b4-c60f1eb2f0bc",
+      "name": "Warrior Student",
+      "email": "warrior.1789539743536@gmail.com",
+      "salt": "5d52671de7ac05731f1438e107116f59",
+      "hash": "e905b702b7198a4e84393116734fd98288db51ba15779b825d6cb5dca65f2b243a27ca9aaeac000e4e2b8909ac4b570c448f88a4f2f552536650909424962f73",
+      "createdAt": "2026-09-16T06:22:23.538Z"
+    },
+    {
+      "id": "bcaa6f5e-fb3e-4746-b05f-036bc5f53e3c",
+      "name": "Warrior Student",
+      "email": "warrior.1789539773512@gmail.com",
+      "salt": "c286f5037141399caa070a5563676743",
+      "hash": "c48c2b87b5f55e1817afa5dd559f923ae7d0d4d392358aa7ad98683264db775e64e73ab3eb5d9a6960318b873c05034660bf16b802288329e050ae21a873c9e5",
+      "createdAt": "2026-09-16T06:22:53.513Z"
+    },
+    {
+      "id": "c6c3ed47-f6f1-4608-b3f1-0f400c36bbd1",
+      "name": "Aryan Sharma",
+      "email": "disciplined.warrior.1789542113463@gmail.com",
+      "salt": "4dcc940a5d8994e3c35e9fc08239c4e9",
+      "hash": "49e496c2a952af991c321980eb0af2337b6c2b366b127c7805adf1a1dc8817cb5e76d68702f1466537046dc19cd84c903228e266035c22c1721e3405c20f1648",
+      "createdAt": "2026-09-16T07:01:55.007Z"
+    }
+  ],
+  "trackerStates": {
+    "kabir@test.com": {
+      "dailyTasks": {
+        "2026-09-16": [
+          {
+            "id": 1,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 2,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 3,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 4,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 5,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 6,
+            "label": "Language Learning",
+            "icon": "A",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 7,
+            "label": "Mock Test / Revision",
+            "icon": "▥",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 8,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 9,
+            "label": "Sleep (Hours)",
+            "icon": "☾",
+            "type": "mindset",
+            "done": true
+          }
+        ]
+      },
+      "goals": [],
+      "notes": [],
+      "journal": [],
+      "rewards": {
+        "2026-09-16": {
+          "day": 1,
+          "quote": "You didn't negotiate with your mind today. You showed up, executed every task, and earned your self-respect.",
+          "author": "DAY 1 · INITIATION",
+          "completedAt": "2026-09-16T04:11:04.853Z"
+        }
+      },
+      "updatedAt": "2026-09-16T04:11:04.984Z"
+    },
+    "sneha@test.com": {
+      "dailyTasks": {
+        "2026-09-16": [
+          {
+            "id": 1,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": false
+          },
+          {
+            "id": 2,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": false
+          },
+          {
+            "id": 3,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": false
+          },
+          {
+            "id": 4,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": false
+          },
+          {
+            "id": 5,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": false
+          },
+          {
+            "id": 6,
+            "label": "Language Learning",
+            "icon": "A",
+            "type": "learning",
+            "done": false
+          },
+          {
+            "id": 7,
+            "label": "Mock Test / Revision",
+            "icon": "▥",
+            "type": "learning",
+            "done": false
+          },
+          {
+            "id": 8,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": false
+          },
+          {
+            "id": 9,
+            "label": "Sleep (Hours)",
+            "icon": "☾",
+            "type": "mindset",
+            "done": false
+          }
+        ]
+      },
+      "goals": [],
+      "notes": [],
+      "journal": [],
+      "rewards": {},
+      "updatedAt": "2026-09-16T04:11:10.391Z"
+    },
+    "deepak222@gmail.com": {
+      "dailyTasks": {
+        "2026-09-16": [
+          {
+            "id": 1789532320961,
+            "label": "data science study",
+            "icon": "◆",
+            "type": "focus",
+            "done": false
+          },
+          {
+            "id": 1,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": false
+          },
+          {
+            "id": 2,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": false
+          },
+          {
+            "id": 3,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": false
+          },
+          {
+            "id": 4,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": false
+          },
+          {
+            "id": 5,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": false
+          },
+          {
+            "id": 6,
+            "label": "Language Learning",
+            "icon": "A",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 7,
+            "label": "Mock Test / Revision",
+            "icon": "▥",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 8,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 9,
+            "label": "Sleep (Hours)",
+            "icon": "☾",
+            "type": "mindset",
+            "done": true
+          }
+        ]
+      },
+      "goals": [],
+      "notes": [],
+      "journal": [],
+      "rewards": {
+        "2026-09-16": {
+          "day": 1,
+          "quote": "You didn't negotiate with your mind today. You showed up, executed every task, and earned your self-respect.",
+          "author": "DAY 1 · INITIATION",
+          "completedAt": "2026-09-16T04:18:52.481Z"
+        }
+      },
+      "trophies": 1,
+      "updatedAt": "2026-09-16T07:17:49.946Z"
+    },
+    "warrior.1789539743536@gmail.com": {
+      "dailyTasks": {},
+      "goals": [],
+      "notes": [],
+      "journal": [],
+      "rewards": {},
+      "updatedAt": "2026-09-16T06:22:23.538Z"
+    },
+    "warrior.1789539773512@gmail.com": {
+      "dailyTasks": {},
+      "goals": [],
+      "notes": [],
+      "journal": [],
+      "rewards": {},
+      "updatedAt": "2026-09-16T06:22:53.513Z"
+    },
+    "disciplined.warrior.1789542113463@gmail.com": {
+      "dailyTasks": {
+        "2026-09-16": [
+          {
+            "id": 1,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 2,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 3,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 4,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 5,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 6,
+            "label": "Language Learning",
+            "icon": "A",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 7,
+            "label": "Mock Test / Revision",
+            "icon": "▥",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 8,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 9,
+            "label": "Sleep (Hours)",
+            "icon": "☾",
+            "type": "mindset",
+            "done": true
+          }
+        ]
+      },
+      "goals": [],
+      "notes": [],
+      "journal": [],
+      "rewards": {
+        "2026-09-16": {
+          "day": 1,
+          "quote": "You didn't negotiate with your mind today. You showed up, executed every task, and earned your self-respect.",
+          "author": "DAY 1 · INITIATION",
+          "trophiesEarned": 1,
+          "completedAt": "2026-09-16T07:01:58.822Z"
+        }
+      },
+      "trophies": 1,
+      "updatedAt": "2026-09-16T07:01:58.958Z"
+    }
+  },
+  "sessions": {
+    "cb7c622ccd29171b45e34585cd1c698e57bcc402201e0f85aaf2aefae59b4aa8": {
+      "user": {
+        "id": "c73bf5ef-cd7d-46b9-8e37-9e195d81d9f0",
+        "name": "Sneha Roy",
+        "email": "sneha@test.com"
+      },
+      "createdAt": "2026-09-16T04:11:10.251Z"
+    },
+    "6ea30056b97373604caaffe38e9e5144025f06ec42a56394e5378d00dd4a7cb7": {
+      "user": {
+        "id": "262bcc41-da22-4d86-a0ed-0cd1256870dc",
+        "name": "Kabir Verma",
+        "email": "kabir@test.com"
+      },
+      "createdAt": "2026-09-16T04:11:12.575Z"
+    },
+    "8b50d7338784e46ccf5ac5e6b2cc3a6e1fa3b152083ba7b545b28d69c751368d": {
+      "user": {
+        "id": "66a7f3d8-37bf-4f24-8489-2a98c279a0f6",
+        "name": "deepak",
+        "email": "deepak222@gmail.com"
+      },
+      "createdAt": "2026-09-16T04:18:04.641Z"
+    },
+    "dda4df3e1c40bb0a9e6b580107eaa538e74b705947a41756c69bd5a3cc892fe2": {
+      "user": {
+        "id": "550d18a9-90d5-408f-98b4-c60f1eb2f0bc",
+        "name": "Warrior Student",
+        "email": "warrior.1789539743536@gmail.com"
+      },
+      "createdAt": "2026-09-16T06:22:23.539Z"
+    },
+    "c6fbd0d3ab0dd155e06191311155835df3043648c20aba707cec8302f85dd02a": {
+      "user": {
+        "id": "550d18a9-90d5-408f-98b4-c60f1eb2f0bc",
+        "name": "Warrior Student",
+        "email": "warrior.1789539743536@gmail.com"
+      },
+      "createdAt": "2026-09-16T06:22:23.542Z"
+    },
+    "f6c216b4f0285b162ef994d430ebddd49750462656b78248eac42affd3d28d5e": {
+      "user": {
+        "id": "bcaa6f5e-fb3e-4746-b05f-036bc5f53e3c",
+        "name": "Warrior Student",
+        "email": "warrior.1789539773512@gmail.com"
+      },
+      "createdAt": "2026-09-16T06:22:53.514Z"
+    },
+    "a2edbdac679c64179cb7c910c85df5479ee2683b8efa9c6425a8ec50b6a3a33c": {
+      "user": {
+        "id": "bcaa6f5e-fb3e-4746-b05f-036bc5f53e3c",
+        "name": "Warrior Student",
+        "email": "warrior.1789539773512@gmail.com"
+      },
+      "createdAt": "2026-09-16T06:22:53.517Z"
+    },
+    "5abc9f8e80471245565489c8aab00afcc2a8f7e898d19d34dc9de121980ecccb": {
+      "user": {
+        "id": "c6c3ed47-f6f1-4608-b3f1-0f400c36bbd1",
+        "name": "Aryan Sharma",
+        "email": "disciplined.warrior.1789542113463@gmail.com"
+      },
+      "createdAt": "2026-09-16T07:01:55.008Z"
+    }
+  },
+  "supportTickets": [
+    {
+      "id": "637482c5-4340-48d7-a293-d614072973ba",
+      "email": "guest@dailygrind.local",
+      "name": "Sketch",
+      "category": "Feature Idea",
+      "message": "Loving the 351-day quest! Could we add customizable milestone badges in the future?",
+      "createdAt": "2026-09-16T04:22:53.653Z"
+    },
+    {
+      "id": "363ee0b8-d919-4065-a509-af62369fa6c3",
+      "email": "deepak222@gmail.com",
+      "name": "deepak",
+      "category": "General Question",
+      "message": "hello pls fix this bug",
+      "createdAt": "2026-09-16T04:24:29.811Z"
+    },
+    {
+      "id": "890f553a-f43e-4249-b40e-15f64912464b",
+      "email": "warrior.1789539743536@gmail.com",
+      "name": "Warrior Student",
+      "category": "Feature Idea",
+      "message": "Loving the new Classic mode and spiritual quotes!",
+      "createdAt": "2026-09-16T06:22:23.544Z"
+    },
+    {
+      "id": "d13fae22-3be3-414c-ab8b-67ae2d39f396",
+      "email": "warrior.1789539773512@gmail.com",
+      "name": "Warrior Student",
+      "category": "Feature Idea",
+      "message": "Loving the new Classic mode and spiritual quotes!",
+      "createdAt": "2026-09-16T06:22:53.520Z"
+    }
+  ]
+}

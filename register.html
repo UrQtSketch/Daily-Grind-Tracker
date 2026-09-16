@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#080b13" />
+    <title>Start your grind — Daily Grind Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="auth-body">
+    <div class="auth-scene register-scene">
+      <canvas id="spiritualCanvas" class="spiritual-canvas"></canvas>
+      <div class="auth-glow"></div>
+    </div>
+
+    <div class="auth-center-container">
+      <header class="auth-brand-top">
+        <a class="brand" href="index.html">
+          <span class="brand-mark">♨</span>
+          <span class="brand-copy"><strong>DAILY <em>GRIND</em></strong><small>TRACKER</small></span>
+        </a>
+      </header>
+
+      <main class="auth-main">
+        <section class="auth-card">
+          <p class="eyebrow">START THE QUEST</p>
+          <h1>Build the person<br />you <em>respect.</em></h1>
+          <p class="auth-intro">Your personal system for showing up every day with unbroken discipline.</p>
+          <form class="auth-form" id="registerForm" novalidate>
+            <label>Your name
+              <input id="registerName" type="text" autocomplete="name" placeholder="What should we call you?" required maxlength="28" />
+            </label>
+            <label>Gmail Address
+              <input id="registerEmail" type="email" autocomplete="email" placeholder="you@gmail.com" pattern=".+@gmail\.com" required />
+            </label>
+            <label>Password
+              <input id="registerPassword" type="password" autocomplete="new-password" placeholder="At least 6 characters" required minlength="6" />
+            </label>
+            <p class="form-error" id="registerError" role="alert"></p>
+            <button class="primary-button auth-submit" type="submit">Create my tracker <span>→</span></button>
+          </form>
+          <p class="auth-switch">Already building? <a href="login.html">Log in with Gmail</a></p>
+          <footer class="auth-legal-footer">
+            <p>© 2026 Daily Grind Tracker. Built with discipline. All rights reserved.</p>
+            <div class="legal-links">
+              <button type="button" class="legal-link-btn" id="openTermsBtn">Terms of Service</button>
+              <span>•</span>
+              <button type="button" class="legal-link-btn" id="openPrivacyBtn">Privacy Policy</button>
+            </div>
+          </footer>
+        </section>
+      </main>
+
+      <div class="spiritual-quote-wrap">
+        <span class="spiritual-badge">✦ INNER FIRE & STUDENT FAITH</span>
+        <p class="spiritual-quote" id="spiritualQuote">“Karmanye vadhikaraste ma phaleshu kadachana (Focus entirely on your action, conquer all distraction).”</p>
+        <span class="spiritual-author" id="spiritualAuthor">— BHAGAVAD GITA 2.47</span>
+      </div>
+    </div>
+
+    <!-- Terms of Service Modal -->
+    <dialog class="modal legal-modal" id="termsModal">
+      <div class="legal-modal-content">
+        <button class="modal-close" type="button" aria-label="Close" onclick="document.getElementById('termsModal').close()">×</button>
+        <h2>Terms of Service</h2>
+        <span class="legal-date">Effective: September 2026 · Daily Grind Tracker</span>
+        <div class="legal-section">
+          <h3>1. Purpose of the Platform</h3>
+          <p>Daily Grind Tracker is designed to cultivate personal discipline, student focus, and daily accountability. By registering an account, you commit to upholding authentic self-discipline in tracking your daily tasks and quest milestones.</p>
+        </div>
+        <div class="legal-section">
+          <h3>2. Account Eligibility & Gmail Requirement</h3>
+          <p>To ensure verified and trustworthy usage, all users must register and log in using an authentic @gmail.com email address. Each individual is entitled to one personal tracker profile.</p>
+        </div>
+        <div class="legal-section">
+          <h3>3. User Conduct & Honesty</h3>
+          <p>The quest is built on honor. You agree not to manipulate, exploit, or falsify milestone achievements. True strength is earned through genuine execution.</p>
+        </div>
+        <div class="legal-section">
+          <h3>4. Intellectual Property & Rights</h3>
+          <p>© 2026 Daily Grind Tracker. All trademarks, designs, celebration reward algorithms, and motivational content are protected by copyright. Unauthorized replication is strictly prohibited.</p>
+        </div>
+      </div>
+    </dialog>
+
+    <!-- Privacy Policy Modal -->
+    <dialog class="modal legal-modal" id="privacyModal">
+      <div class="legal-modal-content">
+        <button class="modal-close" type="button" aria-label="Close" onclick="document.getElementById('privacyModal').close()">×</button>
+        <h2>Privacy Policy</h2>
+        <span class="legal-date">Effective: September 2026 · Daily Grind Tracker</span>
+        <div class="legal-section">
+          <h3>1. Information We Collect</h3>
+          <p>We only collect the minimum information necessary to maintain your discipline quest: your display name and your authentic @gmail.com email address. We do not track location or personal browsing activity.</p>
+        </div>
+        <div class="legal-section">
+          <h3>2. Cryptographic Security</h3>
+          <p>All user passwords are cryptographically secured using salted PBKDF2 with SHA-512 hashes. Passwords are never stored in plain text.</p>
+        </div>
+        <div class="legal-section">
+          <h3>3. Data Isolation & Multi-Tenant Privacy</h3>
+          <p>Your daily tasks, journal entries, notes, and earned 751-Day rewards are strictly isolated to your account. No other user can view or access your private quest data.</p>
+        </div>
+        <div class="legal-section">
+          <h3>4. Zero Third-Party Monetization</h3>
+          <p>We do not sell, rent, trade, or share your data with any advertising networks or third parties. Your personal growth archive remains entirely your own.</p>
+        </div>
+      </div>
+    </dialog>
+
+    <script src="auth.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

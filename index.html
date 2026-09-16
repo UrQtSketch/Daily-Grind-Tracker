@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#080b13" />
+    <title>Daily Grind Tracker — Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css?v=1.2" />
+  </head>
+  <body class="app-body">
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <a class="brand" href="index.html" aria-label="Daily Grind Tracker home">
+          <span class="brand-mark">♨</span>
+          <span class="brand-copy"><strong>DAILY <em>GRIND</em></strong><small>TRACKER</small></span>
+        </a>
+
+        <nav class="side-nav" aria-label="Main navigation">
+          <a class="nav-link is-active" href="#dashboard" data-view="dashboard"><span>⌂</span>Dashboard</a>
+          <a class="nav-link" href="#habits" data-view="habits"><span>◌</span>Habits</a>
+          <a class="nav-link" href="#goals" data-view="goals"><span>⌁</span>Goals</a>
+          <a class="nav-link" href="#analytics" data-view="analytics"><span>▥</span>Analytics</a>
+          <a class="nav-link" href="#history" data-view="history"><span>◷</span>History</a>
+          <a class="nav-link" href="#journal" data-view="journal"><span>▤</span>Journal</a>
+          <a class="nav-link" href="#notes" data-view="notes"><span>▧</span>Notes</a>
+        </nav>
+
+        <div class="sidebar-bottom">
+          <a class="nav-link" href="#support" data-view="support"><span>✉</span>Support & Help</a>
+          <a class="nav-link" href="#settings" data-view="settings"><span>⚙</span>Settings</a>
+          <div class="sidebar-quote">
+            <p>“Discipline today,<br />a better you tomorrow.”</p>
+            <span>— <span data-profile-name>SKETCH</span></span>
+          </div>
+          <div class="sidebar-legal-footer">
+            <small>© 2026 Daily Grind Tracker</small>
+            <div class="sidebar-legal-links">
+              <button type="button" id="sidebarTermsBtn">Terms</button>
+              <span>•</span>
+              <button type="button" id="sidebarPrivacyBtn">Privacy</button>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main-content" id="appMain">
+        <header class="topbar">
+          <button class="mobile-menu" id="menuToggle" aria-label="Open menu">☰</button>
+          <label class="search-box" for="taskSearch">
+            <span>⌕</span>
+            <input id="taskSearch" type="search" placeholder="Same Boy. Higher Goals." autocomplete="off" />
+          </label>
+          <div class="topbar-actions">
+            <button class="mode-chip" id="modeToggleBtn" type="button" title="Switch between Basic and Classic modes">
+              <span id="modeIcon">⚡</span><b id="modeLabel">Basic Mode</b>
+            </button>
+            <button class="date-chip" id="dateButton" type="button" aria-label="Choose date"><span>▣</span><span id="dateLabel">Thu, 11 Sep 2026</span></button>
+            <input id="datePicker" class="visually-hidden" type="date" />
+            <div class="trophy-chip" id="userTrophyBadge" title="Total Trophies Earned in 751-Day Quest">
+              <span class="trophy-icon">🏆</span>
+              <strong id="userTrophyCount">0</strong>
+              <small>Trophies</small>
+            </div>
+            <div class="profile-wrap">
+              <button class="profile-button" id="profileButton" type="button" aria-expanded="false">
+                <span class="avatar" data-avatar>S</span><strong data-profile-name>Sketch</strong><span class="chevron">⌄</span>
+              </button>
+              <div class="profile-menu" id="profileMenu" hidden>
+                <p>Signed in as <strong data-profile-email>guest@dailygrind.local</strong></p>
+                <p style="font-size:12px; color:#ffca42; margin:6px 0 2px;">🏆 <strong id="profileTrophyCount">0</strong> Trophies in Vault</p>
+                <a href="login.html">Switch account</a>
+                <button id="signOutButton" type="button">Sign out</button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div id="dashboardView">
+        <section class="hero-panel" aria-labelledby="welcomeHeading">
+          <div class="hero-overlay"></div>
+          <div class="hero-content">
+            <p class="eyebrow">751-DAY QUEST · DAY <span id="heroDay">00</span></p>
+            <h1 id="welcomeHeading">Keep Going,<br /><em data-profile-name>Sketch</em></h1>
+            <p>Day <span id="heroDayPlain">0</span> of 751 Days · Every promise kept counts.</p>
+          </div>
+          <div class="hero-note"><span>751 Days<br /><i>Quest Log</i></span><b></b></div>
+          <div class="hero-quote">“A better version<br />of you is<br />in progress.”<span></span></div>
+        </section>
+
+        <!-- 751-Day Quest Progress Panel -->
+        <section class="quest-panel" aria-label="751-Day Quest progress">
+          <div class="quest-top">
+            <div class="quest-tag">
+              <span class="quest-flame">⚔</span>
+              <div>
+                <strong>751-DAY DISCIPLINE QUEST</strong>
+                <small id="questSubtext">Day 0 of 751 Days completed</small>
+              </div>
+            </div>
+            <div class="quest-metrics">
+              <span class="quest-badge" id="questMilestoneBadge">Day 0 · Starting Out</span>
+              <strong class="quest-counter"><span id="questCompletedDays">0</span><small>/751 DAYS</small></strong>
+              <span class="quest-percent" id="questPercent">0.0%</span>
+            </div>
+          </div>
+          <div class="quest-progress-wrap">
+            <div class="quest-track" role="progressbar" aria-label="751-Day Quest progress" aria-valuemin="0" aria-valuemax="751" aria-valuenow="0">
+              <div class="quest-bar" id="questBar" style="width: 0%;"></div>
+            </div>
+            <div class="quest-milestones">
+              <span class="ms-dot is-reached" id="ms0"><i></i>Day 0</span>
+              <span class="ms-dot" id="ms100"><i></i>Day 100</span>
+              <span class="ms-dot" id="ms200"><i></i>Day 200</span>
+              <span class="ms-dot" id="ms400"><i></i>Day 400</span>
+              <span class="ms-dot" id="ms600"><i></i>Day 600</span>
+              <span class="ms-dot" id="ms751"><i></i>Day 751 🏆</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="momentum-panel" aria-label="Today's task progress">
+          <div class="momentum-copy"><span>Today’s Momentum</span><strong><b id="momentumCurrent">0</b> of <b id="momentumTotal">9</b> tasks complete</strong></div>
+          <div class="progress-track" role="progressbar" aria-label="Today's task progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="momentumBar"></span></div>
+          <strong class="momentum-percent" id="momentumPercent">0%</strong>
+        </section>
+
+        <section class="stat-grid" aria-label="Your progress at a glance">
+          <article class="stat-card streak-card"><div class="stat-icon">♨</div><div><strong id="streakValue">0</strong><span>Day Streak</span></div></article>
+          <article class="stat-card task-card"><div class="stat-icon">✓</div><div><strong id="totalValue">0</strong><span>Total Tasks Done</span></div></article>
+          <article class="stat-card progress-card"><div class="stat-icon chart-icon">▮▮▮</div><div><strong id="progressValue">0%</strong><span>Weekly Progress</span></div></article>
+          <article class="stat-card goal-card"><div class="stat-icon">★</div><div><strong id="goalValue">0</strong><span>Goals In Progress</span></div></article>
+        </section>
+
+        <section class="content-grid">
+          <article class="panel task-panel" id="tasks">
+            <div class="panel-heading">
+              <div><span class="heading-icon">⌂</span><h2>Today’s Tasks</h2></div>
+              <div class="task-panel-tools"><span class="small-date">▣ <span id="taskDateLabel">Thu, 11 Sep 2026</span></span><button class="primary-button" id="openTaskModal" type="button"><span>＋</span>Add Task</button></div>
+            </div>
+            <div class="task-list" id="taskList" aria-live="polite"></div>
+            <p class="empty-state" id="emptyTasks" hidden>No matching tasks yet. Add one to keep the momentum.</p>
+            <div class="task-footer"><span><b id="completeCount">6</b> / <b id="taskCount">9</b> complete</span><div><i></i><i></i><i></i></div></div>
+          </article>
+
+          <aside class="right-rail">
+            <article class="panel weekly-panel" id="analytics">
+              <div class="panel-heading"><h2>Weekly Progress</h2><a href="#analytics">View All <span>→</span></a></div>
+              <div class="chart-wrap"><div class="chart-y"><span>100%</span><span>50%</span><span>0%</span></div><div class="bar-chart" id="barChart" aria-label="Weekly completion chart"></div></div>
+            </article>
+            <article class="motivation-strip"><span>“Progress, not perfection.”</span><div class="mini-line"><i></i><i></i><i></i></div></article>
+            <article class="panel action-panel" id="notes">
+              <div class="panel-heading"><h2>Quick Actions</h2></div>
+              <div class="action-grid">
+                <button class="quick-action note" data-action="note" type="button"><span>＋</span>Add Note</button>
+                <button class="quick-action journal" data-action="journal" type="button"><span>▤</span>Journal</button>
+                <button class="quick-action goal" data-action="goal" type="button"><span>◎</span>Set Goal</button>
+                <button class="quick-action stats" data-action="stats" type="button"><span>▥</span>View Stats</button>
+              </div>
+            </article>
+          </aside>
+        </section>
+
+        <section class="mood-grid" aria-label="Motivational reminders">
+          <article class="mood-card freedom"><p>Discipline<br />Builds<br /><em>Freedom.</em></p><span></span></article>
+          <article class="mood-card day"><p>One Day.<br />at a Time.</p><span></span></article>
+          <article class="mood-card can-do"><p>You<br />Can Do<br />This.</p><span></span></article>
+          <article class="mood-card higher"><p>Same Boy.<br /><em>Higher</em> Goals.</p><span></span></article>
+        </section>
+        </div>
+
+        <section class="page-view" id="secondaryView" hidden aria-live="polite"></section>
+      </main>
+    </div>
+
+    <dialog class="modal" id="taskModal">
+      <form method="dialog" class="modal-card" id="taskForm">
+        <button class="modal-close" value="cancel" aria-label="Close">×</button>
+        <p class="eyebrow">BUILD YOUR DAY</p>
+        <h2>Add a new task</h2>
+        <label>Task name<input id="newTaskName" name="taskName" required maxlength="52" placeholder="e.g. Read for 20 minutes" /></label>
+        <label>Category<select id="newTaskCategory" name="category"><option value="focus">Focus</option><option value="fitness">Fitness</option><option value="learning">Learning</option><option value="mindset">Mindset</option></select></label>
+        <button class="primary-button modal-submit" value="default" type="submit">Add to today <span>→</span></button>
+      </form>
+    </dialog>
+
+    <dialog class="modal" id="captureModal">
+      <form method="dialog" class="modal-card" id="captureForm">
+        <button class="modal-close" value="cancel" aria-label="Close">×</button>
+        <p class="eyebrow" id="captureKicker">QUICK CAPTURE</p>
+        <h2 id="captureTitle">Add a note</h2>
+        <label id="captureLabel">Keep it simple<textarea id="captureInput" required maxlength="280" placeholder="Write it down before it disappears..."></textarea></label>
+        <button class="primary-button modal-submit" value="default" type="submit">Save it <span>→</span></button>
+      </form>
+    </dialog>
+
+    <dialog class="modal reward-modal" id="rewardModal">
+      <div class="reward-card">
+        <canvas class="confetti-canvas" id="rewardCanvas"></canvas>
+        <button class="modal-close" id="rewardCloseBtn" type="button" aria-label="Close">×</button>
+        <div class="reward-emblem-wrap">
+          <div class="reward-sparkle-glow"></div>
+          <div class="reward-emblem">🏆</div>
+        </div>
+        <p class="eyebrow" id="rewardEyebrow">QUEST DAY CONQUERED · 100% COMPLETE</p>
+        <h2 id="rewardHeading">Outstanding, <em data-profile-name>Sketch</em>!</h2>
+        <div class="reward-trophy-pill" id="rewardTrophyPill">
+          <span class="trophy-sparkle">🏆</span>
+          <div>
+            <strong id="rewardTrophiesEarned">+1 Trophy Added to Vault!</strong>
+            <small id="rewardTotalTrophies">You now have 1 Trophy</small>
+          </div>
+        </div>
+        <div class="reward-quote-card">
+          <span class="reward-quote-glyph">“</span>
+          <p id="rewardQuoteText">You didn't negotiate with comfort today. You showed up, executed every task, and earned your self-respect.</p>
+          <small id="rewardQuoteAuthor">— DAILY GRIND DISCIPLINE ARCHIVE</small>
+        </div>
+        <div class="reward-stat-pill">
+          <div><strong id="rewardStreakVal">1</strong><span>DAY STREAK</span></div>
+          <div><strong id="rewardDayVal">Day 1</strong><span>OF 751</span></div>
+          <div><strong id="rewardTasksVal">9 / 9</strong><span>COMPLETED</span></div>
+        </div>
+        <button class="primary-button reward-claim-btn" id="claimRewardBtn" type="button">Claim Day Reward & Continue <span>→</span></button>
+      </div>
+    </dialog>
+
+    <!-- Dual-Mode Selector Modal -->
+    <dialog class="modal mode-modal" id="modeSelectorModal">
+      <div class="mode-modal-card">
+        <p class="eyebrow" style="color:#ffc107;">CHOOSE YOUR EXPERIENCE</p>
+        <h2>Select Your Grind Environment</h2>
+        <p>Choose the discipline vibe that fits you best. You can switch anytime with one click.</p>
+        <div class="mode-grid">
+          <div class="mode-option-card basic-card" id="selectBasicCard" data-choose-mode="basic">
+            <span class="mode-icon">⚡</span>
+            <h3>Basic Mode</h3>
+            <span class="mode-tagline">CLEAN & MINIMALIST</span>
+            <p>Distraction-free, modern dark dashboard designed for pure focus and raw execution speed.</p>
+            <button class="mode-select-btn" type="button">Start in Basic Mode →</button>
+          </div>
+          <div class="mode-option-card classic-card" id="selectClassicCard" data-choose-mode="classic">
+            <span class="mode-icon">🏛️</span>
+            <h3>Classic Mode</h3>
+            <span class="mode-tagline">SPIRITUAL & ANCIENT WISDOM</span>
+            <p>Golden discipline aura, student inner-fire accents, and elevated sacred quotes for deep perseverance.</p>
+            <button class="mode-select-btn" type="button">Enter Classic Mode →</button>
+          </div>
+        </div>
+      </div>
+    </dialog>
+
+    <!-- Terms of Service Modal -->
+    <dialog class="modal legal-modal" id="termsModal">
+      <div class="legal-modal-content">
+        <button class="modal-close" type="button" aria-label="Close" onclick="document.getElementById('termsModal').close()">×</button>
+        <h2>Terms of Service</h2>
+        <span class="legal-date">Effective: September 2026 · Daily Grind Tracker</span>
+        <div class="legal-section">
+          <h3>1. Purpose of the Platform</h3>
+          <p>Daily Grind Tracker is designed to cultivate personal discipline, student focus, and daily accountability. By registering an account, you commit to upholding authentic self-discipline in tracking your daily tasks and quest milestones.</p>
+        </div>
+        <div class="legal-section">
+          <h3>2. Account Eligibility & Gmail Requirement</h3>
+          <p>To ensure verified and trustworthy usage, all users must register and log in using an authentic @gmail.com email address. Each individual is entitled to one personal tracker profile.</p>
+        </div>
+        <div class="legal-section">
+          <h3>3. User Conduct & Honesty</h3>
+          <p>The quest is built on honor. You agree not to manipulate, exploit, or falsify milestone achievements. True strength is earned through genuine execution.</p>
+        </div>
+        <div class="legal-section">
+          <h3>4. Intellectual Property & Rights</h3>
+          <p>© 2026 Daily Grind Tracker. All trademarks, designs, celebration reward algorithms, and motivational content are protected by copyright. Unauthorized replication is strictly prohibited.</p>
+        </div>
+      </div>
+    </dialog>
+
+    <!-- Privacy Policy Modal -->
+    <dialog class="modal legal-modal" id="privacyModal">
+      <div class="legal-modal-content">
+        <button class="modal-close" type="button" aria-label="Close" onclick="document.getElementById('privacyModal').close()">×</button>
+        <h2>Privacy Policy</h2>
+        <span class="legal-date">Effective: September 2026 · Daily Grind Tracker</span>
+        <div class="legal-section">
+          <h3>1. Information We Collect</h3>
+          <p>We only collect the minimum information necessary to maintain your discipline quest: your display name and your authentic @gmail.com email address. We do not track location or personal browsing activity.</p>
+        </div>
+        <div class="legal-section">
+          <h3>2. Cryptographic Security</h3>
+          <p>All user passwords are cryptographically secured using salted PBKDF2 with SHA-512 hashes. Passwords are never stored in plain text.</p>
+        </div>
+        <div class="legal-section">
+          <h3>3. Data Isolation & Multi-Tenant Privacy</h3>
+          <p>Your daily tasks, journal entries, notes, and earned 751-Day rewards are strictly isolated to your account. No other user can view or access your private quest data.</p>
+        </div>
+        <div class="legal-section">
+          <h3>4. Zero Third-Party Monetization</h3>
+          <p>We do not sell, rent, trade, or share your data with any advertising networks or third parties. Your personal growth archive remains entirely your own.</p>
+        </div>
+      </div>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="auth.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
