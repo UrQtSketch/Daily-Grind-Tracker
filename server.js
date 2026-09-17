@@ -13,29 +13,38 @@ app.use(express.json({ limit: "5mb" }));
 app.use(express.static(__dirname));
 
 // Session authentication middleware
-function authenticate(req, res, next) {
-  const authHeader = req.headers["authorization"] || "";
-  const token = authHeader.startsWith("Bearer ")
-    ? authHeader.slice(7).trim()
-    : req.headers["x-session-token"];
+async function authenticate(req, res, next) {
+  try {
+    const authHeader = req.headers["authorization"] || "";
+    const token = authHeader.startsWith("Bearer ")
+      ? authHeader.slice(7).trim()
+      : req.headers["x-session-token"];
 
-  if (!token) {
-    return res.status(401).json({ error: "Authentication required" });
+    if (!token) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+
+    const user = await db.getUserBySession(token);
+    if (!user) {
+      return res.status(401).json({ error: "Invalid or expired session" });
+    }
+
+    req.user = user;
+    req.token = token;
+    next();
+  } catch (err) {
+    res.status(500).json({ error: "Authentication error" });
   }
-
-  const user = db.getUserBySession(token);
-  if (!user) {
-    return res.status(401).json({ error: "Invalid or expired session" });
-  }
-
-  req.user = user;
-  req.token = token;
-  next();
 }
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", service: "Daily Grind Tracker", timestamp: new Date().toISOString() });
+  res.json({
+    status: "ok",
+    service: "Daily Grind Tracker",
+    database: db.isMongoActive ? (db.isMongoActive() ? "MongoDB Atlas" : "Local JSON (fallback)") : "ready",
+    timestamp: new Date().toISOString()
+  });
 });
 
 function isGmail(email) {
@@ -46,7 +55,7 @@ function isGmail(email) {
 }
 
 // Auth endpoints
-app.post("/api/auth/register", (req, res) => {
+app.post("/api/auth/register", async (req, res) => {
   try {
     const { name, email, password } = req.body || {};
     if (!name || name.trim().length < 2) {
@@ -59,15 +68,15 @@ app.post("/api/auth/register", (req, res) => {
       return res.status(400).json({ error: "Password must be at least 6 characters" });
     }
 
-    const user = db.createUser(name, email, password);
-    const token = db.createSession(user);
+    const user = await db.createUser(name, email, password);
+    const token = await db.createSession(user);
     res.status(201).json({ user, token });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 });
 
-app.post("/api/auth/login", (req, res) => {
+app.post("/api/auth/login", async (req, res) => {
   try {
     const { email, password } = req.body || {};
     if (!email || !password) {
@@ -77,17 +86,21 @@ app.post("/api/auth/login", (req, res) => {
       return res.status(400).json({ error: "Only @gmail.com email addresses are allowed." });
     }
 
-    const user = db.verifyUser(email, password);
-    const token = db.createSession(user);
+    const user = await db.verifyUser(email, password);
+    const token = await db.createSession(user);
     res.json({ user, token });
   } catch (err) {
     res.status(401).json({ error: err.message });
   }
 });
 
-app.post("/api/auth/logout", authenticate, (req, res) => {
-  db.deleteSession(req.token);
-  res.json({ success: true });
+app.post("/api/auth/logout", authenticate, async (req, res) => {
+  try {
+    await db.deleteSession(req.token);
+    res.json({ success: true });
+  } catch (err) {
+    res.json({ success: true });
+  }
 });
 
 app.get("/api/auth/me", authenticate, (req, res) => {
@@ -95,18 +108,18 @@ app.get("/api/auth/me", authenticate, (req, res) => {
 });
 
 // Tracker state endpoints
-app.get("/api/tracker", authenticate, (req, res) => {
+app.get("/api/tracker", authenticate, async (req, res) => {
   try {
-    const state = db.getTrackerState(req.user.email);
+    const state = await db.getTrackerState(req.user.email);
     res.json({ state });
   } catch (err) {
     res.status(500).json({ error: "Failed to load tracker state" });
   }
 });
 
-app.put("/api/tracker", authenticate, (req, res) => {
+app.put("/api/tracker", authenticate, async (req, res) => {
   try {
-    const saved = db.saveTrackerState(req.user.email, req.body || {});
+    const saved = await db.saveTrackerState(req.user.email, req.body || {});
     res.json({ success: true, state: saved });
   } catch (err) {
     res.status(500).json({ error: "Failed to save tracker state" });
@@ -114,13 +127,13 @@ app.put("/api/tracker", authenticate, (req, res) => {
 });
 
 // Support / Feedback endpoint
-app.post("/api/support/feedback", (req, res) => {
+app.post("/api/support/feedback", async (req, res) => {
   try {
     const { email, name, category, message } = req.body || {};
     if (!message || message.trim().length < 3) {
       return res.status(400).json({ error: "Please enter your message or question." });
     }
-    const ticket = db.saveSupportFeedback({
+    const ticket = await db.saveSupportFeedback({
       email: email || "anonymous",
       name: name || "Anonymous User",
       category: category || "General",
