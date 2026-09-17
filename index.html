@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=2.2" />
+    <link rel="stylesheet" href="styles.css?v=2.3" />
   </head>
   <body class="app-body">
     <div class="ambient ambient-one"></div>
@@ -51,14 +51,19 @@
           </div>
         </div>
       </aside>
+      <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
       <main class="main-content" id="appMain">
         <header class="topbar">
-          <button class="mobile-menu" id="menuToggle" aria-label="Open menu">☰</button>
-          <label class="search-box" for="taskSearch">
-            <span>⌕</span>
-            <input id="taskSearch" type="search" placeholder="Same Boy. Higher Goals." autocomplete="off" />
-          </label>
+          <div class="topbar-left">
+            <button class="sidebar-toggle-btn" id="sidebarToggleBtn" type="button" title="Hide / Show Sidebar (Toggle Navigation)" aria-label="Toggle navigation sidebar">
+              <span class="three-dots-icon">⋮</span>
+            </button>
+            <label class="search-box" for="taskSearch">
+              <span>⌕</span>
+              <input id="taskSearch" type="search" placeholder="Same Boy. Higher Goals." autocomplete="off" />
+            </label>
+          </div>
           <div class="topbar-actions">
             <button class="mode-chip" id="modeToggleBtn" type="button" title="Switch between Basic and Classic modes">
               <span id="modeIcon">⚡</span><b id="modeLabel">Basic Mode</b>
@@ -378,8 +383,8 @@
     </dialog>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    <script src="auth.js?v=2.2"></script>
-    <script src="quiz.js?v=2.2"></script>
-    <script src="app.js?v=2.2"></script>
+    <script src="auth.js?v=2.3"></script>
+    <script src="quiz.js?v=2.3"></script>
+    <script src="app.js?v=2.3"></script>
   </body>
 </html>

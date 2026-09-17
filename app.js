@@ -3126,8 +3126,38 @@
     });
 
     $("#signOutButton").addEventListener("click", async () => { await auth.signOut(); window.location.assign("login.html"); });
-    $("#menuToggle").addEventListener("click", () => page.classList.toggle("sidebar-open"));
-    $$(".nav-link[data-view]").forEach((link) => link.addEventListener("click", (event) => { event.preventDefault(); navigate(link.dataset.view); }));
+
+    function toggleSidebar() {
+      if (window.innerWidth <= 960) {
+        page.classList.toggle("sidebar-open");
+      } else {
+        const isCollapsed = page.classList.toggle("sidebar-collapsed");
+        try {
+          localStorage.setItem("dgt_sidebar_collapsed", isCollapsed ? "true" : "false");
+        } catch (e) {}
+      }
+    }
+
+    const toggleBtn = $("#sidebarToggleBtn") || $("#menuToggle");
+    if (toggleBtn) {
+      toggleBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        toggleSidebar();
+      });
+    }
+
+    const backdrop = $("#sidebarBackdrop");
+    if (backdrop) {
+      backdrop.addEventListener("click", () => {
+        page.classList.remove("sidebar-open");
+      });
+    }
+
+    $$(".nav-link[data-view]").forEach((link) => link.addEventListener("click", (event) => {
+      event.preventDefault();
+      page.classList.remove("sidebar-open");
+      navigate(link.dataset.view);
+    }));
     window.addEventListener("hashchange", () => navigate(window.location.hash.slice(1), false));
 
     document.addEventListener("click", (e) => {
@@ -3137,6 +3167,15 @@
         navigate("quiz");
       }
     });
+  }
+
+  // Restore saved desktop sidebar collapse preference
+  if (window.innerWidth > 960) {
+    try {
+      if (localStorage.getItem("dgt_sidebar_collapsed") === "true") {
+        page.classList.add("sidebar-collapsed");
+      }
+    } catch (e) {}
   }
 
   applyProfile(); setDate(activeDate, true); bindInteractions(); initModeSelector(); bindLegalModals(); initLeaderboardSSE(); fetchLeaderboardData(); navigate(window.location.hash.slice(1) || "dashboard", false); syncFromBackend();
