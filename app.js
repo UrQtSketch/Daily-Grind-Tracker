@@ -1228,7 +1228,7 @@
   async function fetchAdminUsers() {
     try {
       const token = auth.getToken();
-      const pin = localStorage.getItem("dgt_admin_pin") || "grind751";
+      const pin = localStorage.getItem("dgt_admin_pin") || "";
       const headers = {
         "x-admin-key": pin
       };
@@ -2423,13 +2423,10 @@
     }
 
     if (view === "admin") {
-      const currentUser = auth.current();
-      const cleanEmail = currentUser ? (currentUser.email || "").toLowerCase() : "";
-      const isAutoAdmin = cleanEmail === "deepak222@gmail.com" || cleanEmail === "support.dailygrind@gmail.com" || cleanEmail.startsWith("deepak");
       const storedPin = localStorage.getItem("dgt_admin_pin") || "";
       const isPinValid = storedPin === "grind751" || storedPin === "admin2026";
 
-      if (!isAutoAdmin && !isPinValid && !adminState.unlocked) {
+      if (!adminState.unlocked && !isPinValid) {
         content = `
           <div class="admin-view-wrap">
             <div class="admin-lock-card">
@@ -2544,9 +2541,9 @@
                   <p class="admin-banner-subtitle">Real-time user directory, live user messages inbox, and permanent ban management.</p>
                 </div>
               </div>
-              <div style="display:flex; align-items:center; gap:10px;">
+              <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
                 <button class="arena-refresh-btn" id="adminRefreshBtn" type="button">↻ Refresh Directory</button>
-                <button class="btn-ban-action" id="adminLockBtn" type="button" style="background:rgba(255,255,255,0.06); color:#cbd5e1; border-color:rgba(255,255,255,0.15);">🔒 Lock</button>
+                <button class="btn-admin-logout" id="adminLogoutBtn" type="button">🚪 Logout Admin</button>
               </div>
             </div>
 
@@ -3091,13 +3088,15 @@
         });
       }
 
-      const adminLockBtn = secondary.querySelector("#adminLockBtn");
-      if (adminLockBtn) {
-        adminLockBtn.addEventListener("click", () => {
+      const adminLogoutBtn = secondary.querySelector("#adminLogoutBtn");
+      if (adminLogoutBtn) {
+        adminLogoutBtn.addEventListener("click", () => {
           localStorage.removeItem("dgt_admin_pin");
           adminState.unlocked = false;
-          renderSecondaryView("admin");
-          showToast("Admin Command Center locked.");
+          adminState.users = [];
+          adminState.messages = [];
+          showToast("Successfully logged out of Admin Panel. 🔒");
+          navigate("dashboard");
         });
       }
 
