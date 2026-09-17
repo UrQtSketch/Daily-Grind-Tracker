@@ -1373,11 +1373,11 @@
             <div class="support-email-pill">
               <div>
                 <small style="display:block; font-size:10px; color:#8ba2bd; font-family:'DM Mono', monospace;">SUPPORT EMAIL</small>
-                <strong id="supportEmailAddress">sketchfallinlove@gmail.com</strong>
+                <strong id="supportEmailAddress">support.dailygrind@gmail.com</strong>
               </div>
               <button class="support-copy-btn" id="copyEmailBtn" type="button">Copy 📋</button>
             </div>
-            <a class="support-email-btn" href="mailto:sketchfallinlove@gmail.com?subject=Daily%20Grind%20Tracker%20Support%20Request">
+            <a class="support-email-btn" href="mailto:support.dailygrind@gmail.com?subject=Daily%20Grind%20Tracker%20Support%20Request">
               ✉ Send Email Directly →
             </a>
           </article>
@@ -1453,10 +1453,10 @@
     if (copyBtn) {
       copyBtn.addEventListener("click", async () => {
         try {
-          await navigator.clipboard.writeText("sketchfallinlove@gmail.com");
-          showToast("Copied to clipboard: sketchfallinlove@gmail.com");
+          await navigator.clipboard.writeText("support.dailygrind@gmail.com");
+          showToast("Copied to clipboard: support.dailygrind@gmail.com");
         } catch {
-          showToast("Email: sketchfallinlove@gmail.com");
+          showToast("Email: support.dailygrind@gmail.com");
         }
       });
     }
