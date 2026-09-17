@@ -314,7 +314,7 @@
   }
 
   function trackerStorageKey() { return `daily-grind-tracker:${user().email.toLowerCase()}`; }
-  function freshTrackerState() { return { dailyTasks: {}, goals: [], notes: [], journal: [], rewards: {}, trophies: 0 }; }
+  function freshTrackerState() { return { dailyTasks: {}, goals: [], notes: [], journal: [], rewards: {}, trophies: 0, lastActiveDate: localDateKey(), recentPenalty: null }; }
   function freshDemoState() {
     return {
       dailyTasks: {
@@ -328,6 +328,8 @@
       goals: demoGoals.map((goal) => ({ ...goal })),
       notes: demoNotes.map((note) => ({ ...note })),
       trophies: 1,
+      lastActiveDate: localDateKey(),
+      recentPenalty: null,
       rewards: {
         "2026-09-13": { day: 8, quote: "Victory is not an event—it is a daily collection of small, disciplined wins.", author: "DAY 8 · MASTERY", trophiesEarned: 1 }
       },
@@ -339,25 +341,53 @@
       ]
     };
   }
+
+  function checkLocalInactivity(state) {
+    if (!state || !state.lastActiveDate) return state;
+    const todayStr = localDateKey();
+    const d1 = new Date(state.lastActiveDate + "T00:00:00Z");
+    const d2 = new Date(todayStr + "T00:00:00Z");
+    const diffDays = Math.round((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
+    if (diffDays > 5) {
+      const penaltyDays = diffDays - 5;
+      const current = Math.max(0, Number(state.trophies || 0));
+      const lost = Math.min(current, penaltyDays);
+      state.trophies = Math.max(0, current - penaltyDays);
+      state.lastActiveDate = todayStr;
+      state.recentPenalty = {
+        daysInactive: diffDays,
+        penaltyDays,
+        trophiesLost: lost,
+        date: todayStr
+      };
+    }
+    return state;
+  }
+
   function loadTrackerState() {
     if (isDemo()) return freshDemoState();
     try {
       const saved = JSON.parse(localStorage.getItem(trackerStorageKey()));
       const rewards = saved?.rewards || {};
       const computedTrophies = Object.values(rewards).reduce((acc, r) => acc + (Number(r.trophiesEarned) || getTrophiesForDay(r.day || 1)), 0);
-      return {
+      const state = {
         dailyTasks: saved?.dailyTasks || {},
         goals: saved?.goals || [],
         notes: saved?.notes || [],
         journal: saved?.journal || [],
         rewards: rewards,
-        trophies: saved?.trophies != null && !isNaN(saved.trophies) ? Number(saved.trophies) : computedTrophies
+        trophies: saved?.trophies != null && !isNaN(saved.trophies) ? Number(saved.trophies) : computedTrophies,
+        lastActiveDate: saved?.lastActiveDate || localDateKey(),
+        recentPenalty: saved?.recentPenalty || null
       };
+      return checkLocalInactivity(state);
     } catch { return freshTrackerState(); }
   }
+
   let syncDebounceTimer = null;
   function saveTrackerState(syncToBackend = true) {
     if (!isDemo()) {
+      trackerState.lastActiveDate = localDateKey();
       localStorage.setItem(trackerStorageKey(), JSON.stringify(trackerState));
       const token = auth.getToken();
       if (syncToBackend && token && (window.location.protocol === "http:" || window.location.protocol === "https:")) {
@@ -374,6 +404,24 @@
         }, 120);
       }
     }
+  }
+
+  function showPenaltyModal(penalty, currentTrophies) {
+    const modal = $("#penaltyModal");
+    if (!modal) return;
+    const daysEl = $("#penaltyDaysCount");
+    const lossEl = $("#penaltyLossCount");
+    const balanceEl = $("#penaltyCurrentTrophies");
+    const descEl = $("#penaltyDesc");
+
+    if (daysEl) daysEl.textContent = penalty.daysInactive || 6;
+    if (lossEl) lossEl.textContent = `-${penalty.trophiesLost != null ? penalty.trophiesLost : 1}`;
+    if (balanceEl) balanceEl.textContent = currentTrophies;
+    if (descEl) {
+      descEl.textContent = `You were inactive for ${penalty.daysInactive} days. The 5-day inactivity rule deducted ${penalty.trophiesLost} ${penalty.trophiesLost === 1 ? "trophy" : "trophies"} (-1 per day after 5 days).`;
+    }
+
+    try { modal.showModal(); } catch { modal.setAttribute("open", "true"); }
   }
 
   async function syncFromBackend() {
@@ -393,16 +441,27 @@
           if (data.state.journal && data.state.journal.length) trackerState.journal = data.state.journal;
           trackerState.rewards = { ...data.state.rewards, ...trackerState.rewards };
           if (data.state.trophies != null && !isNaN(data.state.trophies)) {
-            trackerState.trophies = Math.max(Number(trackerState.trophies || 0), Number(data.state.trophies));
+            trackerState.trophies = Number(data.state.trophies);
           } else {
             trackerState.trophies = calculateTotalTrophies();
           }
+          if (data.state.lastActiveDate) trackerState.lastActiveDate = data.state.lastActiveDate;
+          if (data.state.recentPenalty) trackerState.recentPenalty = data.state.recentPenalty;
+
           saveTrackerState(false);
           tasks = tasksForDate(activeDate);
           renderTasks();
           renderChart();
           refreshMetrics();
           updateTrophyDisplay();
+
+          if (data.state.recentPenalty && data.state.recentPenalty.trophiesLost > 0) {
+            const key = `penalty_seen_${data.state.recentPenalty.date}_${data.state.recentPenalty.daysInactive}`;
+            if (!sessionStorage.getItem(key)) {
+              sessionStorage.setItem(key, "1");
+              showPenaltyModal(data.state.recentPenalty, trackerState.trophies);
+            }
+          }
         }
       }
     } catch {}

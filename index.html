@@ -302,6 +302,31 @@
           <p>We do not sell, rent, trade, or share your data with any advertising networks or third parties. Your personal growth archive remains entirely your own.</p>
         </div>
       </div>
+    <!-- Inactivity Penalty Alert Modal -->
+    <dialog class="modal penalty-modal" id="penaltyModal">
+      <div class="penalty-card">
+        <button class="modal-close" type="button" aria-label="Close" onclick="document.getElementById('penaltyModal').close()">×</button>
+        <div class="penalty-icon">⚠️</div>
+        <p class="penalty-eyebrow">DISCIPLINE PENALTY APPLIED</p>
+        <h2>Inactivity <em>Detected</em></h2>
+        <p class="penalty-desc" id="penaltyDesc">You were inactive for 6 days. The 5-day inactivity rule deducted 1 trophy from your vault.</p>
+        <div class="penalty-stat-pill">
+          <div>
+            <strong id="penaltyDaysCount">6</strong>
+            <span>DAYS INACTIVE</span>
+          </div>
+          <div>
+            <strong id="penaltyLossCount">-1</strong>
+            <span>TROPHIES LOST</span>
+          </div>
+          <div>
+            <strong id="penaltyCurrentTrophies">0</strong>
+            <span>VAULT BALANCE</span>
+          </div>
+        </div>
+        <p class="penalty-motto">“True discipline is not tested when it is easy—it is proven by showing up every single day.”</p>
+        <button class="primary-button penalty-btn" type="button" onclick="document.getElementById('penaltyModal').close()">I Will Reclaim My Grind →</button>
+      </div>
     </dialog>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>

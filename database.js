@@ -62,6 +62,8 @@ const trackerStateSchema = new mongoose.Schema({
   journal: { type: mongoose.Schema.Types.Mixed, default: [] },
   rewards: { type: mongoose.Schema.Types.Mixed, default: {} },
   trophies: { type: Number, default: 0 },
+  lastActiveDate: { type: String },
+  recentPenalty: { type: mongoose.Schema.Types.Mixed, default: null },
   updatedAt: { type: Date, default: Date.now }
 });
 
@@ -91,6 +93,50 @@ const SupportTicketModel = mongoose.models.SupportTicket || mongoose.model("Supp
 
 let isMongoConnected = false;
 
+// Inactivity penalty calculation (5 days without activity = daily -1 trophy penalty)
+function applyInactivityPenalty(state) {
+  if (!state) return { state, penalty: null };
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+  let lastActiveStr = state.lastActiveDate;
+  if (!lastActiveStr) {
+    if (state.updatedAt) {
+      lastActiveStr = new Date(state.updatedAt).toISOString().slice(0, 10);
+    } else {
+      lastActiveStr = todayStr;
+    }
+  }
+
+  // Calculate day difference
+  const d1 = new Date(lastActiveStr + "T00:00:00Z");
+  const d2 = new Date(todayStr + "T00:00:00Z");
+  const diffDays = Math.round((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
+
+  if (diffDays > 5) {
+    const penaltyDays = diffDays - 5;
+    const currentTrophies = Math.max(0, Number(state.trophies || 0));
+    const trophiesLost = Math.min(currentTrophies, penaltyDays);
+    const newTrophies = Math.max(0, currentTrophies - penaltyDays);
+
+    state.trophies = newTrophies;
+    state.lastActiveDate = todayStr;
+    state.recentPenalty = {
+      daysInactive: diffDays,
+      penaltyDays,
+      trophiesLost,
+      date: todayStr,
+      shown: false
+    };
+    return { state, penalty: state.recentPenalty };
+  }
+
+  if (!state.lastActiveDate) {
+    state.lastActiveDate = todayStr;
+  }
+  return { state, penalty: null };
+}
+
 async function init() {
   const uri = process.env.MONGODB_URI;
   if (!uri) {
@@ -106,7 +152,6 @@ async function init() {
     isMongoConnected = true;
     console.log("✅ Successfully connected to MongoDB Atlas!");
 
-    // Check if MongoDB is empty, optionally migrate local data
     try {
       const count = await UserModel.countDocuments();
       if (count === 0) {
@@ -167,6 +212,8 @@ module.exports = {
       createdAt: new Date().toISOString()
     };
 
+    const todayStr = new Date().toISOString().slice(0, 10);
+
     if (isMongoConnected) {
       const exists = await UserModel.findOne({ email: cleanEmail });
       if (exists) {
@@ -181,6 +228,8 @@ module.exports = {
         journal: [],
         rewards: {},
         trophies: 0,
+        lastActiveDate: todayStr,
+        recentPenalty: null,
         updatedAt: new Date()
       });
       return { id: user.id, name: user.name, email: user.email };
@@ -198,6 +247,8 @@ module.exports = {
       journal: [],
       rewards: {},
       trophies: 0,
+      lastActiveDate: todayStr,
+      recentPenalty: null,
       updatedAt: new Date().toISOString()
     };
     writeLocalDb(db);
@@ -276,6 +327,7 @@ module.exports = {
 
   async getTrackerState(email) {
     const cleanEmail = email.trim().toLowerCase();
+    const todayStr = new Date().toISOString().slice(0, 10);
     const defaultState = {
       dailyTasks: {},
       goals: [],
@@ -283,29 +335,59 @@ module.exports = {
       journal: [],
       rewards: {},
       trophies: 0,
+      lastActiveDate: todayStr,
+      recentPenalty: null,
       updatedAt: new Date().toISOString()
     };
 
+    let state;
     if (isMongoConnected) {
-      const state = await TrackerStateModel.findOne({ email: cleanEmail }).lean();
-      if (!state) return defaultState;
-      return {
-        dailyTasks: state.dailyTasks || {},
-        goals: state.goals || [],
-        notes: state.notes || [],
-        journal: state.journal || [],
-        rewards: state.rewards || {},
-        trophies: state.trophies != null ? Number(state.trophies) : 0,
-        updatedAt: state.updatedAt ? state.updatedAt.toISOString() : new Date().toISOString()
-      };
+      state = await TrackerStateModel.findOne({ email: cleanEmail }).lean();
+    } else {
+      const db = readLocalDb();
+      state = db.trackerStates[cleanEmail];
     }
 
-    const db = readLocalDb();
-    return db.trackerStates[cleanEmail] || defaultState;
+    if (!state) return defaultState;
+
+    // Evaluate 5-day inactivity penalty rule
+    const { state: updatedState, penalty } = applyInactivityPenalty(state);
+    if (penalty && penalty.trophiesLost > 0) {
+      if (isMongoConnected) {
+        await TrackerStateModel.findOneAndUpdate(
+          { email: cleanEmail },
+          {
+            $set: {
+              trophies: updatedState.trophies,
+              lastActiveDate: updatedState.lastActiveDate,
+              recentPenalty: updatedState.recentPenalty,
+              updatedAt: new Date()
+            }
+          }
+        );
+      } else {
+        const db = readLocalDb();
+        db.trackerStates[cleanEmail] = updatedState;
+        writeLocalDb(db);
+      }
+    }
+
+    return {
+      dailyTasks: updatedState.dailyTasks || {},
+      goals: updatedState.goals || [],
+      notes: updatedState.notes || [],
+      journal: updatedState.journal || [],
+      rewards: updatedState.rewards || {},
+      trophies: updatedState.trophies != null ? Number(updatedState.trophies) : 0,
+      lastActiveDate: updatedState.lastActiveDate,
+      recentPenalty: updatedState.recentPenalty || null,
+      updatedAt: updatedState.updatedAt ? (updatedState.updatedAt.toISOString ? updatedState.updatedAt.toISOString() : updatedState.updatedAt) : new Date().toISOString()
+    };
   },
 
   async saveTrackerState(email, state) {
     const cleanEmail = email.trim().toLowerCase();
+    const todayStr = new Date().toISOString().slice(0, 10);
     const payload = {
       dailyTasks: state.dailyTasks || {},
       goals: state.goals || [],
@@ -313,6 +395,8 @@ module.exports = {
       journal: state.journal || [],
       rewards: state.rewards || {},
       trophies: state.trophies != null ? Number(state.trophies) : 0,
+      lastActiveDate: state.lastActiveDate || todayStr,
+      recentPenalty: state.recentPenalty || null,
       updatedAt: new Date()
     };
 
