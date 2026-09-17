@@ -10,11 +10,16 @@ let transporter = null;
 function getTransporter() {
   if (!transporter && SENDER_PASS) {
     transporter = nodemailer.createTransport({
-      service: "gmail",
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
       auth: {
         user: SENDER_EMAIL,
         pass: SENDER_PASS
-      }
+      },
+      connectionTimeout: 3500,
+      greetingTimeout: 3000,
+      socketTimeout: 4000
     });
   }
   return transporter;

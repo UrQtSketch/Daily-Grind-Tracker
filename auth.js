@@ -41,17 +41,29 @@
         throw new Error("Only @gmail.com email addresses are allowed.");
       }
       if (isHttp()) {
-        const res = await fetch("/api/auth/send-otp", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: name.trim(), email: email.trim().toLowerCase(), password })
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Failed to send verification code.");
-        return data;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+        try {
+          const res = await fetch("/api/auth/send-otp", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: name.trim(), email: email.trim().toLowerCase(), password }),
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Failed to send verification code.");
+          return data;
+        } catch (err) {
+          clearTimeout(timeoutId);
+          if (err.name === "AbortError") {
+            throw new Error("Connection timed out. Please try clicking Send again.");
+          }
+          throw err;
+        }
       }
       // Offline fallback
-      return { success: true, message: "Verification code sent (offline demo: 123456)", demoOtp: "123456" };
+      return { success: true, message: "Verification code sent (offline demo: 123456)", devOtp: "123456" };
     },
 
     async verifyRegistrationOtp(email, otp) {

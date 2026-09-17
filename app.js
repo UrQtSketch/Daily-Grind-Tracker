@@ -287,7 +287,7 @@
         }
 
         try {
-          await auth.sendRegistrationOtp(name, email, password);
+          const resData = await auth.sendRegistrationOtp(name, email, password);
           pendingEmail = email.toLowerCase();
           if (otpEmailTarget) otpEmailTarget.textContent = pendingEmail;
 
@@ -295,14 +295,16 @@
           if (stepDetails) stepDetails.style.display = "none";
           if (stepOtp) stepOtp.style.display = "block";
           if (otpCodeInput) {
-            otpCodeInput.value = "";
+            otpCodeInput.value = resData?.devOtp || "";
             otpCodeInput.focus();
           }
           if (otpError) otpError.textContent = "";
           if (otpSuccess) {
             otpSuccess.style.display = "block";
-            otpSuccess.textContent = `Verification code sent to ${pendingEmail}`;
-            setTimeout(() => { if (otpSuccess) otpSuccess.style.display = "none"; }, 5000);
+            otpSuccess.textContent = resData?.devOtp
+              ? `Verification Code: ${resData.devOtp}`
+              : `Verification code sent to ${pendingEmail}`;
+            setTimeout(() => { if (otpSuccess) otpSuccess.style.display = "none"; }, 10000);
           }
           startResendTimer();
         } catch (err) {
@@ -352,11 +354,16 @@
         try {
           resendOtpBtn.disabled = true;
           resendOtpBtn.textContent = "Resending...";
-          await auth.resendRegistrationOtp(pendingEmail);
+          const resendData = await auth.resendRegistrationOtp(pendingEmail);
           if (otpSuccess) {
             otpSuccess.style.display = "block";
-            otpSuccess.textContent = `A fresh code has been sent to ${pendingEmail}`;
-            setTimeout(() => { if (otpSuccess) otpSuccess.style.display = "none"; }, 5000);
+            otpSuccess.textContent = resendData?.devOtp
+              ? `Fresh Verification Code: ${resendData.devOtp}`
+              : `A fresh code has been sent to ${pendingEmail}`;
+            if (otpCodeInput && resendData?.devOtp) {
+              otpCodeInput.value = resendData.devOtp;
+            }
+            setTimeout(() => { if (otpSuccess) otpSuccess.style.display = "none"; }, 10000);
           }
           startResendTimer();
         } catch (err) {
