@@ -278,7 +278,118 @@
   let query = "";
   let currentView = "dashboard";
   const weekLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  const validViews = ["dashboard", "habits", "goals", "analytics", "history", "journal", "notes", "settings", "support"];
+  const validViews = ["dashboard", "vault", "habits", "goals", "analytics", "history", "journal", "notes", "settings", "support"];
+
+  /* -------------------------------------------------------------
+     30-TIER DISCIPLINED TITLES PROGRESSION ROSTER
+     Milestones strictly honor the 5, 10, 20, 40, 50, 100 pattern
+     across Tier 1 (1-100), Tier 2 (101-200), Tier 3 (201-300),
+     and Tier 4 (301-751 Endgame GOAT status).
+  ------------------------------------------------------------- */
+  const TITLES_ROSTER = [
+    // Tier 1: 1 - 100 Trophies
+    { id: 1, title: "The Starter", icon: "🌱", trophies: 5, tier: "Tier 1", energy: "First Spark of Commitment" },
+    { id: 2, title: "The Initiator", icon: "⚡", trophies: 10, tier: "Tier 1", energy: "Ignition of Daily Momentum" },
+    { id: 3, title: "The Grinder", icon: "🔥", trophies: 20, tier: "Tier 1", energy: "Forged in the Furnace of Repetition" },
+    { id: 4, title: "The Warrior", icon: "⚔️", trophies: 40, tier: "Tier 1", energy: "Conquering Weakness & Excuses" },
+    { id: 5, title: "Iron Discipline", icon: "🦾", trophies: 50, tier: "Tier 1", energy: "Unbending Will & Absolute Consistency" },
+    { id: 6, title: "Locked In", icon: "👁️", trophies: 75, tier: "Tier 1", energy: "Pure Tunnel Vision & Zero Distraction" },
+    { id: 7, title: "The Unbreakable", icon: "🗿", trophies: 100, tier: "Tier 1", energy: "A Century of Solid Granite Habits" },
+
+    // Tier 2: 101 - 200 Trophies
+    { id: 8, title: "Shadow Grinder", icon: "🥷", trophies: 105, tier: "Tier 2", energy: "Quiet Execution When Nobody Watches" },
+    { id: 9, title: "Lone Grinder", icon: "🐺", trophies: 110, tier: "Tier 2", energy: "Hungry, Self-Sufficient & Relentless" },
+    { id: 10, title: "The Relentless One", icon: "🔥", trophies: 120, tier: "Tier 2", energy: "An Unquenchable Hunger for Victory" },
+    { id: 11, title: "Battle Hardened", icon: "⚔️", trophies: 140, tier: "Tier 2", energy: "Tested in Tough Days and Victorious" },
+    { id: 12, title: "Momentum Master", icon: "⚡", trophies: 150, tier: "Tier 2", energy: "Effortless Flow & High Speed Output" },
+    { id: 13, title: "Discipline Beast", icon: "🛡️", trophies: 175, tier: "Tier 2", energy: "Ferocious Focus & Fortress of Habit" },
+    { id: 14, title: "Mind Over Matter", icon: "🧠", trophies: 200, tier: "Tier 2", energy: "Mastery Over Every Negative Impulse" },
+
+    // Tier 3: 201 - 300 Trophies
+    { id: 15, title: "Dark Horse", icon: "🌑", trophies: 205, tier: "Tier 3", energy: "The Silent Contender Ready to Rule" },
+    { id: 16, title: "Peak Performer", icon: "🏆", trophies: 210, tier: "Tier 3", energy: "Operating at the Highest Level" },
+    { id: 17, title: "Diamond Mind", icon: "💎", trophies: 220, tier: "Tier 3", energy: "Formed Under Pressure, Impossible to Shatter" },
+    { id: 18, title: "The Conqueror", icon: "🔱", trophies: 240, tier: "Tier 3", energy: "Dominating Every Challenge in Sight" },
+    { id: 19, title: "Built Different", icon: "🗿", trophies: 250, tier: "Tier 3", energy: "Standing Out From the Ordinary Crowd" },
+    { id: 20, title: "The Elite", icon: "💎", trophies: 275, tier: "Tier 3", energy: "The Upper Echelon of True Grind" },
+    { id: 21, title: "The Mastermind", icon: "👑", trophies: 300, tier: "Tier 3", energy: "Architect of Long-Term Greatness" },
+
+    // Tier 4: 301 - 751 Trophies (Endgame & Immortal Legacy)
+    { id: 22, title: "The Dominator", icon: "🐺", trophies: 320, tier: "Tier 4", energy: "Supreme Reign Over Daily Routines" },
+    { id: 23, title: "No Quit", icon: "🔥", trophies: 350, tier: "Tier 4", energy: "Surrender is Erased From the Vocabulary" },
+    { id: 24, title: "Unstoppable Force", icon: "⚡", trophies: 400, tier: "Tier 4", energy: "No Obstacle on Earth Can Slow You Down" },
+    { id: 25, title: "Apex Legend", icon: "🐉", trophies: 450, tier: "Tier 4", energy: "At the Pinnacle of the Mountain" },
+    { id: 26, title: "The Unmatched", icon: "👑", trophies: 500, tier: "Tier 4", energy: "In a Class Completely of Your Own" },
+    { id: 27, title: "Limitless", icon: "💀", trophies: 550, tier: "Tier 4", energy: "Beyond Conventional Human Bounds" },
+    { id: 28, title: "The Legend", icon: "🐉", trophies: 600, tier: "Tier 4", energy: "Stories Will Be Told of This Quest" },
+    { id: 29, title: "Beyond Limits", icon: "🐐", trophies: 675, tier: "Tier 4", energy: "Transcendence of the Finite Mind" },
+    { id: 30, title: "THE GOAT", icon: "🐐", trophies: 751, tier: "Tier 4", energy: "Greatest of All Time · 751 Days Unbroken" }
+  ];
+
+  function getTitleProgress(totalTrophies) {
+    const t = Math.max(0, Number(totalTrophies) || 0);
+    const unlocked = TITLES_ROSTER.filter(item => t >= item.trophies);
+    const current = unlocked.length ? unlocked[unlocked.length - 1] : {
+      id: 0,
+      title: "Initiate Grinder",
+      icon: "🌱",
+      trophies: 0,
+      tier: "Pre-Rank",
+      energy: "Beginning the 751-day ascent."
+    };
+    const next = TITLES_ROSTER.find(item => t < item.trophies) || null;
+    const needed = next ? Math.max(0, next.trophies - t) : 0;
+    const base = current.trophies || 0;
+    const pct = next ? Math.min(100, Math.max(0, Math.round(((t - base) / (next.trophies - base)) * 100))) : 100;
+
+    return {
+      current,
+      next,
+      needed,
+      totalTrophies: t,
+      unlocked,
+      unlockedCount: unlocked.length,
+      totalCount: TITLES_ROSTER.length,
+      progressPercent: pct
+    };
+  }
+
+  function getTrophyLedger() {
+    const records = [];
+    const rewards = (trackerState && trackerState.rewards) || {};
+    Object.keys(rewards).forEach(date => {
+      const r = rewards[date];
+      records.push({
+        id: `reward-${date}`,
+        date: date,
+        day: r.day || 1,
+        type: "reward",
+        trophies: Number(r.trophiesEarned) || getTrophiesForDay(r.day || 1),
+        source: `Day ${r.day || 1} Quest Conquered · 100% Tasks Complete`,
+        quote: r.quote || "",
+        author: r.author || "",
+        timestamp: r.completedAt || `${date}T20:00:00Z`
+      });
+    });
+
+    if (trackerState && trackerState.recentPenalty && trackerState.recentPenalty.trophiesLost > 0) {
+      const p = trackerState.recentPenalty;
+      records.push({
+        id: `penalty-${p.date}`,
+        date: p.date,
+        day: "—",
+        type: "penalty",
+        trophies: -Math.abs(Number(p.trophiesLost) || 1),
+        source: `5-Day Inactivity Penalty (${p.daysInactive} days inactive)`,
+        quote: "Discipline is what you do every day, not just when you feel like it.",
+        author: "SYSTEM PENALTY",
+        timestamp: `${p.date}T00:00:00Z`
+      });
+    }
+
+    records.sort((a, b) => new Date(b.timestamp || b.date).getTime() - new Date(a.timestamp || a.date).getTime());
+    return records;
+  }
 
   function user() { return auth.current() || { name: "Sketch", email: "guest@dailygrind.local", isDemo: true }; }
   function initials(name) { return name.split(/\s+/).map((part) => part[0]).slice(0, 2).join("").toUpperCase(); }
@@ -305,12 +416,18 @@
 
   function updateTrophyDisplay() {
     const count = calculateTotalTrophies();
+    const progress = getTitleProgress(count);
     const userBadge = $("#userTrophyCount");
     if (userBadge) userBadge.textContent = count;
     const profileBadge = $("#profileTrophyCount");
     if (profileBadge) profileBadge.textContent = count;
     const historyBadge = $("#historyTrophiesVal");
     if (historyBadge) historyBadge.textContent = count;
+    const vaultHero = $("#vaultHeroBalance");
+    if (vaultHero) vaultHero.textContent = count;
+    if ($("#userTrophyBadge")) {
+      $("#userTrophyBadge").title = `${count} Trophies · Current Title: ${progress.current.icon} ${progress.current.title}`;
+    }
   }
 
   function trackerStorageKey() { return `daily-grind-tracker:${user().email.toLowerCase()}`; }
@@ -904,6 +1021,7 @@
     const secondary = $("#secondaryView");
     const metrics = trackerMetrics();
     const pageMeta = {
+      vault: ["Trophy Vault & Titles", "Your disciplined achievements, hard-earned titles, and daily trophy ledger.", "🏆"],
       habits: ["Daily habits", "Small actions repeated become your system.", "◌"],
       goals: ["Your goals", "Three focused goals. One stronger version of you.", "⌁"],
       analytics: ["Analytics", "See the proof of your consistency.", "▥"],
@@ -916,6 +1034,210 @@
     if (!pageMeta) return;
     const [title, subtitle, icon] = pageMeta;
     let content = "";
+
+    if (view === "vault") {
+      const totalTrophies = calculateTotalTrophies();
+      const progressInfo = getTitleProgress(totalTrophies);
+      const ledger = getTrophyLedger();
+      const totalEarned = ledger.filter(r => r.type === "reward").reduce((acc, r) => acc + Math.abs(r.trophies), 0);
+      const totalPenalties = ledger.filter(r => r.type === "penalty").reduce((acc, r) => acc + Math.abs(r.trophies), 0);
+
+      const unlockedCardsHtml = progressInfo.unlocked.length ? progressInfo.unlocked.map((item) => `
+        <article class="title-card title-card-unlocked">
+          <div class="title-card-top">
+            <span class="title-card-icon">${item.icon}</span>
+            <div class="title-card-meta">
+              <span class="title-tier-badge">${item.tier} · ${item.trophies} Trophies</span>
+              <h3>${escapeHtml(item.title)}</h3>
+            </div>
+            ${item.id === progressInfo.current.id ? '<span class="title-active-badge">EQUIPPED RANK</span>' : '<span class="title-achieved-badge">UNLOCKED ✓</span>'}
+          </div>
+          <p class="title-energy">“${escapeHtml(item.energy)}”</p>
+          <div class="title-honor-seal">
+            <span class="honor-icon">🏅</span>
+            <span class="honor-text">You have obtained this title from your hard work and discipline.</span>
+          </div>
+        </article>
+      `).join("") : `
+        <article class="empty-collection" style="grid-column: 1 / -1;">
+          <span>🌱</span>
+          <h3>No Titles Unlocked Yet</h3>
+          <p>Complete daily quests to earn trophies. Your first official title <b>🌱 The Starter</b> unlocks at <b>5 Trophies</b>!</p>
+        </article>
+      `;
+
+      const lockedCardsHtml = TITLES_ROSTER.filter(item => totalTrophies < item.trophies).slice(0, 10).map((item) => {
+        const remaining = item.trophies - totalTrophies;
+        return `
+          <div class="title-card title-card-locked">
+            <div class="locked-icon-wrap">
+              <span class="locked-emoji">${item.icon}</span>
+              <span class="locked-lock-glyph">🔒</span>
+            </div>
+            <div class="locked-info">
+              <h4>${escapeHtml(item.title)}</h4>
+              <small>${item.tier} · Requires ${item.trophies} Trophies</small>
+            </div>
+            <div class="locked-req-pill">
+              <strong>Need ${remaining} more</strong>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      const ledgerRowsHtml = ledger.length ? ledger.map((rec) => {
+        const isReward = rec.type === "reward";
+        const formattedDate = formatDate(rec.date);
+        return `
+          <div class="vault-ledger-item ${isReward ? 'is-reward' : 'is-penalty'}">
+            <div class="ledger-col-date">
+              <strong>${escapeHtml(formattedDate)}</strong>
+              <small>${rec.day !== "—" ? `Quest Day ${rec.day}` : "Account Audit"}</small>
+            </div>
+            <div class="ledger-col-source">
+              <span class="ledger-source-tag ${isReward ? 'tag-reward' : 'tag-penalty'}">
+                ${isReward ? '🏆 QUEST CONQUERED' : '⚠️ INACTIVITY PENALTY'}
+              </span>
+              <p class="ledger-source-desc">${escapeHtml(rec.source)}</p>
+              ${rec.quote ? `<span class="ledger-quote-snippet">“${escapeHtml(rec.quote)}”</span>` : ''}
+            </div>
+            <div class="ledger-col-amount">
+              <strong class="${isReward ? 'amount-plus' : 'amount-minus'}">
+                ${isReward ? `+${rec.trophies}` : `${rec.trophies}`} 🏆
+              </strong>
+              <small>${isReward ? 'Added to Vault' : 'Deducted'}</small>
+            </div>
+          </div>
+        `;
+      }).join("") : `
+        <div class="empty-collection">
+          <span>📜</span>
+          <h3>No Trophy Activity Logged Yet</h3>
+          <p>Conquer 100% of today's tasks to earn your first day reward and deposit trophies into your vault.</p>
+        </div>
+      `;
+
+      content = `
+        <div class="vault-layout">
+          <!-- Vault Hero Banner -->
+          <div class="vault-hero">
+            <div class="vault-hero-main">
+              <div class="vault-emblem-cluster">
+                <div class="vault-emblem-glow"></div>
+                <div class="vault-trophy-symbol">🏆</div>
+              </div>
+              <div class="vault-hero-info">
+                <span class="eyebrow">SANCTUM OF DISCIPLINE · 751-DAY QUEST</span>
+                <h2>Your Trophy Vault &<br /><em>Disciplined Titles.</em></h2>
+                <p>Every trophy in this vault represents an unbroken day of executed promises.</p>
+                <div class="vault-rank-pill">
+                  <span class="rank-label">CURRENT TITLE:</span>
+                  <strong class="rank-name">${progressInfo.current.icon} ${escapeHtml(progressInfo.current.title)}</strong>
+                  <span class="rank-tier">(${progressInfo.current.tier})</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Vault Stat Pills -->
+            <div class="vault-stats-grid">
+              <div class="vault-stat-box">
+                <strong id="vaultHeroBalance">${totalTrophies}</strong>
+                <span>VAULT TROPHIES</span>
+              </div>
+              <div class="vault-stat-box">
+                <strong>${progressInfo.unlockedCount}<i>/${progressInfo.totalCount}</i></strong>
+                <span>TITLES OBTAINED</span>
+              </div>
+              <div class="vault-stat-box">
+                <strong style="color:#2ecc71;">+${totalEarned}</strong>
+                <span>TOTAL REWARDED</span>
+              </div>
+              <div class="vault-stat-box">
+                <strong style="color:${totalPenalties > 0 ? '#ff5252' : '#8899aa'};">-${totalPenalties}</strong>
+                <span>PENALTY DEDUCTIONS</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Next Title Progression Card -->
+          <div class="vault-progress-card">
+            <div class="vault-progress-header">
+              <div>
+                <span class="eyebrow">TITLE UNLOCK PROGRESS</span>
+                ${progressInfo.next ? `
+                  <h3>You have <em>${totalTrophies} ${totalTrophies === 1 ? 'Trophy' : 'Trophies'}</em> — need <em>${progressInfo.needed} more</em> to unlock <b>${progressInfo.next.icon} ${escapeHtml(progressInfo.next.title)}</b></h3>
+                ` : `
+                  <h3>🏆 Maximum Legendary Rank Achieved! <b>${progressInfo.current.icon} ${escapeHtml(progressInfo.current.title)}</b></h3>
+                `}
+              </div>
+              ${progressInfo.next ? `
+                <div class="vault-next-chip">
+                  <span>TARGET:</span>
+                  <strong>${progressInfo.next.icon} ${escapeHtml(progressInfo.next.title)} (${progressInfo.next.trophies} 🏆)</strong>
+                </div>
+              ` : ''}
+            </div>
+
+            ${progressInfo.next ? `
+              <div class="vault-meter-wrap">
+                <div class="vault-meter-bar">
+                  <div class="vault-meter-fill" style="width: ${progressInfo.progressPercent}%;"></div>
+                </div>
+                <div class="vault-meter-labels">
+                  <span>Current: ${totalTrophies} 🏆 (${escapeHtml(progressInfo.current.title)})</span>
+                  <span><strong>${progressInfo.progressPercent}%</strong> toward next rank</span>
+                  <span>Goal: ${progressInfo.next.trophies} 🏆 (${escapeHtml(progressInfo.next.title)})</span>
+                </div>
+              </div>
+            ` : ''}
+          </div>
+
+          <!-- Unlocked Titles Shelf -->
+          <div class="vault-section-wrap">
+            <div class="vault-section-title">
+              <div>
+                <span class="eyebrow">HARDWORK & DISCIPLINE HONORS</span>
+                <h2>Obtained Titles <em>(${progressInfo.unlockedCount} / ${progressInfo.totalCount})</em></h2>
+                <p>Prestigious titles permanently etched in your discipline ledger.</p>
+              </div>
+            </div>
+            <div class="vault-titles-grid">
+              ${unlockedCardsHtml}
+            </div>
+          </div>
+
+          <!-- Upcoming Locked Titles Preview -->
+          ${TITLES_ROSTER.some(item => totalTrophies < item.trophies) ? `
+            <div class="vault-section-wrap">
+              <div class="vault-section-title">
+                <div>
+                  <span class="eyebrow">THE ROAD AHEAD</span>
+                  <h2>Upcoming Locked Titles</h2>
+                  <p>Keep your daily streak alive to conquer higher milestone tiers.</p>
+                </div>
+              </div>
+              <div class="vault-locked-grid">
+                ${lockedCardsHtml}
+              </div>
+            </div>
+          ` : ''}
+
+          <!-- Daily Trophy History Ledger ("kab kha se kitne trophie mile daily usko") -->
+          <div class="vault-section-wrap">
+            <div class="vault-section-title">
+              <div>
+                <span class="eyebrow">AUDITABLE TRANSACTION LOG</span>
+                <h2>Daily Trophy History Ledger</h2>
+                <p>Complete historical breakdown of when, where, and how many trophies were deposited or penalized.</p>
+              </div>
+            </div>
+            <div class="vault-ledger-container">
+              ${ledgerRowsHtml}
+            </div>
+          </div>
+        </div>
+      `;
+    }
 
     if (view === "history") {
       const dates = Object.keys(trackerState.dailyTasks).sort().reverse();
@@ -1212,7 +1534,12 @@
     if ($("#rewardCloseBtn")) $("#rewardCloseBtn").addEventListener("click", closeRewardModal);
     if ($("#claimRewardBtn")) $("#claimRewardBtn").addEventListener("click", closeRewardModal);
     if ($("#rewardModal")) $("#rewardModal").addEventListener("cancel", stopMotivationalCelebration);
-    if ($("#rewardSongToggleBtn")) $("#rewardSongToggleBtn").addEventListener("click", toggleMotivationalSong);
+    if ($("#userTrophyBadge")) $("#userTrophyBadge").addEventListener("click", () => navigate("vault"));
+    if ($("#profileVaultLink")) $("#profileVaultLink").addEventListener("click", (e) => {
+      e.preventDefault();
+      $("#profileMenu").hidden = true;
+      navigate("vault");
+    });
 
     $("#signOutButton").addEventListener("click", async () => { await auth.signOut(); window.location.assign("login.html"); });
     $("#menuToggle").addEventListener("click", () => page.classList.toggle("sidebar-open"));

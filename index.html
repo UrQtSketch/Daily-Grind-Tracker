@@ -22,6 +22,7 @@
 
         <nav class="side-nav" aria-label="Main navigation">
           <a class="nav-link is-active" href="#dashboard" data-view="dashboard"><span>⌂</span>Dashboard</a>
+          <a class="nav-link" href="#vault" data-view="vault"><span>🏆</span>Trophy Vault</a>
           <a class="nav-link" href="#habits" data-view="habits"><span>◌</span>Habits</a>
           <a class="nav-link" href="#goals" data-view="goals"><span>⌁</span>Goals</a>
           <a class="nav-link" href="#analytics" data-view="analytics"><span>▥</span>Analytics</a>
@@ -61,18 +62,20 @@
             </button>
             <button class="date-chip" id="dateButton" type="button" aria-label="Choose date"><span>▣</span><span id="dateLabel">Thu, 11 Sep 2026</span></button>
             <input id="datePicker" class="visually-hidden" type="date" />
-            <div class="trophy-chip" id="userTrophyBadge" title="Total Trophies Earned in 751-Day Quest">
+            <button class="trophy-chip" id="userTrophyBadge" type="button" title="View Trophy Vault & Titles" aria-label="View Trophy Vault">
               <span class="trophy-icon">🏆</span>
               <strong id="userTrophyCount">0</strong>
-              <small>Trophies</small>
-            </div>
+              <small>Vault</small>
+            </button>
             <div class="profile-wrap">
               <button class="profile-button" id="profileButton" type="button" aria-expanded="false">
                 <span class="avatar" data-avatar>S</span><strong data-profile-name>Sketch</strong><span class="chevron">⌄</span>
               </button>
               <div class="profile-menu" id="profileMenu" hidden>
                 <p>Signed in as <strong data-profile-email>guest@dailygrind.local</strong></p>
-                <p style="font-size:12px; color:#ffca42; margin:6px 0 2px;">🏆 <strong id="profileTrophyCount">0</strong> Trophies in Vault</p>
+                <a href="#vault" id="profileVaultLink" style="display:flex; align-items:center; gap:8px; font-size:12px; color:#ffca42; margin:8px 0 6px; text-decoration:none; padding:6px 10px; background:rgba(255,193,7,.12); border-radius:6px; border:1px solid rgba(255,193,7,.3);">
+                  <span>🏆</span><span><b><strong id="profileTrophyCount">0</strong> Trophies</b> · Open Vault →</span>
+                </a>
                 <a href="login.html">Switch account</a>
                 <button id="signOutButton" type="button">Sign out</button>
               </div>
