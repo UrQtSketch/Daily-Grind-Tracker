@@ -323,7 +323,12 @@
     { id: 27, title: "Limitless", icon: "💀", trophies: 550, tier: "Tier 4", energy: "Beyond Conventional Human Bounds" },
     { id: 28, title: "The Legend", icon: "🐉", trophies: 600, tier: "Tier 4", energy: "Stories Will Be Told of This Quest" },
     { id: 29, title: "Beyond Limits", icon: "🐐", trophies: 675, tier: "Tier 4", energy: "Transcendence of the Finite Mind" },
-    { id: 30, title: "THE GOAT", icon: "🐐", trophies: 751, tier: "Tier 4", energy: "Greatest of All Time · 751 Days Unbroken" }
+    { id: 30, title: "THE GOAT", icon: "🐐", trophies: 751, tier: "Tier 4", energy: "Greatest of All Time · 751 Days Unbroken" },
+
+    // Tier 5: Immortal & Mythic God Tier (1,000 - 5,000 Trophies)
+    { id: 31, title: "GRIND OVERLORD", icon: "👑", trophies: 1000, tier: "Tier 5 · God Tier", energy: "You don't chase consistency anymore. You ARE consistency." },
+    { id: 32, title: "ETERNAL GRINDER", icon: "🐉", trophies: 3000, tier: "Tier 5 · God Tier", energy: "Thousands of wins. One mindset. Never stopped." },
+    { id: 33, title: "THE UNTOUCHABLE", icon: "🐐", trophies: 5000, tier: "Tier 5 · Mythic Tier", energy: "5,000 trophies. A level almost nobody reaches." }
   ];
 
   function getTitleProgress(totalTrophies) {
@@ -1066,7 +1071,7 @@
         </article>
       `;
 
-      const lockedCardsHtml = TITLES_ROSTER.filter(item => totalTrophies < item.trophies).slice(0, 10).map((item) => {
+      const lockedCardsHtml = TITLES_ROSTER.filter(item => totalTrophies < item.trophies).map((item) => {
         const remaining = item.trophies - totalTrophies;
         return `
           <div class="title-card title-card-locked">
