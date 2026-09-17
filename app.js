@@ -571,6 +571,18 @@
     return 1;
   }
 
+  function getDailyQuizUsage() {
+    const today = localDateKey();
+    if (!trackerState || !trackerState.quizDailyUsage || trackerState.quizDailyUsage.date !== today) {
+      if (trackerState) {
+        trackerState.quizDailyUsage = { date: today, count: 0, sessions: [] };
+      } else {
+        return { date: today, count: 0, sessions: [] };
+      }
+    }
+    return trackerState.quizDailyUsage;
+  }
+
   function calculateTotalTrophies() {
     if (typeof trackerState !== "undefined" && trackerState && trackerState.trophies != null && !isNaN(trackerState.trophies)) {
       return Number(trackerState.trophies);
@@ -599,7 +611,7 @@
   }
 
   function trackerStorageKey() { return `daily-grind-tracker:${user().email.toLowerCase()}`; }
-  function freshTrackerState() { return { dailyTasks: {}, goals: [], notes: [], journal: [], rewards: {}, quizRewards: [], trophies: 0, lastActiveDate: localDateKey(), recentPenalty: null, songBaseOffset: null }; }
+  function freshTrackerState() { return { dailyTasks: {}, goals: [], notes: [], journal: [], rewards: {}, quizRewards: [], quizDailyUsage: null, trophies: 0, lastActiveDate: localDateKey(), recentPenalty: null, songBaseOffset: null }; }
   function freshDemoState() {
     return {
       dailyTasks: {
@@ -613,6 +625,7 @@
       goals: demoGoals.map((goal) => ({ ...goal })),
       notes: demoNotes.map((note) => ({ ...note })),
       quizRewards: [],
+      quizDailyUsage: null,
       trophies: 1,
       lastActiveDate: localDateKey(),
       recentPenalty: null,
@@ -663,6 +676,7 @@
         journal: saved?.journal || [],
         rewards: rewards,
         quizRewards: saved?.quizRewards || [],
+        quizDailyUsage: saved?.quizDailyUsage || null,
         trophies: saved?.trophies != null && !isNaN(saved.trophies) ? Number(saved.trophies) : computedTrophies,
         lastActiveDate: saved?.lastActiveDate || localDateKey(),
         recentPenalty: saved?.recentPenalty || null
@@ -736,6 +750,12 @@
             trackerState.trophies = Number(data.state.trophies);
           } else {
             trackerState.trophies = calculateTotalTrophies();
+          }
+          if (data.state.quizDailyUsage) {
+            const today = localDateKey();
+            if (data.state.quizDailyUsage.date === today) {
+              trackerState.quizDailyUsage = data.state.quizDailyUsage;
+            }
           }
           if (data.state.lastActiveDate) trackerState.lastActiveDate = data.state.lastActiveDate;
           if (data.state.recentPenalty) trackerState.recentPenalty = data.state.recentPenalty;
@@ -1471,11 +1491,19 @@
           </div>
         `;
       } else if (activeQuizReport) {
-        // FINAL REPORT & SCORECARD VIEW
+        // HIGH-IMPACT ANIMATED SHOWCASE SCORECARD VIEW
         const rep = activeQuizReport;
         const totalTrophies = calculateTotalTrophies();
         const sess = DailyGrindQuiz.getSession();
         const hasRolled = sess && sess.trophiesAwarded != null;
+        const usage = getDailyQuizUsage();
+        const attemptsLeft = Math.max(0, 3 - (usage.count || 0));
+
+        const mins = Math.floor((rep.totalTimeSpent || 0) / 60);
+        const secs = (rep.totalTimeSpent || 0) % 60;
+        const timeFormatted = `${mins}m ${String(secs).padStart(2, '0')}s`;
+        const avgSpeed = Math.round((rep.totalTimeSpent || 0) / (rep.total || 10));
+        const targetOffset = (408.4 * (1 - rep.percentage / 100)).toFixed(1);
 
         const reviewsHtml = rep.review.map((item) => {
           const isCorrect = item.isCorrect;
@@ -1509,23 +1537,68 @@
 
         content = `
           <div class="quiz-layout">
-            <div class="report-hero-card">
-              <div class="report-score-circle">
-                <span class="report-score-num">${rep.score}<small style="font-size:18px; color:#94a3b8;">/${rep.total}</small></span>
-                <span class="report-score-pct">${rep.percentage}% ACCURACY</span>
+            <div class="showcase-hero-card">
+              <span class="showcase-header-eyebrow">⚡ MISSION DEBRIEF · PERFORMANCE SHOWCASE</span>
+              
+              <!-- Circular SVG Radial Meter -->
+              <div class="showcase-radial-wrap">
+                <svg class="showcase-radial-svg" viewBox="0 0 160 160">
+                  <defs>
+                    <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#2dd4bf" />
+                      <stop offset="100%" stop-color="#ffc107" />
+                    </linearGradient>
+                  </defs>
+                  <circle class="showcase-radial-bg" cx="80" cy="80" r="65" />
+                  <circle class="showcase-radial-fill" cx="80" cy="80" r="65" style="--target-offset: ${targetOffset};" />
+                </svg>
+                <div class="showcase-radial-center">
+                  <span class="showcase-score-val" id="animatedScoreNum">${rep.score}<small>/${rep.total}</small></span>
+                  <span class="showcase-pct-val" id="animatedPctNum">${rep.percentage}%</span>
+                  <span class="showcase-acc-label">ACCURACY</span>
+                </div>
               </div>
-              <div>
-                <span class="report-rank-badge">${escapeHtml(rep.rankTitle)}</span>
-                <p class="report-rank-desc">${escapeHtml(rep.rankDesc)}</p>
+
+              <!-- Glowing Rank Crest -->
+              <div class="showcase-rank-box">
+                <span class="showcase-rank-badge ${rep.percentage >= 70 ? 'rank-elite' : ''}">${escapeHtml(rep.rankTitle)}</span>
+                <p class="showcase-rank-desc">${escapeHtml(rep.rankDesc)}</p>
+              </div>
+
+              <!-- 4-Stat Metric Tiles -->
+              <div class="showcase-stats-grid">
+                <div class="showcase-stat-tile">
+                  <span class="stat-tile-icon">🎯</span>
+                  <strong class="stat-tile-val">${rep.score} / ${rep.total}</strong>
+                  <span class="stat-tile-lbl">Correct Marks</span>
+                </div>
+                <div class="showcase-stat-tile">
+                  <span class="stat-tile-icon">⏱️</span>
+                  <strong class="stat-tile-val">${timeFormatted}</strong>
+                  <span class="stat-tile-lbl">Total Time</span>
+                </div>
+                <div class="showcase-stat-tile">
+                  <span class="stat-tile-icon">⚡</span>
+                  <strong class="stat-tile-val">${avgSpeed}s</strong>
+                  <span class="stat-tile-lbl">Avg / Question</span>
+                </div>
+                <div class="showcase-stat-tile">
+                  <span class="stat-tile-icon">🔋</span>
+                  <strong class="stat-tile-val">${usage.count} / 3</strong>
+                  <span class="stat-tile-lbl">Daily Plays Used</span>
+                </div>
               </div>
 
               <!-- Luck-Based Trophy Chest -->
-              <div class="trophy-chest-card">
-                <div class="trophy-chest-icon">${hasRolled ? '🏆' : '🎁'}</div>
-                <h3 class="trophy-chest-title">${hasRolled ? 'Trophy Reward Deposited!' : 'Open Your Luck-Based Trophy Chest'}</h3>
+              <div class="trophy-chest-card" id="trophyChestCard">
+                <canvas id="quizConfettiCanvas" class="quiz-confetti-canvas"></canvas>
+                <div class="trophy-chest-icon ${hasRolled ? 'chest-opened' : 'chest-idle'}" id="trophyChestIcon">
+                  ${hasRolled ? '🏆' : '🎁'}
+                </div>
+                <h3 class="trophy-chest-title">${hasRolled ? 'Vault Trophy Reward Deposited!' : 'Open Your Luck-Based Trophy Chest'}</h3>
                 <p class="trophy-chest-subtitle">
                   ${hasRolled 
-                    ? 'Congratulations! These trophies have been permanently secured in your vault.' 
+                    ? 'Congratulations! These lucky trophies are permanently credited in your Vault Ledger.' 
                     : 'Every completed quiz session grants between 1 and 10 random trophies. 10 trophies is an ultra-rare Apex Jackpot!'}
                 </p>
                 ${hasRolled ? `
@@ -1540,11 +1613,18 @@
                 `}
               </div>
 
-              <div style="display:flex; justify-content:center; gap:14px; flex-wrap:wrap; margin-top:24px;">
-                <button class="primary-button" id="quizPlayAgainBtn" type="button" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2);">
-                  Play Another Quiz ↺
-                </button>
-                <button class="primary-button" id="quizViewVaultBtn" type="button">
+              <div class="showcase-actions-row">
+                ${attemptsLeft > 0 ? `
+                  <button class="primary-button showcase-play-btn" id="quizPlayAgainBtn" type="button">
+                    Play Next Quiz (${attemptsLeft} Left Today) ⚡
+                  </button>
+                ` : `
+                  <div class="showcase-locked-chip">
+                    <span>🔒 All 3 Daily Quizzes Completed</span>
+                    <small>Next 3 quizzes unlock tomorrow at 00:00</small>
+                  </div>
+                `}
+                <button class="primary-button" id="quizViewVaultBtn" type="button" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2);">
                   View in Trophy Vault (${totalTrophies} 🏆) →
                 </button>
               </div>
@@ -1564,6 +1644,8 @@
         // TOPIC & LEVEL SELECTION LOBBY VIEW
         const bank = (typeof DailyGrindQuiz !== "undefined") ? DailyGrindQuiz.getBank() : {};
         const totalTrophies = calculateTotalTrophies();
+        const usage = getDailyQuizUsage();
+        const attemptsLeft = Math.max(0, 3 - (usage.count || 0));
 
         content = `
           <div class="quiz-layout">
@@ -1573,6 +1655,10 @@
                   <span class="eyebrow" style="color:#ffc107;">SKILL ARENA · CODING & CONCEPT COMBAT</span>
                   <h2>Test Your Mastery.<br /><em>Earn Vault Trophies.</em></h2>
                   <p>Choose your technical domain, face 10 timed challenges (2 mins max per question), and roll for luck-based trophy rewards.</p>
+                  <div class="quiz-daily-energy-pill">
+                    <span>⚡ Daily Arena Energy:</span>
+                    <b>${attemptsLeft} of 3</b> Quizzes Left Today
+                  </div>
                 </div>
                 <div class="quiz-hero-vault-badge">
                   <span>🏆 Vault Balance:</span>
@@ -1583,75 +1669,102 @@
                 <span class="quiz-pill-item"><span>⚡</span> 10 Questions Per Session</span>
                 <span class="quiz-pill-item"><span>⏱️</span> 120 Seconds Max Per Question</span>
                 <span class="quiz-pill-item"><span>🎲</span> 1 to 10 Luck-Based Trophies</span>
-                <span class="quiz-pill-item"><span>💡</span> In-Depth Explanations</span>
+                <span class="quiz-pill-item"><span>💡</span> Unique Questions Every Attempt</span>
               </div>
             </div>
 
-            <!-- Domain Selection -->
-            <div>
-              <div class="quiz-section-title">
-                <span>1️⃣</span>
-                <span>Choose Your Domain / Interest</span>
-              </div>
-              <div class="quiz-topics-grid">
-                <article class="quiz-topic-card ${quizSelectedTopic === 'datascience' ? 'is-selected' : ''}" data-topic="datascience">
-                  <div class="quiz-topic-icon">📊</div>
-                  <h3>Data Science</h3>
-                  <p>Master Python, Pandas vectorization, NumPy broadcasting, SQL window functions, and predictive modeling logic.</p>
-                  <span class="quiz-topic-tag">Python · Pandas · SQL · Stats</span>
-                </article>
-
-                <article class="quiz-topic-card ${quizSelectedTopic === 'webdev' ? 'is-selected' : ''}" data-topic="webdev">
-                  <div class="quiz-topic-icon">🌐</div>
-                  <h3>Web Development</h3>
-                  <p>Modern JavaScript event loops, closures, CSS Grid/Flexbox, Async/Await, Web APIs, and browser performance.</p>
-                  <span class="quiz-topic-tag">JS · DOM · CSS Grid · APIs</span>
-                </article>
-
-                <article class="quiz-topic-card ${quizSelectedTopic === 'aiml' ? 'is-selected' : ''}" data-topic="aiml">
-                  <div class="quiz-topic-icon">🤖</div>
-                  <h3>AI / Machine Learning</h3>
-                  <p>Neural networks, backpropagation, loss functions, Transformers, attention mechanisms, and LLM fine-tuning.</p>
-                  <span class="quiz-topic-tag">PyTorch · Deep Learning · LLMs</span>
-                </article>
-              </div>
-            </div>
-
-            <!-- Difficulty Selection -->
-            <div>
-              <div class="quiz-section-title">
-                <span>2️⃣</span>
-                <span>Select Difficulty Tier</span>
-              </div>
-              <div class="quiz-levels-row">
-                <div class="quiz-level-card ${quizSelectedLevel === 'beginner' ? 'is-selected' : ''}" data-level="beginner">
-                  <div class="quiz-level-badge">🟢</div>
-                  <strong>Beginner</strong>
-                  <small>Core concepts, syntax, and foundational mental models.</small>
+            ${attemptsLeft === 0 ? `
+              <!-- Daily 3-Quiz Limit Reached Card -->
+              <div class="quiz-locked-card">
+                <div class="quiz-locked-icon">🔒</div>
+                <h3>Daily Limit Reached (3 of 3 Quizzes Completed)</h3>
+                <p>You have conquered all 3 skill challenges for today! To build consistent daily discipline without burnout, your next 3 quiz attempts will unlock tomorrow at midnight.</p>
+                <div class="quiz-unlock-timer-wrap">
+                  <span>⏱️ Next 3 Quizzes Unlock In:</span>
+                  <strong id="quizMidnightCountdown" class="quiz-unlock-clock">--:--:--</strong>
                 </div>
-                <div class="quiz-level-card ${quizSelectedLevel === 'intermediate' ? 'is-selected' : ''}" data-level="intermediate">
-                  <div class="quiz-level-badge">🟡</div>
-                  <strong>Intermediate</strong>
-                  <small>Real-world coding snippets, edge cases & performance tradeoffs.</small>
-                </div>
-                <div class="quiz-level-card ${quizSelectedLevel === 'advanced' ? 'is-selected' : ''}" data-level="advanced">
-                  <div class="quiz-level-badge">🔴</div>
-                  <strong>Advanced</strong>
-                  <small>Deep system internals, algorithmic complexity & architectural rigor.</small>
-                </div>
+                ${usage.sessions && usage.sessions.length > 0 ? `
+                  <div class="quiz-today-history-wrap">
+                    <h4>Today's Conquered Challenges (Click to Review)</h4>
+                    <div class="quiz-today-history-list">
+                      ${usage.sessions.map((s, sIdx) => `
+                        <div class="quiz-history-item">
+                          <span>Attempt #${sIdx + 1} · <b>${escapeHtml(s.topicTitle)}</b> (${(s.level || '').toUpperCase()})</span>
+                          <strong>Score: ${s.score}/10 (${s.percentage}%) · +${s.trophies || 1} 🏆</strong>
+                          <button type="button" class="view-session-btn" data-session-idx="${sIdx}">Review Scorecard 📋</button>
+                        </div>
+                      `).join('')}
+                    </div>
+                  </div>
+                ` : ''}
               </div>
-            </div>
+            ` : `
+              <!-- Domain Selection -->
+              <div>
+                <div class="quiz-section-title">
+                  <span>1️⃣</span>
+                  <span>Choose Your Domain / Interest</span>
+                </div>
+                <div class="quiz-topics-grid">
+                  <article class="quiz-topic-card ${quizSelectedTopic === 'datascience' ? 'is-selected' : ''}" data-topic="datascience">
+                    <div class="quiz-topic-icon">📊</div>
+                    <h3>Data Science</h3>
+                    <p>Master Python, Pandas vectorization, NumPy broadcasting, SQL window functions, and predictive modeling logic.</p>
+                    <span class="quiz-topic-tag">Python · Pandas · SQL · Stats</span>
+                  </article>
 
-            <!-- Launch Bar -->
-            <div class="quiz-launch-bar">
-              <div class="quiz-launch-meta">
-                <strong id="quizSelectedSummary">${(bank[quizSelectedTopic]?.title) || 'Data Science'} · ${quizSelectedLevel.toUpperCase()}</strong>
-                <span>10 Questions · 2 Minutes per question countdown</span>
+                  <article class="quiz-topic-card ${quizSelectedTopic === 'webdev' ? 'is-selected' : ''}" data-topic="webdev">
+                    <div class="quiz-topic-icon">🌐</div>
+                    <h3>Web Development</h3>
+                    <p>Modern JavaScript event loops, closures, CSS Grid/Flexbox, Async/Await, Web APIs, and browser performance.</p>
+                    <span class="quiz-topic-tag">JS · DOM · CSS Grid · APIs</span>
+                  </article>
+
+                  <article class="quiz-topic-card ${quizSelectedTopic === 'aiml' ? 'is-selected' : ''}" data-topic="aiml">
+                    <div class="quiz-topic-icon">🤖</div>
+                    <h3>AI / Machine Learning</h3>
+                    <p>Neural networks, backpropagation, loss functions, Transformers, attention mechanisms, and LLM fine-tuning.</p>
+                    <span class="quiz-topic-tag">PyTorch · Deep Learning · LLMs</span>
+                  </article>
+                </div>
               </div>
-              <button class="quiz-start-action-btn" id="startQuizBtn" type="button">
-                Enter The Arena ⚡
-              </button>
-            </div>
+
+              <!-- Difficulty Selection -->
+              <div>
+                <div class="quiz-section-title">
+                  <span>2️⃣</span>
+                  <span>Select Difficulty Tier</span>
+                </div>
+                <div class="quiz-levels-row">
+                  <div class="quiz-level-card ${quizSelectedLevel === 'beginner' ? 'is-selected' : ''}" data-level="beginner">
+                    <div class="quiz-level-badge">🟢</div>
+                    <strong>Beginner</strong>
+                    <small>Core concepts, syntax, and foundational mental models.</small>
+                  </div>
+                  <div class="quiz-level-card ${quizSelectedLevel === 'intermediate' ? 'is-selected' : ''}" data-level="intermediate">
+                    <div class="quiz-level-badge">🟡</div>
+                    <strong>Intermediate</strong>
+                    <small>Real-world coding snippets, edge cases & performance tradeoffs.</small>
+                  </div>
+                  <div class="quiz-level-card ${quizSelectedLevel === 'advanced' ? 'is-selected' : ''}" data-level="advanced">
+                    <div class="quiz-level-badge">🔴</div>
+                    <strong>Advanced</strong>
+                    <small>Deep system internals, algorithmic complexity & architectural rigor.</small>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Launch Bar -->
+              <div class="quiz-launch-bar">
+                <div class="quiz-launch-meta">
+                  <strong id="quizSelectedSummary">${(bank[quizSelectedTopic]?.title) || 'Data Science'} · ${quizSelectedLevel.toUpperCase()}</strong>
+                  <span>10 Questions · 2 Minutes per question countdown</span>
+                </div>
+                <button class="quiz-start-action-btn" id="startQuizBtn" type="button">
+                  Enter The Arena (${attemptsLeft} / 3 Left) ⚡
+                </button>
+              </div>
+            `}
           </div>
         `;
       }
@@ -1931,6 +2044,58 @@
       });
     }
     if (view === "quiz") {
+      // Confetti helper
+      function triggerQuizConfetti(canvas) {
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        const width = canvas.width = canvas.offsetWidth;
+        const height = canvas.height = canvas.offsetHeight;
+        const particles = [];
+        const colors = ["#ffc107", "#2dd4bf", "#10b981", "#f59e0b", "#ffffff", "#38bdf8"];
+        for (let i = 0; i < 60; i++) {
+          particles.push({
+            x: width / 2 + (Math.random() - 0.5) * 60,
+            y: height / 2 + (Math.random() - 0.5) * 30,
+            vx: (Math.random() - 0.5) * 12,
+            vy: -Math.random() * 8 - 4,
+            size: Math.random() * 7 + 3,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            rotation: Math.random() * 360,
+            vRot: (Math.random() - 0.5) * 15,
+            alpha: 1
+          });
+        }
+        let frame = 0;
+        function renderConfetti() {
+          ctx.clearRect(0, 0, width, height);
+          let alive = false;
+          particles.forEach((p) => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.35; // gravity
+            p.rotation += p.vRot;
+            p.alpha -= 0.015;
+            if (p.alpha > 0) {
+              alive = true;
+              ctx.save();
+              ctx.globalAlpha = Math.max(0, p.alpha);
+              ctx.translate(p.x, p.y);
+              ctx.rotate((p.rotation * Math.PI) / 180);
+              ctx.fillStyle = p.color;
+              ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 1.4);
+              ctx.restore();
+            }
+          });
+          if (alive && frame < 90) {
+            frame++;
+            requestAnimationFrame(renderConfetti);
+          } else {
+            ctx.clearRect(0, 0, width, height);
+          }
+        }
+        requestAnimationFrame(renderConfetti);
+      }
+
       // 1. Lobby Topic & Level Selectors
       secondary.querySelectorAll(".quiz-topic-card").forEach((card) => {
         card.addEventListener("click", () => {
@@ -1960,13 +2125,48 @@
       const startBtn = secondary.querySelector("#startQuizBtn");
       if (startBtn) {
         startBtn.addEventListener("click", () => {
+          const u = getDailyQuizUsage();
+          if (u.count >= 3) {
+            showToast("🔒 You have completed all 3 quizzes for today! Come back tomorrow.");
+            return;
+          }
           if (typeof DailyGrindQuiz !== "undefined") {
-            DailyGrindQuiz.startSession(quizSelectedTopic, quizSelectedLevel);
+            DailyGrindQuiz.startSession(quizSelectedTopic, quizSelectedLevel, user().email, localDateKey(), u.count);
             currentQuestionSelectedOption = null;
             activeQuizReport = null;
             renderSecondaryView("quiz");
           }
         });
+      }
+
+      // Review today's previous completed quizzes
+      secondary.querySelectorAll(".view-session-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const idx = Number(btn.dataset.sessionIdx);
+          const u = getDailyQuizUsage();
+          if (u.sessions && u.sessions[idx] && u.sessions[idx].report) {
+            activeQuizReport = u.sessions[idx].report;
+            renderSecondaryView("quiz");
+          }
+        });
+      });
+
+      // Midnight Countdown clock
+      const midnightEl = secondary.querySelector("#quizMidnightCountdown");
+      if (midnightEl) {
+        function updateMidnightClock() {
+          const el = secondary.querySelector("#quizMidnightCountdown");
+          if (!el) return;
+          const now = new Date();
+          const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
+          const diff = Math.max(0, midnight - now);
+          const hrs = Math.floor(diff / (1000 * 60 * 60));
+          const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+          const secs = Math.floor((diff % (1000 * 60)) / 1000);
+          el.textContent = `${String(hrs).padStart(2, "0")}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+        }
+        updateMidnightClock();
+        setInterval(updateMidnightClock, 1000);
       }
 
       // 2. Active Arena bindings
@@ -2026,56 +2226,106 @@
         }
       }
 
-      // 3. Scorecard & Trophy Chest bindings
-      const rollBtn = secondary.querySelector("#rollTrophyBtn");
-      if (rollBtn && activeQuizReport) {
-        rollBtn.addEventListener("click", () => {
-          rollBtn.disabled = true;
-          rollBtn.textContent = "Rolling Lucky Trophies... 🎲";
-          setTimeout(() => {
-            const rolled = DailyGrindQuiz.rollTrophies(activeQuizReport.score);
-            DailyGrindQuiz.getSession().trophiesAwarded = rolled;
-
-            trackerState.quizRewards = trackerState.quizRewards || [];
-            trackerState.quizRewards.unshift({
-              timestamp: Date.now(),
-              date: localDateKey(),
-              topic: activeQuizReport.topic,
-              topicTitle: activeQuizReport.topicTitle,
-              level: activeQuizReport.level,
-              score: activeQuizReport.score,
-              trophies: rolled,
-              rankTitle: activeQuizReport.rankTitle
-            });
-            trackerState.trophies = (Number(trackerState.trophies) || 0) + rolled;
-            saveTrackerState();
-            refreshMetrics();
-            updateTrophyDisplay();
-            showToast(`🏆 ${rolled} ${rolled === 1 ? 'Trophy' : 'Trophies'} added to your Vault!`);
-            renderSecondaryView("quiz");
-          }, 500);
-        });
-      }
-
-      const playAgainBtn = secondary.querySelector("#quizPlayAgainBtn");
-      if (playAgainBtn) {
-        playAgainBtn.addEventListener("click", () => {
-          activeQuizReport = null;
-          currentQuestionSelectedOption = null;
-          if (typeof DailyGrindQuiz !== "undefined") {
-            DailyGrindQuiz.stopTimer();
-            DailyGrindQuiz.getSession().questions = [];
-            DailyGrindQuiz.getSession().completed = false;
+      // 3. Scorecard & Animated Showcase bindings
+      if (activeQuizReport) {
+        // Run animated number counter
+        const scoreValEl = secondary.querySelector("#animatedScoreNum");
+        const pctValEl = secondary.querySelector("#animatedPctNum");
+        if (scoreValEl && pctValEl) {
+          const targetS = activeQuizReport.score;
+          const targetT = activeQuizReport.total;
+          const targetP = activeQuizReport.percentage;
+          const startT = performance.now();
+          function animateNum(now) {
+            const elapsed = now - startT;
+            const progress = Math.min(1, elapsed / 1000);
+            const ease = 1 - Math.pow(1 - progress, 3);
+            scoreValEl.innerHTML = `${Math.round(ease * targetS)}<small>/${targetT}</small>`;
+            pctValEl.textContent = `${Math.round(ease * targetP)}%`;
+            if (progress < 1) requestAnimationFrame(animateNum);
           }
-          renderSecondaryView("quiz");
-        });
-      }
+          requestAnimationFrame(animateNum);
+        }
 
-      const viewVaultBtn = secondary.querySelector("#quizViewVaultBtn");
-      if (viewVaultBtn) {
-        viewVaultBtn.addEventListener("click", () => {
-          navigate("vault");
-        });
+        const rollBtn = secondary.querySelector("#rollTrophyBtn");
+        if (rollBtn) {
+          rollBtn.addEventListener("click", () => {
+            rollBtn.disabled = true;
+            rollBtn.textContent = "Rolling Lucky Trophies... 🎲";
+            const chestIcon = secondary.querySelector("#trophyChestIcon");
+            if (chestIcon) chestIcon.classList.add("chest-shake-anim");
+
+            setTimeout(() => {
+              const rolled = DailyGrindQuiz.rollTrophies(activeQuizReport.score);
+              DailyGrindQuiz.getSession().trophiesAwarded = rolled;
+
+              trackerState.quizRewards = trackerState.quizRewards || [];
+              trackerState.quizRewards.unshift({
+                timestamp: Date.now(),
+                date: localDateKey(),
+                topic: activeQuizReport.topic,
+                topicTitle: activeQuizReport.topicTitle,
+                level: activeQuizReport.level,
+                score: activeQuizReport.score,
+                trophies: rolled,
+                rankTitle: activeQuizReport.rankTitle
+              });
+              trackerState.trophies = (Number(trackerState.trophies) || 0) + rolled;
+
+              // Record in daily usage (max 3)
+              const u = getDailyQuizUsage();
+              u.count = (u.count || 0) + 1;
+              u.sessions = u.sessions || [];
+              u.sessions.push({
+                topic: activeQuizReport.topic,
+                topicTitle: activeQuizReport.topicTitle,
+                level: activeQuizReport.level,
+                score: activeQuizReport.score,
+                percentage: activeQuizReport.percentage,
+                trophies: rolled,
+                report: activeQuizReport
+              });
+
+              saveTrackerState();
+              refreshMetrics();
+              updateTrophyDisplay();
+
+              const confettiCanvas = secondary.querySelector("#quizConfettiCanvas");
+              if (confettiCanvas) triggerQuizConfetti(confettiCanvas);
+
+              showToast(`🏆 ${rolled} ${rolled === 1 ? 'Trophy' : 'Trophies'} added to your Vault!`);
+              setTimeout(() => {
+                renderSecondaryView("quiz");
+              }, 600);
+            }, 650);
+          });
+        }
+
+        const playAgainBtn = secondary.querySelector("#quizPlayAgainBtn");
+        if (playAgainBtn) {
+          playAgainBtn.addEventListener("click", () => {
+            const u = getDailyQuizUsage();
+            if (u.count >= 3) {
+              showToast("🔒 You have completed all 3 quizzes for today! Come back tomorrow.");
+              return;
+            }
+            activeQuizReport = null;
+            currentQuestionSelectedOption = null;
+            if (typeof DailyGrindQuiz !== "undefined") {
+              DailyGrindQuiz.stopTimer();
+              DailyGrindQuiz.getSession().questions = [];
+              DailyGrindQuiz.getSession().completed = false;
+            }
+            renderSecondaryView("quiz");
+          });
+        }
+
+        const viewVaultBtn = secondary.querySelector("#quizViewVaultBtn");
+        if (viewVaultBtn) {
+          viewVaultBtn.addEventListener("click", () => {
+            navigate("vault");
+          });
+        }
       }
     }
   }
