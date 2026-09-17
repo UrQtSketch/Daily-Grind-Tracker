@@ -222,26 +222,158 @@
     }
 
     const register = $("#registerForm");
+    const stepDetails = $("#stepDetails");
+    const stepOtp = $("#stepOtp");
+    const otpForm = $("#otpForm");
+    const sendOtpBtn = $("#sendOtpBtn");
+    const verifyOtpBtn = $("#verifyOtpBtn");
+    const resendOtpBtn = $("#resendOtpBtn");
+    const changeEmailBtn = $("#changeEmailBtn");
+    const otpEmailTarget = $("#otpEmailTarget");
+    const otpCodeInput = $("#otpCodeInput");
+    const otpError = $("#otpError");
+    const otpSuccess = $("#otpSuccess");
+    const registerError = $("#registerError");
+
+    let pendingEmail = "";
+    let resendCountdown = 30;
+    let resendInterval = null;
+
+    function startResendTimer() {
+      if (resendInterval) clearInterval(resendInterval);
+      resendCountdown = 30;
+      if (!resendOtpBtn) return;
+      resendOtpBtn.disabled = true;
+      resendOtpBtn.style.opacity = "0.6";
+      resendOtpBtn.innerHTML = `Resend Code (<span id="resendTimer">${resendCountdown}s</span>)`;
+
+      resendInterval = setInterval(() => {
+        resendCountdown--;
+        const timerSpan = $("#resendTimer");
+        if (timerSpan) timerSpan.textContent = `${resendCountdown}s`;
+        if (resendCountdown <= 0) {
+          clearInterval(resendInterval);
+          resendOtpBtn.disabled = false;
+          resendOtpBtn.style.opacity = "1";
+          resendOtpBtn.textContent = "Resend Code ↻";
+        }
+      }, 1000);
+    }
+
     if (register) {
       register.addEventListener("submit", async (event) => {
         event.preventDefault();
-        const error = $("#registerError");
-        error.textContent = "";
-        const name = $("#registerName").value.trim();
-        const email = $("#registerEmail").value.trim();
-        const password = $("#registerPassword").value;
-        if (name.length < 2) { error.textContent = "Please tell us your name."; return; }
-        if (!email || !password) { error.textContent = "Complete all fields to create your tracker."; return; }
-        if (!isGmailAddress(email)) {
-          error.textContent = "Only @gmail.com email addresses are allowed.";
+        if (registerError) registerError.textContent = "";
+        const name = $("#registerName")?.value.trim();
+        const email = $("#registerEmail")?.value.trim();
+        const password = $("#registerPassword")?.value;
+
+        if (!name || name.length < 2) {
+          if (registerError) registerError.textContent = "Please tell us your name (at least 2 characters).";
           return;
         }
-        try {
-          await auth.register(name, email, password);
-          window.location.assign("index.html");
-        } catch (message) {
-          error.textContent = message.message;
+        if (!email || !isGmailAddress(email)) {
+          if (registerError) registerError.textContent = "Only @gmail.com email addresses are allowed.";
+          return;
         }
+        if (!password || password.length < 6) {
+          if (registerError) registerError.textContent = "Password must be at least 6 characters.";
+          return;
+        }
+
+        if (sendOtpBtn) {
+          sendOtpBtn.disabled = true;
+          sendOtpBtn.textContent = "Sending Code...";
+        }
+
+        try {
+          await auth.sendRegistrationOtp(name, email, password);
+          pendingEmail = email.toLowerCase();
+          if (otpEmailTarget) otpEmailTarget.textContent = pendingEmail;
+
+          // Transition to Step 2
+          if (stepDetails) stepDetails.style.display = "none";
+          if (stepOtp) stepOtp.style.display = "block";
+          if (otpCodeInput) {
+            otpCodeInput.value = "";
+            otpCodeInput.focus();
+          }
+          if (otpError) otpError.textContent = "";
+          if (otpSuccess) {
+            otpSuccess.style.display = "block";
+            otpSuccess.textContent = `Verification code sent to ${pendingEmail}`;
+            setTimeout(() => { if (otpSuccess) otpSuccess.style.display = "none"; }, 5000);
+          }
+          startResendTimer();
+        } catch (err) {
+          if (registerError) registerError.textContent = err.message || "Failed to send verification code.";
+        } finally {
+          if (sendOtpBtn) {
+            sendOtpBtn.disabled = false;
+            sendOtpBtn.textContent = "Send Verification Code ⚡";
+          }
+        }
+      });
+    }
+
+    if (otpForm) {
+      otpForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (otpError) otpError.textContent = "";
+        const code = otpCodeInput?.value.trim() || "";
+        if (code.length !== 6) {
+          if (otpError) otpError.textContent = "Please enter the complete 6-digit code.";
+          return;
+        }
+
+        if (verifyOtpBtn) {
+          verifyOtpBtn.disabled = true;
+          verifyOtpBtn.textContent = "Verifying...";
+        }
+
+        try {
+          await auth.verifyRegistrationOtp(pendingEmail, code);
+          window.location.assign("index.html");
+        } catch (err) {
+          if (otpError) otpError.textContent = err.message || "Verification failed.";
+        } finally {
+          if (verifyOtpBtn) {
+            verifyOtpBtn.disabled = false;
+            verifyOtpBtn.innerHTML = "Verify & Enter Grind <span>→</span>";
+          }
+        }
+      });
+    }
+
+    if (resendOtpBtn) {
+      resendOtpBtn.addEventListener("click", async () => {
+        if (!pendingEmail) return;
+        if (resendCountdown > 0 && resendOtpBtn.disabled) return;
+        try {
+          resendOtpBtn.disabled = true;
+          resendOtpBtn.textContent = "Resending...";
+          await auth.resendRegistrationOtp(pendingEmail);
+          if (otpSuccess) {
+            otpSuccess.style.display = "block";
+            otpSuccess.textContent = `A fresh code has been sent to ${pendingEmail}`;
+            setTimeout(() => { if (otpSuccess) otpSuccess.style.display = "none"; }, 5000);
+          }
+          startResendTimer();
+        } catch (err) {
+          if (otpError) otpError.textContent = err.message || "Failed to resend code.";
+          resendOtpBtn.disabled = false;
+          resendOtpBtn.textContent = "Resend Code ↻";
+        }
+      });
+    }
+
+    if (changeEmailBtn) {
+      changeEmailBtn.addEventListener("click", () => {
+        if (stepOtp) stepOtp.style.display = "none";
+        if (stepDetails) stepDetails.style.display = "block";
+        if (registerError) registerError.textContent = "";
+        if (otpError) otpError.textContent = "";
+        if (resendInterval) clearInterval(resendInterval);
       });
     }
   }

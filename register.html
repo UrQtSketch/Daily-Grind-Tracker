@@ -26,23 +26,45 @@
 
       <main class="auth-main">
         <section class="auth-card">
-          <p class="eyebrow">START THE QUEST</p>
-          <h1>Build the person<br />you <em>respect.</em></h1>
-          <p class="auth-intro">Your personal system for showing up every day with unbroken discipline.</p>
-          <form class="auth-form" id="registerForm" novalidate>
-            <label>Your name
-              <input id="registerName" type="text" autocomplete="name" placeholder="What should we call you?" required maxlength="28" />
-            </label>
-            <label>Gmail Address
-              <input id="registerEmail" type="email" autocomplete="email" placeholder="you@gmail.com" pattern=".+@gmail\.com" required />
-            </label>
-            <label>Password
-              <input id="registerPassword" type="password" autocomplete="new-password" placeholder="At least 6 characters" required minlength="6" />
-            </label>
-            <p class="form-error" id="registerError" role="alert"></p>
-            <button class="primary-button auth-submit" type="submit">Create my tracker <span>→</span></button>
-          </form>
-          <p class="auth-switch">Already building? <a href="login.html">Log in with Gmail</a></p>
+          <!-- Step 1: User Details Form -->
+          <div id="stepDetails">
+            <p class="eyebrow">START THE QUEST</p>
+            <h1>Build the person<br />you <em>respect.</em></h1>
+            <p class="auth-intro">Your personal system for showing up every day with unbroken discipline.</p>
+            <form class="auth-form" id="registerForm" novalidate>
+              <label>Your name
+                <input id="registerName" type="text" autocomplete="name" placeholder="What should we call you?" required maxlength="28" />
+              </label>
+              <label>Gmail Address
+                <input id="registerEmail" type="email" autocomplete="email" placeholder="you@gmail.com" pattern=".+@gmail\.com" required />
+              </label>
+              <label>Password
+                <input id="registerPassword" type="password" autocomplete="new-password" placeholder="At least 6 characters" required minlength="6" />
+              </label>
+              <p class="form-error" id="registerError" role="alert"></p>
+              <button class="primary-button auth-submit" id="sendOtpBtn" type="submit">Send Verification Code ⚡</button>
+            </form>
+            <p class="auth-switch">Already building? <a href="login.html">Log in with Gmail</a></p>
+          </div>
+
+          <!-- Step 2: OTP Verification Form -->
+          <div id="stepOtp" style="display: none;">
+            <p class="eyebrow" style="color: #ffc107;">EMAIL VERIFICATION</p>
+            <h1>Enter 6-Digit<br /><em>Code.</em></h1>
+            <p class="auth-intro">We sent a verification code to <strong id="otpEmailTarget" style="color:#ffc107;">you@gmail.com</strong> from <em>support.dailygrind@gmail.com</em>.</p>
+            <form class="auth-form" id="otpForm" novalidate>
+              <label>6-Digit Verification Code
+                <input id="otpCodeInput" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" style="font-family:'DM Mono', monospace; font-size:22px; letter-spacing:8px; text-align:center;" required />
+              </label>
+              <p class="form-error" id="otpError" role="alert"></p>
+              <p class="form-success" id="otpSuccess" style="color: #10b981; font-size: 11px; margin: -2px 0 0; display: none;"></p>
+              <button class="primary-button auth-submit" id="verifyOtpBtn" type="submit">Verify & Enter Grind <span>→</span></button>
+            </form>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; font-size: 11px;">
+              <button type="button" class="legal-link-btn" id="resendOtpBtn" style="color: #9ccff0; cursor: pointer;">Resend Code (<span id="resendTimer">30s</span>)</button>
+              <button type="button" class="legal-link-btn" id="changeEmailBtn" style="color: #cbd5e4; cursor: pointer;">← Change Email</button>
+            </div>
+          </div>
           <footer class="auth-legal-footer">
             <p>© 2026 Daily Grind Tracker. Built with discipline. All rights reserved.</p>
             <div class="legal-links">

@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
+const crypto = require("crypto");
 const db = require("./database");
 const mailer = require("./mailer");
 const reminderService = require("./reminderService");
@@ -57,6 +58,112 @@ function isGmail(email) {
 }
 
 // Auth endpoints
+app.post("/api/auth/send-otp", async (req, res) => {
+  try {
+    const { name, email, password } = req.body || {};
+    if (!name || name.trim().length < 2) {
+      return res.status(400).json({ error: "Name must be at least 2 characters." });
+    }
+    if (!isGmail(email)) {
+      return res.status(400).json({ error: "Only @gmail.com email addresses are allowed." });
+    }
+    if (!password || password.length < 6) {
+      return res.status(400).json({ error: "Password must be at least 6 characters." });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const existing = await db.findUserByEmail(cleanEmail);
+    if (existing) {
+      return res.status(400).json({ error: "An account with this email already exists." });
+    }
+
+    // Generate 6-digit numeric OTP
+    const otp = crypto.randomInt(100000, 1000000).toString();
+    await db.saveOtp(cleanEmail, name.trim(), password, otp);
+
+    const emailRes = await mailer.sendOtpEmail({ to: cleanEmail, name: name.trim(), otp });
+    if (!emailRes.success && !emailRes.simulated) {
+      return res.status(500).json({ error: "Failed to send verification email. Please try again." });
+    }
+
+    res.json({
+      success: true,
+      message: `Verification code sent to ${cleanEmail}`,
+      email: cleanEmail
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message || "Failed to process verification code." });
+  }
+});
+
+app.post("/api/auth/verify-otp", async (req, res) => {
+  try {
+    const { email, otp } = req.body || {};
+    if (!email || !isGmail(email)) {
+      return res.status(400).json({ error: "Valid Gmail address is required." });
+    }
+    if (!otp || typeof otp !== "string" || otp.trim().length !== 6) {
+      return res.status(400).json({ error: "Please enter the 6-digit verification code." });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanOtp = otp.trim();
+
+    const record = await db.getOtp(cleanEmail);
+    if (!record) {
+      return res.status(400).json({ error: "Verification code has expired or was not requested. Please request a new code." });
+    }
+
+    if (record.attempts >= 5) {
+      await db.deleteOtp(cleanEmail);
+      return res.status(400).json({ error: "Too many incorrect attempts. Please request a new verification code." });
+    }
+
+    if (record.otp !== cleanOtp) {
+      const attempts = await db.incrementOtpAttempts(cleanEmail);
+      const remaining = Math.max(0, 5 - attempts);
+      return res.status(400).json({ error: `Incorrect verification code. ${remaining} attempts remaining.` });
+    }
+
+    // Correct OTP! Create the user now
+    const user = await db.createUser(record.name, cleanEmail, record.password);
+    const token = await db.createSession(user);
+
+    // Delete used OTP
+    await db.deleteOtp(cleanEmail);
+
+    res.status(201).json({ success: true, user, token });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.post("/api/auth/resend-otp", async (req, res) => {
+  try {
+    const { email } = req.body || {};
+    if (!email || !isGmail(email)) {
+      return res.status(400).json({ error: "Valid Gmail address is required." });
+    }
+    const cleanEmail = email.trim().toLowerCase();
+    const record = await db.getOtp(cleanEmail);
+    if (!record) {
+      return res.status(400).json({ error: "No pending registration found for this email. Please enter details again." });
+    }
+
+    const newOtp = crypto.randomInt(100000, 1000000).toString();
+    await db.saveOtp(cleanEmail, record.name, record.password, newOtp);
+
+    const emailRes = await mailer.sendOtpEmail({ to: cleanEmail, name: record.name, otp: newOtp });
+    if (!emailRes.success && !emailRes.simulated) {
+      return res.status(500).json({ error: "Failed to resend verification email." });
+    }
+
+    res.json({ success: true, message: `A new verification code was sent to ${cleanEmail}` });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post("/api/auth/register", async (req, res) => {
   try {
     const { name, email, password } = req.body || {};

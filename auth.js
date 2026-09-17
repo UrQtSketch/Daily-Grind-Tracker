@@ -35,6 +35,66 @@
     getToken() {
       return localStorage.getItem(TOKEN_KEY) || "";
     },
+
+    async sendRegistrationOtp(name, email, password) {
+      if (!validateGmail(email)) {
+        throw new Error("Only @gmail.com email addresses are allowed.");
+      }
+      if (isHttp()) {
+        const res = await fetch("/api/auth/send-otp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: name.trim(), email: email.trim().toLowerCase(), password })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to send verification code.");
+        return data;
+      }
+      // Offline fallback
+      return { success: true, message: "Verification code sent (offline demo: 123456)", demoOtp: "123456" };
+    },
+
+    async verifyRegistrationOtp(email, otp) {
+      if (!validateGmail(email)) {
+        throw new Error("Only @gmail.com email addresses are allowed.");
+      }
+      if (isHttp()) {
+        const res = await fetch("/api/auth/verify-otp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: email.trim().toLowerCase(), otp: otp.trim() })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Invalid verification code.");
+        setSession(data.user, data.token);
+        return data.user;
+      }
+      // Offline fallback
+      if (otp.trim() !== "123456") throw new Error("Incorrect verification code.");
+      const users = getUsers();
+      let user = users.find(u => u.email.toLowerCase() === email.trim().toLowerCase());
+      if (!user) {
+        user = { name: "Grinder", email: email.trim().toLowerCase() };
+        users.push(user);
+        saveUsers(users);
+      }
+      setSession(user);
+      return user;
+    },
+
+    async resendRegistrationOtp(email) {
+      if (isHttp()) {
+        const res = await fetch("/api/auth/resend-otp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: email.trim().toLowerCase() })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to resend verification code.");
+        return data;
+      }
+      return { success: true, message: "Code resent (demo: 123456)" };
+    },
     async register(name, email, password) {
       if (!validateGmail(email)) {
         throw new Error("Only @gmail.com email addresses are allowed.");

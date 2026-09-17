@@ -87,12 +87,23 @@ const supportTicketSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
+const otpSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+  otp: { type: String, required: true },
+  name: { type: String, required: true },
+  password: { type: String, required: true },
+  attempts: { type: Number, default: 0 },
+  createdAt: { type: Date, default: Date.now, expires: "10m" }
+});
+
 const UserModel = mongoose.models.User || mongoose.model("User", userSchema);
 const TrackerStateModel = mongoose.models.TrackerState || mongoose.model("TrackerState", trackerStateSchema);
 const SessionModel = mongoose.models.Session || mongoose.model("Session", sessionSchema);
 const SupportTicketModel = mongoose.models.SupportTicket || mongoose.model("SupportTicket", supportTicketSchema);
+const OtpModel = mongoose.models.Otp || mongoose.model("Otp", otpSchema);
 
 let isMongoConnected = false;
+const localOtpStore = new Map();
 
 // Inactivity penalty calculation (5 days without activity = daily -1 trophy penalty)
 function applyInactivityPenalty(state) {
@@ -450,5 +461,98 @@ module.exports = {
     db.supportTickets.push(ticket);
     writeLocalDb(db);
     return ticket;
+  },
+
+  async saveOtp(email, name, password, otp) {
+    const cleanEmail = email.trim().toLowerCase();
+    const expiresAt = Date.now() + 10 * 60 * 1000;
+    if (isMongoConnected) {
+      await OtpModel.findOneAndUpdate(
+        { email: cleanEmail },
+        {
+          $set: {
+            email: cleanEmail,
+            otp,
+            name: name.trim(),
+            password,
+            attempts: 0,
+            createdAt: new Date()
+          }
+        },
+        { upsert: true, new: true }
+      );
+      return;
+    }
+    localOtpStore.set(cleanEmail, {
+      email: cleanEmail,
+      otp,
+      name: name.trim(),
+      password,
+      attempts: 0,
+      expiresAt
+    });
+    const db = readLocalDb();
+    db.otps = db.otps || {};
+    db.otps[cleanEmail] = { email: cleanEmail, otp, name: name.trim(), password, attempts: 0, expiresAt };
+    writeLocalDb(db);
+  },
+
+  async getOtp(email) {
+    const cleanEmail = email.trim().toLowerCase();
+    if (isMongoConnected) {
+      return await OtpModel.findOne({ email: cleanEmail }).lean();
+    }
+    const db = readLocalDb();
+    const item = (db.otps && db.otps[cleanEmail]) || localOtpStore.get(cleanEmail);
+    if (!item) return null;
+    if (Date.now() > item.expiresAt) {
+      localOtpStore.delete(cleanEmail);
+      if (db.otps && db.otps[cleanEmail]) {
+        delete db.otps[cleanEmail];
+        writeLocalDb(db);
+      }
+      return null;
+    }
+    return item;
+  },
+
+  async incrementOtpAttempts(email) {
+    const cleanEmail = email.trim().toLowerCase();
+    if (isMongoConnected) {
+      const res = await OtpModel.findOneAndUpdate(
+        { email: cleanEmail },
+        { $inc: { attempts: 1 } },
+        { new: true }
+      ).lean();
+      return res ? res.attempts : 1;
+    }
+    const db = readLocalDb();
+    db.otps = db.otps || {};
+    let attempts = 1;
+    if (db.otps[cleanEmail]) {
+      db.otps[cleanEmail].attempts = (db.otps[cleanEmail].attempts || 0) + 1;
+      attempts = db.otps[cleanEmail].attempts;
+      writeLocalDb(db);
+    }
+    const item = localOtpStore.get(cleanEmail);
+    if (item) {
+      item.attempts = (item.attempts || 0) + 1;
+      attempts = item.attempts;
+    }
+    return attempts;
+  },
+
+  async deleteOtp(email) {
+    const cleanEmail = email.trim().toLowerCase();
+    if (isMongoConnected) {
+      await OtpModel.deleteOne({ email: cleanEmail });
+      return;
+    }
+    localOtpStore.delete(cleanEmail);
+    const db = readLocalDb();
+    if (db.otps && db.otps[cleanEmail]) {
+      delete db.otps[cleanEmail];
+      writeLocalDb(db);
+    }
   }
 };
