@@ -1270,7 +1270,7 @@
             }
 
             // Sync user rank with latest data
-            const currentUser = auth.getUser();
+            const currentUser = auth.current();
             const currentEmail = currentUser ? currentUser.email.toLowerCase() : "";
             if (currentEmail) {
               const matchedInTop10 = (payload.top10 || []).find(u => u.isCurrentUser || (u.email && u.email.toLowerCase() === currentEmail));
@@ -2129,7 +2129,7 @@
       const top10 = liveLeaderboardData.top10 || [];
       const userRank = liveLeaderboardData.userRank;
       const totalUsers = liveLeaderboardData.totalUsers || (top10 ? top10.length : 0);
-      const currentUser = auth.getUser();
+      const currentUser = auth.current();
       const isUserAuthed = !!currentUser && !isDemo();
 
       const rank1 = top10[0] || null;

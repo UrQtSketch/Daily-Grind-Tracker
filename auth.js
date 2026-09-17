@@ -32,6 +32,9 @@
     current() {
       try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch { return null; }
     },
+    getUser() {
+      return this.current();
+    },
     getToken() {
       return localStorage.getItem(TOKEN_KEY) || "";
     },
