@@ -79,6 +79,18 @@ body.sidebar-collapsed .sidebar {
   border-right: none !important;
   width: 0 !important;
 }
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+body.sidebar-open .sidebar-backdrop, .sidebar-open .sidebar-backdrop {
+  display: block;
+}
 .sidebar::after { content: ""; position: absolute; z-index: -1; inset: auto -3rem -1rem; height: 21rem; opacity: .42; background: linear-gradient(20deg, transparent 30%, rgba(255, 52, 80, .42)), linear-gradient(155deg, transparent 48%, #11192d 49% 53%, transparent 54%); clip-path: polygon(0 35%, 19% 43%, 29% 33%, 47% 53%, 62% 20%, 100% 64%, 100% 100%, 0 100%); }
 .brand { display: inline-flex; align-items: center; gap: 11px; width: max-content; color: var(--text); margin: 0 15px 34px; }
 .brand-mark { display: grid; place-items: center; width: 39px; height: 50px; color: var(--coral); font-size: 48px; font-family: Georgia, serif; line-height: .8; text-shadow: 0 5px 24px rgba(255,64,93,.42); transform: rotate(1deg); }
