@@ -597,91 +597,67 @@
 
   /* -------------------------------------------------------------
      MOTIVATIONAL CELEBRATION ANTHEMS (ORIGINAL YOUTUBE SONGS)
-     Priority: 70% Hindi (7 tracks), 30% English (3 tracks)
-     World-class most loved motivational songs across Bollywood & global icons
-     Non-repeating for 10-day cycle with real YouTube video/audio embed
+     Full 51-Track Roster from songs.txt: 30 Hindi + 11 English + 10 Bhojpuri
+     All verified official full songs/videos (0 trailers)
+     Non-repeating 51-day rotation cycle (repeats on Day 52)
   ------------------------------------------------------------- */
   const CELEBRATION_TRACKS = [
-    {
-      id: 1,
-      title: "Brothers Anthem — Vishal Dadlani (Ajay-Atul)",
-      ytId: "IjBAgWKW12Y",
-      lang: "HINDI",
-      flag: "🇮🇳",
-      energy: "Raw Power, Grit & Unstoppable Will · Brothers"
-    },
-    {
-      id: 2,
-      title: "Kar Har Maidan Fateh — Sukhwinder Singh, Shreya Ghoshal",
-      ytId: "9iIX4PBplAY",
-      lang: "HINDI",
-      flag: "🇮🇳",
-      energy: "Triumphant Warrior March · Sanju"
-    },
-    {
-      id: 3,
-      title: "Chak De! India — Sukhwinder Singh",
-      ytId: "bnqLzCsffwY",
-      lang: "HINDI",
-      flag: "🇮🇳",
-      energy: "High Adrenaline & Fire in the Blood · Chak De! India"
-    },
-    {
-      id: 4,
-      title: "Lakshya Title Track — Shankar-Ehsaan-Loy",
-      ytId: "8DMF0U6xV78",
-      lang: "HINDI",
-      flag: "🇮🇳",
-      energy: "Laser Focus & Unshakable Purpose · Lakshya"
-    },
-    {
-      id: 5,
-      title: "Ziddi Dil — Vishal Dadlani",
-      ytId: "puKD3nkB1h4",
-      lang: "HINDI",
-      flag: "🇮🇳",
-      energy: "Unyielding Roar & Unbroken Spirit · Mary Kom"
-    },
-    {
-      id: 6,
-      title: "Sultan Title Song — Sukhwinder Singh, Shadab Faridi",
-      ytId: "wPxqcq6Byq0",
-      lang: "HINDI",
-      flag: "🇮🇳",
-      energy: "Khoon Mein Mitti, Akhaada Comeback · Sultan"
-    },
-    {
-      id: 7,
-      title: "Dangal Title Track — Daler Mehndi",
-      ytId: "91ZI3IrojMU",
-      lang: "HINDI",
-      flag: "🇮🇳",
-      energy: "Relentless Beast Mode & Iron Discipline · Dangal"
-    },
-    {
-      id: 8,
-      title: "Hall of Fame — The Script ft. will.i.am",
-      ytId: "mk48xRzuNvA",
-      lang: "ENGLISH",
-      flag: "🌍",
-      energy: "Standing in the Hall of Fame · Global Anthem"
-    },
-    {
-      id: 9,
-      title: "Unstoppable — Sia",
-      ytId: "YaEG2aWJnZ8",
-      lang: "ENGLISH",
-      flag: "🌍",
-      energy: "Indomitable Confidence & Pure Resilience"
-    },
-    {
-      id: 10,
-      title: "Believer — Imagine Dragons",
-      ytId: "7wtfhZwyrcc",
-      lang: "ENGLISH",
-      flag: "🌍",
-      energy: "Turning Pain into Power & Fuel"
-    }
+    // 30 HINDI SONGS
+    { id: 1, title: "Kar Har Maidaan Fateh — Sanju", ytId: "9iIX4PBplAY", lang: "HINDI", flag: "🇮🇳", energy: "Triumphant Warrior March · Sanju" },
+    { id: 2, title: "Zinda — Bhaag Milkha Bhaag", ytId: "Ax0G_P2dSBw", lang: "HINDI", flag: "🇮🇳", energy: "High Voltage Fire & Agility · Bhaag Milkha Bhaag" },
+    { id: 3, title: "Lakshya Title Track — Lakshya", ytId: "8DMF0U6xV78", lang: "HINDI", flag: "🇮🇳", energy: "Laser Focus & Unshakable Purpose · Lakshya" },
+    { id: 4, title: "Aashayein — Iqbal", ytId: "bmyv0nRkDmc", lang: "HINDI", flag: "🇮🇳", energy: "Hope, Faith & Limitless Dreams · Iqbal" },
+    { id: 5, title: "Besabriyaan — M.S. Dhoni", ytId: "UBBHpoW3AKA", lang: "HINDI", flag: "🇮🇳", energy: "Hunger For Excellence & Relentless Drive · M.S. Dhoni" },
+    { id: 6, title: "Aarambh Hai Prachand — Gulaal", ytId: "x9feF5rtMAc", lang: "HINDI", flag: "🇮🇳", energy: "Sacred War Cry & High Voltage Prana · Gulaal" },
+    { id: 7, title: "Chak De India — Chak De! India", ytId: "bnqLzCsffwY", lang: "HINDI", flag: "🇮🇳", energy: "Adrenaline Blood Rush · Chak De! India" },
+    { id: 8, title: "Sultan Title Song — Sultan", ytId: "abiL84EAWSY", lang: "HINDI", flag: "🇮🇳", energy: "Khoon Mein Mitti, Akhaada Comeback · Sultan" },
+    { id: 9, title: "Dangal Title Track — Dangal", ytId: "91ZI3IrojMU", lang: "HINDI", flag: "🇮🇳", energy: "Relentless Beast Mode & Iron Discipline · Dangal" },
+    { id: 10, title: "Jhuk Na Paunga — Raid", ytId: "OV37j0SJy_U", lang: "HINDI", flag: "🇮🇳", energy: "Unbending Integrity & Spine of Steel · Raid" },
+    { id: 11, title: "Ziddi Dil — Mary Kom", ytId: "puKD3nkB1h4", lang: "HINDI", flag: "🇮🇳", energy: "Unyielding Roar & Unbroken Spirit · Mary Kom" },
+    { id: 12, title: "Apna Time Aayega — Gully Boy", ytId: "jFGKJBPFdUA", lang: "HINDI", flag: "🇮🇳", energy: "Raw Hustle & Manifesting Destiny · Gully Boy" },
+    { id: 13, title: "Parwah Nahi — M.S. Dhoni", ytId: "PMXducIESQE", lang: "HINDI", flag: "🇮🇳", energy: "Fearless Execution, Zero Doubts · M.S. Dhoni" },
+    { id: 14, title: "Brothers Anthem — Brothers", ytId: "IjBAgWKW12Y", lang: "HINDI", flag: "🇮🇳", energy: "Raw Power, Grit & Unstoppable Will · Brothers" },
+    { id: 15, title: "Jag Ghoomeya — Sultan", ytId: "t10sQb0Zmjs", lang: "HINDI", flag: "🇮🇳", energy: "Soulful Inner Peace & Victory · Sultan" },
+    { id: 16, title: "Chak Lein De — Chandni Chowk to China", ytId: "kd-6aw99DpA", lang: "HINDI", flag: "🇮🇳", energy: "Rise After Every Fall · Chandni Chowk to China" },
+    { id: 17, title: "Ruk Jana Nahin — Imtihaan", ytId: "9XhkhCMHU7I", lang: "HINDI", flag: "🇮🇳", energy: "Timeless Resilience & The Long March · Imtihaan" },
+    { id: 18, title: "Yun Hi Chala Chal — Swades", ytId: "JbNlkYQG5XI", lang: "HINDI", flag: "🇮🇳", energy: "Joy of The Journey & Inner Calling · Swades" },
+    { id: 19, title: "Khoon Chala — Rang De Basanti", ytId: "fbbHNMXp5dU", lang: "HINDI", flag: "🇮🇳", energy: "Sacrifice & Unshakable Devotion · Rang De Basanti" },
+    { id: 20, title: "Aazaadiyan — Udaan", ytId: "ugm2SOScEqA", lang: "HINDI", flag: "🇮🇳", energy: "Breaking Every Chain & Soaring Free · Udaan" },
+    { id: 21, title: "Jeete Hain Chal — Neerja", ytId: "GZIh0bhuFtg", lang: "HINDI", flag: "🇮🇳", energy: "Celebrate Every Breath With Courage · Neerja" },
+    { id: 22, title: "Phir Se Ud Chala — Rockstar", ytId: "2mWaqsC3U7k", lang: "HINDI", flag: "🇮🇳", energy: "Transcending Limits & Flying High · Rockstar" },
+    { id: 23, title: "Kandhon Se Milte Hain Kandhe — Lakshya", ytId: "s_-tthrE0Hg", lang: "HINDI", flag: "🇮🇳", energy: "Brotherhood, Unity & War March · Lakshya" },
+    { id: 24, title: "Roobaroo — Rang De Basanti", ytId: "8kMv5ssr6Dw", lang: "HINDI", flag: "🇮🇳", energy: "Rays of Dawn & Triumphant Glory · Rang De Basanti" },
+    { id: 25, title: "Zindagi Aa Raha Hoon Main — Atif Aslam", ytId: "82eM7QRtoRo", lang: "HINDI", flag: "🇮🇳", energy: "Full Throttle Passion & Embracing Life" },
+    { id: 26, title: "Soorma Anthem — Soorma", ytId: "cF2yqyiJACk", lang: "HINDI", flag: "🇮🇳", energy: "Unbreakable Comeback From The Ashes · Soorma" },
+    { id: 27, title: "Mitwa — Lagaan", ytId: "uC3DmRfEigg", lang: "HINDI", flag: "🇮🇳", energy: "The Unconquered Spirit of Belief · Lagaan" },
+    { id: 28, title: "Yahan Ke Hum Sikandar — JJWS", ytId: "YFKv-cpqMHw", lang: "HINDI", flag: "🇮🇳", energy: "The Swagger of Kings & Champions · Jo Jeeta Wohi Sikandar" },
+    { id: 29, title: "Badal Pe Paon Hai — Chak De! India", ytId: "DmsOinqrPvQ", lang: "HINDI", flag: "🇮🇳", energy: "Walking on Clouds, Crowned Champions · Chak De! India" },
+    { id: 30, title: "Naav — Udaan", ytId: "6RLRUNoTHRY", lang: "HINDI", flag: "🇮🇳", energy: "Navigating Wild Rapids & Overcoming Storms · Udaan" },
+
+    // 11 ENGLISH SONGS
+    { id: 31, title: "Golden Hour — JVKE", ytId: "PEM0Vs8jf1w", lang: "ENGLISH", flag: "🌍", energy: "Luminous Euphoria & Golden Triumphs" },
+    { id: 32, title: "Die With A Smile — Lady Gaga & Bruno Mars", ytId: "kPa7bsKwL-c", lang: "ENGLISH", flag: "🌍", energy: "Timeless Emotion & Legendary Vocals" },
+    { id: 33, title: "Birds of a Feather — Billie Eilish", ytId: "V9PVRfjEBTI", lang: "ENGLISH", flag: "🌍", energy: "Mesmerizing Harmony & Soul Resonance" },
+    { id: 34, title: "Alone, Pt. II — Alan Walker & Ava Max", ytId: "HhjHYkPQ8F0", lang: "ENGLISH", flag: "🌍", energy: "Never Alone in The Grind · Anthemic Electronic" },
+    { id: 35, title: "Let Me Love You — DJ Snake ft. Justin Bieber", ytId: "euCqAq6BRa4", lang: "ENGLISH", flag: "🌍", energy: "Don't You Give Up, Nah Nah Nah · Global Hit" },
+    { id: 36, title: "Sugar & Brownies — DHARIA", ytId: "X-cQSTPie14", lang: "ENGLISH", flag: "🌍", energy: "Irresistible Groove & High Vibe Spark" },
+    { id: 37, title: "Faded — Alan Walker", ytId: "60ItHLz5WEA", lang: "ENGLISH", flag: "🌍", energy: "Atmospheric Masterpiece & Legend Status" },
+    { id: 38, title: "Cheap Thrills — Sia", ytId: "nYh-n7EOtMA", lang: "ENGLISH", flag: "🌍", energy: "Unstoppable Dance Groove & Pure Celebration" },
+    { id: 39, title: "Starboy — The Weeknd", ytId: "34Na4j8AVgA", lang: "ENGLISH", flag: "🌍", energy: "Top of The World Swagger & Electric Nights" },
+    { id: 40, title: "Love Me Like You Do — Ellie Goulding", ytId: "AJtDXIazrMo", lang: "ENGLISH", flag: "🌍", energy: "Soaring Cinematic Passion & Grace" },
+    { id: 41, title: "The Spectre — Alan Walker", ytId: "wJnBTPUQS5A", lang: "ENGLISH", flag: "🌍", energy: "Hello World, Are You With Me · Stadium Energy" },
+
+    // 10 BHOJPURI SONGS
+    { id: 42, title: "Lollipop Lagelu — Pawan Singh", ytId: "Gr8G_ldltDE", lang: "BHOJPURI", flag: "🔥", energy: "All-Time Historic Desi Anthem · Wave Music" },
+    { id: 43, title: "Raja Raja Kareja Mein Samaja — Pawan Singh", ytId: "1y57siuuoX8", lang: "BHOJPURI", flag: "🔥", energy: "Desi High-Adrenaline Folk Party · Classic Vibe" },
+    { id: 44, title: "Raate Diya Butake — Pawan Singh & Aamrapali", ytId: "Q3sS5v2kQQU", lang: "BHOJPURI", flag: "🔥", energy: "Record-Breaking Mega Blockbuster · Wave Music" },
+    { id: 45, title: "Kamariya Hila Rahi Hai — Pawan Singh & Payal Dev", ytId: "kayOHvB-vX8", lang: "BHOJPURI", flag: "🔥", energy: "High-Energy Holi Anthem · Jjust Music" },
+    { id: 46, title: "Chhalakata Hamro Jawaniya — Pawan Singh", ytId: "c4JD7rEtIj8", lang: "BHOJPURI", flag: "🔥", energy: "Unstoppable Groove & Maximum Masti · Worldwide Records" },
+    { id: 47, title: "Hello Koun — Ritesh Pandey & Sneh Upadhyay", ytId: "0hGGaVCCqPk", lang: "BHOJPURI", flag: "🔥", energy: "Viral Desi Rap Sensation · Riddhi Music" },
+    { id: 48, title: "Lehenga Lucknowa — Khesari Lal Yadav", ytId: "VtoeHGD2fnw", lang: "BHOJPURI", flag: "🔥", energy: "Massive Dance Floor Power · Aadishakti Films" },
+    { id: 49, title: "Pudina Ae Haseena — Pawan Singh", ytId: "WHU4Z3CZCK8", lang: "BHOJPURI", flag: "🔥", energy: "Chartbuster Summer Groove · Wave Music" },
+    { id: 50, title: "Bani Laika — Pawan Singh & Shilpi Raj", ytId: "xE3BGWksJas", lang: "BHOJPURI", flag: "🔥", energy: "Fresh High-Speed Energy · Pammy Records" },
+    { id: 51, title: "Kamar Me Dagi — Khesari Lal Yadav & Shilpi Raj", ytId: "EtynM6-FoNw", lang: "BHOJPURI", flag: "🔥", energy: "Electrifying Beat & Desi Swing · Aaradhya Films" }
   ];
 
   let activeCelebrationTrack = null;
