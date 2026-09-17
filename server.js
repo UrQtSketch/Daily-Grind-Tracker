@@ -12,6 +12,25 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json({ limit: "5mb" }));
 
+// Security Guard: Prevent public exposure of backend source code, JSON databases, and configs
+app.use((req, res, next) => {
+  const blockedPatterns = [
+    /^\/data(\/|$)/i,
+    /^\/database\.js$/i,
+    /^\/server\.js$/i,
+    /^\/mailer\.js$/i,
+    /^\/reminderService\.js$/i,
+    /^\/package(-lock)?\.json$/i,
+    /^\/\.git/i,
+    /^\/\.env/i,
+    /\.(json|tmp|log|bak|md|sh|yml|yaml)$/i
+  ];
+  if (blockedPatterns.some((p) => p.test(req.path))) {
+    return res.status(403).json({ error: "Access forbidden" });
+  }
+  next();
+});
+
 // Static files (frontend)
 app.use(express.static(__dirname));
 

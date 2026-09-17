@@ -2,3 +2,9 @@ node_modules/
 .DS_Store
 Thumbs.db
 *.log
+.env
+*.env
+.env.*
+data/*.tmp
+data/tracker_db.json.tmp
+.system_generated/
