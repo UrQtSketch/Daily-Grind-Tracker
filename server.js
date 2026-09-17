@@ -2,12 +2,48 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const crypto = require("crypto");
+const rateLimit = require("express-rate-limit");
+const helmet = require("helmet");
 const db = require("./database");
 const mailer = require("./mailer");
 const reminderService = require("./reminderService");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// ── Security Headers (Helmet) ────────────────────────────────────────────────
+app.use(helmet({
+  contentSecurityPolicy: false, // disabled so our inline scripts/styles work
+  crossOriginEmbedderPolicy: false,
+}));
+
+// ── Global Rate Limiter — DDoS / Brute-force protection ──────────────────────
+// 300 requests per 10 minutes per IP (enough for real users, blocks bots)
+const globalLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many requests. Please slow down and try again later." },
+  skip: (req) => req.path === "/api/health", // health endpoint always accessible
+});
+app.use(globalLimiter);
+
+// ── Strict Auth Route Limiter — Prevent brute-force on login/register ─────────
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20, // only 20 login attempts per 15 min per IP
+  message: { error: "Too many login attempts. Please wait 15 minutes and try again." },
+});
+app.use(["/api/login", "/api/register"], authLimiter);
+
+// ── Admin Route Limiter ───────────────────────────────────────────────────────
+const adminLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  max: 60,
+  message: { error: "Admin rate limit exceeded." },
+});
+app.use("/api/admin", adminLimiter);
 
 app.use(cors());
 app.use(express.json({ limit: "5mb" }));
