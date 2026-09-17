@@ -8,17 +8,22 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=2.3" />
+    <link rel="stylesheet" href="styles.css?v=2.4" />
   </head>
   <body class="app-body">
     <div class="ambient ambient-one"></div>
     <div class="ambient ambient-two"></div>
     <div class="app-shell">
       <aside class="sidebar" id="sidebar">
-        <a class="brand" href="index.html" aria-label="Daily Grind Tracker home">
-          <span class="brand-mark">♨</span>
-          <span class="brand-copy"><strong>DAILY <em>GRIND</em></strong><small>TRACKER</small></span>
-        </a>
+        <div class="sidebar-top-bar">
+          <a class="brand" href="index.html" aria-label="Daily Grind Tracker home">
+            <span class="brand-mark">♨</span>
+            <span class="brand-copy"><strong>DAILY <em>GRIND</em></strong><small>TRACKER</small></span>
+          </a>
+          <button class="sidebar-collapse-btn" id="sidebarCollapseBtn" type="button" title="Hide Sidebar (Collapse Navigation)" aria-label="Hide navigation sidebar">
+            <span class="three-dots-icon">⋮</span>
+          </button>
+        </div>
 
         <nav class="side-nav" aria-label="Main navigation">
           <a class="nav-link is-active" href="#dashboard" data-view="dashboard"><span>⌂</span>Dashboard</a>
@@ -58,6 +63,7 @@
           <div class="topbar-left">
             <button class="sidebar-toggle-btn" id="sidebarToggleBtn" type="button" title="Hide / Show Sidebar (Toggle Navigation)" aria-label="Toggle navigation sidebar">
               <span class="three-dots-icon">⋮</span>
+              <span class="sidebar-toggle-text">Menu</span>
             </button>
             <label class="search-box" for="taskSearch">
               <span>⌕</span>
@@ -383,8 +389,8 @@
     </dialog>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    <script src="auth.js?v=2.3"></script>
-    <script src="quiz.js?v=2.3"></script>
-    <script src="app.js?v=2.3"></script>
+    <script src="auth.js?v=2.4"></script>
+    <script src="quiz.js?v=2.4"></script>
+    <script src="app.js?v=2.4"></script>
   </body>
 </html>

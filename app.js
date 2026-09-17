@@ -3128,19 +3128,26 @@
     $("#signOutButton").addEventListener("click", async () => { await auth.signOut(); window.location.assign("login.html"); });
 
     function toggleSidebar() {
-      if (window.innerWidth <= 960) {
+      if (window.innerWidth <= 768) {
         page.classList.toggle("sidebar-open");
       } else {
         const isCollapsed = page.classList.toggle("sidebar-collapsed");
-        try {
-          localStorage.setItem("dgt_sidebar_collapsed", isCollapsed ? "true" : "false");
-        } catch (e) {}
+        const toggleBtn = $("#sidebarToggleBtn");
+        if (toggleBtn) toggleBtn.classList.toggle("is-active", isCollapsed);
       }
     }
 
     const toggleBtn = $("#sidebarToggleBtn") || $("#menuToggle");
     if (toggleBtn) {
       toggleBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        toggleSidebar();
+      });
+    }
+
+    const collapseBtn = $("#sidebarCollapseBtn");
+    if (collapseBtn) {
+      collapseBtn.addEventListener("click", (e) => {
         e.preventDefault();
         toggleSidebar();
       });
@@ -3169,14 +3176,12 @@
     });
   }
 
-  // Restore saved desktop sidebar collapse preference
-  if (window.innerWidth > 960) {
-    try {
-      if (localStorage.getItem("dgt_sidebar_collapsed") === "true") {
-        page.classList.add("sidebar-collapsed");
-      }
-    } catch (e) {}
-  }
+  // Ensure sidebar is always visible and expanded by default
+  try {
+    localStorage.removeItem("dgt_sidebar_collapsed");
+    page.classList.remove("sidebar-collapsed");
+    page.classList.remove("sidebar-open");
+  } catch (e) {}
 
   applyProfile(); setDate(activeDate, true); bindInteractions(); initModeSelector(); bindLegalModals(); initLeaderboardSSE(); fetchLeaderboardData(); navigate(window.location.hash.slice(1) || "dashboard", false); syncFromBackend();
   if (window.location.search.includes("testCelebration")) {
