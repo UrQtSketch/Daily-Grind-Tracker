@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=2.1" />
+    <link rel="stylesheet" href="styles.css?v=2.2" />
   </head>
   <body class="app-body">
     <div class="ambient ambient-one"></div>
@@ -24,7 +24,7 @@
           <a class="nav-link is-active" href="#dashboard" data-view="dashboard"><span>⌂</span>Dashboard</a>
           <a class="nav-link" href="#vault" data-view="vault"><span>🏆</span>Trophy Vault</a>
           <a class="nav-link" href="#quiz" data-view="quiz"><span>⚡</span>Skill Arena</a>
-          <a class="nav-link" href="#leaderboard" data-view="leaderboard"><span>🏅</span>Leaderboard <span class="nav-live-chip">LIVE</span></a>
+          <a class="nav-link" href="#leaderboard" data-view="leaderboard"><span>🏅</span><span class="nav-link-text">Leaderboard</span><span class="nav-live-chip">LIVE</span></a>
           <a class="nav-link" href="#habits" data-view="habits"><span>◌</span>Habits</a>
           <a class="nav-link" href="#goals" data-view="goals"><span>⌁</span>Goals</a>
           <a class="nav-link" href="#analytics" data-view="analytics"><span>▥</span>Analytics</a>
@@ -34,6 +34,7 @@
         </nav>
 
         <div class="sidebar-bottom">
+          <a class="nav-link" href="#admin" data-view="admin" id="sidebarAdminLink"><span>🛡️</span>Admin Center</a>
           <a class="nav-link" href="#support" data-view="support"><span>✉</span>Support & Help</a>
           <a class="nav-link" href="#settings" data-view="settings"><span>⚙</span>Settings</a>
           <div class="sidebar-quote">
@@ -77,6 +78,9 @@
                 <p>Signed in as <strong data-profile-email>guest@dailygrind.local</strong></p>
                 <a href="#vault" id="profileVaultLink" style="display:flex; align-items:center; gap:8px; font-size:12px; color:#ffca42; margin:8px 0 6px; text-decoration:none; padding:6px 10px; background:rgba(255,193,7,.12); border-radius:6px; border:1px solid rgba(255,193,7,.3);">
                   <span>🏆</span><span><b><strong id="profileTrophyCount">0</strong> Trophies</b> · Open Vault →</span>
+                </a>
+                <a href="#admin" id="profileAdminLink" style="display:flex; align-items:center; gap:8px; font-size:12px; color:#60a5fa; margin:6px 0; text-decoration:none; padding:6px 10px; background:rgba(96,165,250,.12); border-radius:6px; border:1px solid rgba(96,165,250,.3);">
+                  <span>🛡️</span><span><b>Admin Command Center</b></span>
                 </a>
                 <a href="login.html">Switch account</a>
                 <button id="signOutButton" type="button">Sign out</button>
@@ -374,8 +378,8 @@
     </dialog>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    <script src="auth.js?v=2.1"></script>
-    <script src="quiz.js?v=2.1"></script>
-    <script src="app.js?v=2.1"></script>
+    <script src="auth.js?v=2.2"></script>
+    <script src="quiz.js?v=2.2"></script>
+    <script src="app.js?v=2.2"></script>
   </body>
 </html>

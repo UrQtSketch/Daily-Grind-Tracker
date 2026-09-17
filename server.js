@@ -51,6 +51,11 @@ async function authenticate(req, res, next) {
       return res.status(401).json({ error: "Invalid or expired session" });
     }
 
+    if (await db.isEmailBanned(user.email)) {
+      await db.deleteSession(token);
+      return res.status(403).json({ error: "Your account has been permanently suspended by administrator." });
+    }
+
     req.user = user;
     req.token = token;
     next();
@@ -91,6 +96,10 @@ app.post("/api/auth/send-otp", async (req, res) => {
     }
 
     const cleanEmail = email.trim().toLowerCase();
+    if (await db.isEmailBanned(cleanEmail)) {
+      return res.status(403).json({ error: "This Gmail address has been permanently banned from Daily Grind Tracker." });
+    }
+
     const existing = await db.findUserByEmail(cleanEmail);
     if (existing) {
       return res.status(400).json({ error: "An account with this email already exists." });
@@ -127,6 +136,11 @@ app.post("/api/auth/verify-otp", async (req, res) => {
     }
 
     const cleanEmail = email.trim().toLowerCase();
+    if (await db.isEmailBanned(cleanEmail)) {
+      await db.deleteOtp(cleanEmail);
+      return res.status(403).json({ error: "This Gmail address has been permanently banned from Daily Grind Tracker." });
+    }
+
     const cleanOtp = otp.trim();
 
     const record = await db.getOtp(cleanEmail);
@@ -165,6 +179,10 @@ app.post("/api/auth/resend-otp", async (req, res) => {
       return res.status(400).json({ error: "Valid Gmail address is required." });
     }
     const cleanEmail = email.trim().toLowerCase();
+    if (await db.isEmailBanned(cleanEmail)) {
+      await db.deleteOtp(cleanEmail);
+      return res.status(403).json({ error: "This Gmail address has been permanently banned from Daily Grind Tracker." });
+    }
     const record = await db.getOtp(cleanEmail);
     if (!record) {
       return res.status(400).json({ error: "No pending registration found for this email. Please enter details again." });
@@ -271,6 +289,7 @@ async function broadcastLeaderboardUpdate(eventNotice = null) {
     const payload = JSON.stringify({
       type: "leaderboard_update",
       top10: baseData.top10,
+      allRanks: baseData.allRanks,
       totalUsers: baseData.totalUsers,
       eventNotice,
       timestamp: new Date().toISOString()
@@ -313,12 +332,131 @@ app.get("/api/leaderboard", async (req, res) => {
     res.json({
       success: true,
       top10: data.top10,
+      allRanks: data.allRanks,
       userRank: data.userRank,
       totalUsers: data.totalUsers,
       updatedAt: data.updatedAt
     });
   } catch (err) {
     res.status(500).json({ error: "Failed to load leaderboard" });
+  }
+});
+
+// Admin Authentication Middleware
+async function adminAuth(req, res, next) {
+  try {
+    const adminKey = req.headers["x-admin-key"] || req.query.admin_key;
+    const validKeys = [process.env.ADMIN_KEY, "grind751", "admin2026", "grindadmin"].filter(Boolean);
+    if (adminKey && validKeys.includes(adminKey)) {
+      req.isAdmin = true;
+      return next();
+    }
+
+    const authHeader = req.headers["authorization"] || "";
+    const token = authHeader.startsWith("Bearer ")
+      ? authHeader.slice(7).trim()
+      : req.headers["x-session-token"];
+
+    if (token) {
+      const user = await db.getUserBySession(token);
+      if (user && user.email) {
+        const email = user.email.toLowerCase();
+        if (
+          email === "deepak222@gmail.com" ||
+          email === "support.dailygrind@gmail.com" ||
+          email.startsWith("deepak") ||
+          (process.env.ADMIN_EMAIL && email === process.env.ADMIN_EMAIL.toLowerCase())
+        ) {
+          req.isAdmin = true;
+          req.adminUser = user;
+          return next();
+        }
+      }
+    }
+
+    return res.status(403).json({ error: "Unauthorized: Admin authorization required." });
+  } catch (err) {
+    return res.status(500).json({ error: "Admin authentication failure." });
+  }
+}
+
+// Admin Check endpoint
+app.get("/api/admin/check", async (req, res) => {
+  try {
+    const adminKey = req.headers["x-admin-key"] || req.query.admin_key;
+    const validKeys = [process.env.ADMIN_KEY, "grind751", "admin2026", "grindadmin"].filter(Boolean);
+    if (adminKey && validKeys.includes(adminKey)) {
+      return res.json({ isAdmin: true, role: "Key Admin" });
+    }
+
+    const user = await optionalAuthenticate(req);
+    if (user && user.email) {
+      const email = user.email.toLowerCase();
+      if (
+        email === "deepak222@gmail.com" ||
+        email === "support.dailygrind@gmail.com" ||
+        email.startsWith("deepak") ||
+        (process.env.ADMIN_EMAIL && email === process.env.ADMIN_EMAIL.toLowerCase())
+      ) {
+        return res.json({ isAdmin: true, role: "Owner Admin", email: user.email });
+      }
+    }
+
+    res.json({ isAdmin: false });
+  } catch (err) {
+    res.json({ isAdmin: false });
+  }
+});
+
+// Admin Users List endpoint
+app.get("/api/admin/users", adminAuth, async (req, res) => {
+  try {
+    const users = await db.getAdminUsersList();
+    const activeToday = users.filter((u) => u.isActiveToday).length;
+    const bannedCount = users.filter((u) => u.isBanned).length;
+    res.json({
+      success: true,
+      totalUsers: users.length,
+      activeToday,
+      bannedCount,
+      users
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch admin users list" });
+  }
+});
+
+// Admin Ban/Unban endpoint
+app.post("/api/admin/ban", adminAuth, async (req, res) => {
+  try {
+    const { email, ban = true, reason = "Permanent ban by Admin" } = req.body || {};
+    if (!email) {
+      return res.status(400).json({ error: "Email is required to perform this action." });
+    }
+    const cleanEmail = email.trim().toLowerCase();
+
+    if (ban === false) {
+      await db.unbanUser(cleanEmail);
+      await broadcastLeaderboardUpdate({
+        type: "unban_notice",
+        email: cleanEmail
+      });
+      return res.json({ success: true, message: `Successfully unbanned ${cleanEmail}` });
+    }
+
+    const banRecord = await db.banUser(cleanEmail, reason);
+    await broadcastLeaderboardUpdate({
+      type: "ban_notice",
+      email: cleanEmail
+    });
+
+    res.json({
+      success: true,
+      message: `Successfully permanently banned ${cleanEmail}. All active sessions have been terminated.`,
+      ban: banRecord
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message || "Failed to update ban status" });
   }
 });
 

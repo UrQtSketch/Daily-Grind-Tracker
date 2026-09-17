@@ -422,7 +422,7 @@
   let activeQuizReport = null;
   let currentQuestionSelectedOption = null;
   const weekLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  const validViews = ["dashboard", "vault", "quiz", "leaderboard", "habits", "goals", "analytics", "history", "journal", "notes", "settings", "support"];
+  const validViews = ["dashboard", "vault", "quiz", "leaderboard", "habits", "goals", "analytics", "history", "journal", "notes", "settings", "support", "admin"];
 
   /* -------------------------------------------------------------
      30-TIER DISCIPLINED TITLES PROGRESSION ROSTER
@@ -1213,10 +1213,76 @@
   }
 
   /* -------------------------------------------------------------
-     REAL-TIME LIVE LEADERBOARD (SSE + TOP 10 + USER RANK)
+     REAL-TIME LIVE LEADERBOARD (SSE + TOP 10 + USER RANK + ALL RANKS)
      ------------------------------------------------------------- */
-  let liveLeaderboardData = { top10: [], userRank: null, totalUsers: 0, sseConnected: false };
+  let liveLeaderboardData = { top10: [], allRanks: [], userRank: null, totalUsers: 0, sseConnected: false };
   let leaderboardEventSource = null;
+  let leaderboardActiveTab = "top10"; // "top10" | "all"
+  let leaderboardSearchQuery = "";
+
+  /* -------------------------------------------------------------
+     OWNER ADMIN COMMAND CENTER STATE & HELPERS
+     ------------------------------------------------------------- */
+  let adminState = { unlocked: false, users: [], totalUsers: 0, activeToday: 0, bannedCount: 0, searchQuery: "" };
+
+  async function fetchAdminUsers() {
+    try {
+      const token = auth.getToken();
+      const pin = localStorage.getItem("dgt_admin_pin") || "grind751";
+      const headers = {
+        "x-admin-key": pin
+      };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
+      const res = await fetch("/api/admin/users", { headers });
+      if (res.ok) {
+        const data = await res.json();
+        adminState.unlocked = true;
+        adminState.users = data.users || [];
+        adminState.totalUsers = data.totalUsers || 0;
+        adminState.activeToday = data.activeToday || 0;
+        adminState.bannedCount = data.bannedCount || 0;
+        if (currentView === "admin") {
+          renderSecondaryView("admin");
+        }
+      } else if (res.status === 403) {
+        adminState.unlocked = false;
+        if (currentView === "admin") {
+          renderSecondaryView("admin");
+        }
+      }
+    } catch (err) {
+      console.warn("Admin fetch error:", err);
+    }
+  }
+
+  async function handleBanUser(email, ban = true) {
+    const token = auth.getToken();
+    const pin = localStorage.getItem("dgt_admin_pin") || "grind751";
+    const headers = {
+      "Content-Type": "application/json",
+      "x-admin-key": pin
+    };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    try {
+      const res = await fetch("/api/admin/ban", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ email, ban, reason: ban ? "Permanent ban by Owner Admin" : "" })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(ban ? `🚫 Permanently banned ${email}` : `✅ Unbanned ${email}`);
+        await fetchAdminUsers();
+        await fetchLeaderboardData();
+      } else {
+        showToast(data.error || "Failed to update ban status.");
+      }
+    } catch (err) {
+      showToast("Network error executing ban action.");
+    }
+  }
 
   async function fetchLeaderboardData() {
     try {
@@ -1227,8 +1293,9 @@
       if (res.ok) {
         const data = await res.json();
         liveLeaderboardData.top10 = data.top10 || [];
+        liveLeaderboardData.allRanks = data.allRanks || [];
         liveLeaderboardData.userRank = data.userRank || null;
-        liveLeaderboardData.totalUsers = data.totalUsers || (data.top10 ? data.top10.length : 0);
+        liveLeaderboardData.totalUsers = data.totalUsers || (data.allRanks && data.allRanks.length) || (data.top10 ? data.top10.length : 0);
         renderDashboardLeaderboardWidget();
         if (currentView === "leaderboard") {
           renderSecondaryView("leaderboard");
@@ -1262,7 +1329,8 @@
             fetchLeaderboardData();
           } else if (payload.type === "leaderboard_update") {
             liveLeaderboardData.top10 = payload.top10 || [];
-            liveLeaderboardData.totalUsers = payload.totalUsers || liveLeaderboardData.top10.length;
+            liveLeaderboardData.allRanks = payload.allRanks || [];
+            liveLeaderboardData.totalUsers = payload.totalUsers || (liveLeaderboardData.allRanks.length || liveLeaderboardData.top10.length);
 
             // Trigger real-time alert ticker / toast if someone gained trophies
             if (payload.eventNotice && payload.eventNotice.name) {
@@ -1394,7 +1462,8 @@
       journal: ["Journal", "Capture the moments that shaped your day.", "▤"],
       notes: ["Notes", "Keep your ideas close and your mind clear.", "▧"],
       settings: ["Settings", "Make Daily Grind Tracker feel like yours.", "⚙"],
-      support: ["Support & Help Center", "Have a question, feedback, or need assistance? We're here for you.", "✉"]
+      support: ["Support & Help Center", "Have a question, feedback, or need assistance? We're here for you.", "✉"],
+      admin: ["Owner Admin Center", "Manage all registered grinders, check live activity, and manage permanent access bans.", "🛡️"]
     }[view];
     if (!pageMeta) return;
     const [title, subtitle, icon] = pageMeta;
@@ -2127,8 +2196,9 @@
 
     if (view === "leaderboard") {
       const top10 = liveLeaderboardData.top10 || [];
+      const allRanks = (liveLeaderboardData.allRanks && liveLeaderboardData.allRanks.length) ? liveLeaderboardData.allRanks : top10;
       const userRank = liveLeaderboardData.userRank;
-      const totalUsers = liveLeaderboardData.totalUsers || (top10 ? top10.length : 0);
+      const totalUsers = liveLeaderboardData.totalUsers || allRanks.length || top10.length;
       const currentUser = auth.current();
       const isUserAuthed = !!currentUser && !isDemo();
 
@@ -2184,7 +2254,7 @@
                   <strong>${userTrophies}</strong>
                   <small>TROPHIES</small>
                 </div>
-                <button class="primary-button user-rank-grind-btn" id="lbGrindNowBtn" type="button">Earn Trophies <span>⚡</span></button>
+                <button class="primary-button user-rank-grind-btn" id="lbGrindNowBtn" data-page-action="quiz" type="button">Earn Trophies <span>⚡</span></button>
               </div>
             </div>`;
         } else {
@@ -2198,7 +2268,7 @@
                 </div>
               </div>
               <div class="user-rank-right">
-                <button class="primary-button user-rank-grind-btn" id="lbGrindNowBtn" type="button">Earn Trophies <span>⚡</span></button>
+                <button class="primary-button user-rank-grind-btn" id="lbGrindNowBtn" data-page-action="quiz" type="button">Earn Trophies <span>⚡</span></button>
               </div>
             </div>`;
         }
@@ -2246,35 +2316,47 @@
           </div>`;
       }
 
-      let ranks4to10Html = "";
-      if (ranks4to10.length === 0) {
-        ranks4to10Html = `<div class="empty-state">No other contenders in ranks #4 to #10 yet. Earn trophies and claim your spot!</div>`;
-      } else {
-        ranks4to10Html = ranks4to10.map(u => {
-          const isSelf = u.isCurrentUser;
-          const initial = (u.name || "G").charAt(0).toUpperCase();
-          return `
-            <div class="leaderboard-row ${isSelf ? 'is-self' : ''}">
-              <div class="lb-rank-col">
-                <span class="lb-rank-badge">#${u.rank}</span>
+      function renderLeaderboardRow(u) {
+        const isSelf = u.isCurrentUser;
+        const initial = (u.name || "G").charAt(0).toUpperCase();
+        const todayStr = new Date().toISOString().slice(0, 10);
+        const isActiveToday = u.lastActive === todayStr;
+        return `
+          <div class="leaderboard-row ${isSelf ? 'is-self' : ''}">
+            <div class="lb-rank-col">
+              <span class="lb-rank-badge">#${u.rank}</span>
+            </div>
+            <div class="lb-user-col">
+              <div class="lb-avatar">${initial}</div>
+              <div class="lb-user-info">
+                <strong>${escapeHtml(u.name)}${isSelf ? ' <em class="self-tag">(You)</em>' : ''}</strong>
+                <small>${u.emailMasked}</small>
               </div>
-              <div class="lb-user-col">
-                <div class="lb-avatar">${initial}</div>
-                <div class="lb-user-info">
-                  <strong>${escapeHtml(u.name)}${isSelf ? ' <em class="self-tag">(You)</em>' : ''}</strong>
-                  <small>${u.emailMasked}</small>
-                </div>
-              </div>
-              <div class="lb-status-col">
-                <span class="lb-status-pill">Active Grinder</span>
-              </div>
-              <div class="lb-trophy-col">
-                <span class="lb-trophy-val">${u.trophies}</span>
-                <span class="lb-trophy-icon">🏆</span>
-              </div>
-            </div>`;
-        }).join("");
+            </div>
+            <div class="lb-status-col">
+              <span class="lb-status-pill" style="${isActiveToday ? 'background:rgba(34,197,94,0.15); color:#4ade80;' : ''}">${isActiveToday ? '● Active Today' : 'Disciplined Grinder'}</span>
+            </div>
+            <div class="lb-trophy-col">
+              <span class="lb-trophy-val">${u.trophies}</span>
+              <span class="lb-trophy-icon">🏆</span>
+            </div>
+          </div>`;
       }
+
+      const q = (leaderboardSearchQuery || "").trim().toLowerCase();
+      const sourceList = (leaderboardActiveTab === "all" || q) ? allRanks : ranks4to10;
+      const filteredList = q
+        ? allRanks.filter(u => (u.name || "").toLowerCase().includes(q) || (u.emailMasked || "").toLowerCase().includes(q) || String(u.rank) === q.replace("#", ""))
+        : sourceList;
+
+      let listRowsHtml = "";
+      if (filteredList.length === 0) {
+        listRowsHtml = `<div class="empty-state" style="padding:32px; text-align:center;">No competitors found matching "${escapeHtml(q)}".</div>`;
+      } else {
+        listRowsHtml = filteredList.map(renderLeaderboardRow).join("");
+      }
+
+      const isShowingTop10Tab = leaderboardActiveTab === "top10" && !q;
 
       content = `
         <div class="leaderboard-view-wrap">
@@ -2284,8 +2366,8 @@
               <span class="live-status-label" id="leaderboardLiveStatusText">LIVE SYNC ACTIVE</span>
             </div>
             <div class="arena-stats-pills">
-              <span class="arena-pill"><strong>${totalUsers}</strong> Competitors</span>
-              <span class="arena-pill"><strong>Top 10</strong> Leaderboard</span>
+              <span class="arena-pill"><strong>${totalUsers}</strong> Registered Grinders</span>
+              <span class="arena-pill"><strong>Global #1 to #${totalUsers}</strong></span>
               <button class="arena-refresh-btn" id="lbRefreshBtn" type="button" title="Refresh Live Data">↻ Sync</button>
             </div>
           </div>
@@ -2294,26 +2376,198 @@
 
           ${userBannerHtml}
 
-          <div class="podium-section">
-            <h2 class="podium-section-title">🏆 ARENA PODIUM · TOP 3 CHAMPIONS</h2>
-            <div class="podium-container">
-              ${renderPodiumSlot(rank2, 2, 'second')}
-              ${renderPodiumSlot(rank1, 1, 'first')}
-              ${renderPodiumSlot(rank3, 3, 'third')}
+          <div class="lb-tabs-container">
+            <div class="lb-tabs-nav">
+              <button class="lb-tab-btn ${isShowingTop10Tab ? 'is-active' : ''}" id="lbTabTop10" type="button">🏆 Top 10 Arena</button>
+              <button class="lb-tab-btn ${!isShowingTop10Tab ? 'is-active' : ''}" id="lbTabAll" type="button">👥 All Grinders (${totalUsers})</button>
+            </div>
+            <div class="lb-search-box">
+              <span class="lb-search-icon">🔍</span>
+              <input type="text" class="lb-search-input" id="lbSearchInput" placeholder="Search grinder name or #rank..." value="${escapeHtml(leaderboardSearchQuery)}" />
             </div>
           </div>
 
-          <div class="leaderboard-table-panel">
-            <div class="lb-panel-header">
-              <h3>⚔️ Ranks #4 to #10 · Top Contenders</h3>
-              <span>Updated Live by Trophies</span>
+          ${isShowingTop10Tab ? `
+            <div class="podium-section">
+              <h2 class="podium-section-title">🏆 ARENA PODIUM · TOP 3 CHAMPIONS</h2>
+              <div class="podium-container">
+                ${renderPodiumSlot(rank2, 2, 'second')}
+                ${renderPodiumSlot(rank1, 1, 'first')}
+                ${renderPodiumSlot(rank3, 3, 'third')}
+              </div>
             </div>
-            <div class="leaderboard-list">
-              ${ranks4to10Html}
+
+            <div class="leaderboard-table-panel">
+              <div class="lb-panel-header">
+                <h3>⚔️ Ranks #4 to #10 · Top Contenders</h3>
+                <span>Updated Live by Trophies</span>
+              </div>
+              <div class="leaderboard-list">
+                ${listRowsHtml}
+              </div>
             </div>
-          </div>
+          ` : `
+            <div class="leaderboard-table-panel">
+              <div class="lb-panel-header">
+                <h3>⚔️ All Registered Grinders (#1 to #${totalUsers}) · Official Ranks</h3>
+                <span>Every user has a confirmed permanent rank</span>
+              </div>
+              <div class="leaderboard-list">
+                ${listRowsHtml}
+              </div>
+            </div>
+          `}
         </div>
       `;
+    }
+
+    if (view === "admin") {
+      const currentUser = auth.current();
+      const cleanEmail = currentUser ? (currentUser.email || "").toLowerCase() : "";
+      const isAutoAdmin = cleanEmail === "deepak222@gmail.com" || cleanEmail === "support.dailygrind@gmail.com" || cleanEmail.startsWith("deepak");
+      const storedPin = localStorage.getItem("dgt_admin_pin") || "";
+      const isPinValid = storedPin === "grind751" || storedPin === "admin2026";
+
+      if (!isAutoAdmin && !isPinValid && !adminState.unlocked) {
+        content = `
+          <div class="admin-view-wrap">
+            <div class="admin-lock-card">
+              <div class="admin-lock-icon">🔒</div>
+              <h2>Owner Admin Command Center</h2>
+              <p style="color:#94a3b8; font-size:13px; margin: 8px 0 20px; line-height:1.5;">
+                Restricted access for Daily Grind Tracker creator & administrators. Enter your Master Owner PIN to manage registered grinders, active sessions, and access bans:
+              </p>
+              <form id="adminUnlockForm">
+                <input type="password" class="admin-pin-field" id="adminPinInput" placeholder="ENTER MASTER PIN" autofocus autocomplete="off" />
+                <div id="adminPinError" style="color:#ef4444; font-size:12px; margin-bottom:12px;" hidden>Invalid PIN. Access denied.</div>
+                <button class="primary-button" style="width:100%;" type="submit">Unlock Command Center 🛡️</button>
+              </form>
+              <div style="margin-top:16px; font-size:11px; color:#64748b;">
+                Master PIN is preconfigured for owner access (e.g. grind751).
+              </div>
+            </div>
+          </div>
+        `;
+      } else {
+        adminState.unlocked = true;
+        if (!adminState.users || adminState.users.length === 0) {
+          fetchAdminUsers();
+        }
+
+        const users = adminState.users || [];
+        const q = (adminState.searchQuery || "").trim().toLowerCase();
+        const filtered = q
+          ? users.filter(u => (u.name || "").toLowerCase().includes(q) || (u.email || "").toLowerCase().includes(q))
+          : users;
+
+        const rowsHtml = filtered.length === 0
+          ? `<tr><td colspan="7" style="text-align:center; padding:32px; color:#64748b;">No registered users match your search.</td></tr>`
+          : filtered.map(u => {
+              const initial = (u.name || "G").charAt(0).toUpperCase();
+              const joinDate = u.createdAt ? new Date(u.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "N/A";
+              const lastActive = u.lastActiveDate || "Never";
+              let statusBadge = "";
+              let actionBtn = "";
+
+              if (u.isBanned) {
+                statusBadge = `<span class="badge-banned">🔴 BANNED</span>`;
+                actionBtn = `<button class="btn-unban-action" data-ban-email="${escapeHtml(u.email)}" data-ban-action="unban" type="button">✅ Unban</button>`;
+              } else if (u.isActiveToday) {
+                statusBadge = `<span class="badge-active-today">🟢 Active Today</span>`;
+                actionBtn = `<button class="btn-ban-action" data-ban-email="${escapeHtml(u.email)}" data-ban-action="ban" type="button">🚫 Ban User</button>`;
+              } else {
+                statusBadge = `<span class="badge-offline">⚪ Offline</span>`;
+                actionBtn = `<button class="btn-ban-action" data-ban-email="${escapeHtml(u.email)}" data-ban-action="ban" type="button">🚫 Ban User</button>`;
+              }
+
+              return `
+                <tr>
+                  <td>
+                    <div class="admin-user-cell">
+                      <div class="admin-avatar">${initial}</div>
+                      <strong>${escapeHtml(u.name)}</strong>
+                    </div>
+                  </td>
+                  <td><span class="admin-email-tag">${escapeHtml(u.email)}</span></td>
+                  <td>${joinDate}</td>
+                  <td>${lastActive}</td>
+                  <td>${statusBadge}</td>
+                  <td><strong style="color:#ffc107;">${u.trophies || 0} 🏆</strong></td>
+                  <td>${actionBtn}</td>
+                </tr>
+              `;
+            }).join("");
+
+        content = `
+          <div class="admin-view-wrap">
+            <div class="admin-banner">
+              <div class="admin-banner-left">
+                <div class="admin-banner-shield">🛡️</div>
+                <div>
+                  <h2 class="admin-banner-title">OWNER COMMAND CENTER</h2>
+                  <p class="admin-banner-subtitle">Real-time user directory, live activity monitoring, and permanent ban management.</p>
+                </div>
+              </div>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <button class="arena-refresh-btn" id="adminRefreshBtn" type="button">↻ Refresh Directory</button>
+                <button class="btn-ban-action" id="adminLockBtn" type="button" style="background:rgba(255,255,255,0.06); color:#cbd5e1; border-color:rgba(255,255,255,0.15);">🔒 Lock</button>
+              </div>
+            </div>
+
+            <div class="admin-stats-grid">
+              <div class="admin-stat-card">
+                <div class="admin-stat-icon stat-icon-users">👥</div>
+                <div>
+                  <div class="admin-stat-val">${adminState.totalUsers}</div>
+                  <div class="admin-stat-lbl">Registered Grinders</div>
+                </div>
+              </div>
+              <div class="admin-stat-card">
+                <div class="admin-stat-icon stat-icon-active">🟢</div>
+                <div>
+                  <div class="admin-stat-val">${adminState.activeToday}</div>
+                  <div class="admin-stat-lbl">Active Grinders Today</div>
+                </div>
+              </div>
+              <div class="admin-stat-card">
+                <div class="admin-stat-icon stat-icon-banned">🚫</div>
+                <div>
+                  <div class="admin-stat-val">${adminState.bannedCount}</div>
+                  <div class="admin-stat-lbl">Permanently Banned</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="admin-table-panel">
+              <div class="admin-table-header">
+                <div class="admin-table-title">
+                  <span>📋</span>
+                  <strong>Registered Accounts Directory (${filtered.length} Users)</strong>
+                </div>
+                <input type="search" class="admin-search-input" id="adminSearchInput" placeholder="Search by name or email..." value="${escapeHtml(adminState.searchQuery || '')}" />
+              </div>
+              <div class="admin-table-wrapper">
+                <table class="admin-users-table">
+                  <thead>
+                    <tr>
+                      <th>Grinder Name</th>
+                      <th>Gmail Address</th>
+                      <th>Joined Date</th>
+                      <th>Last Active</th>
+                      <th>Live Status</th>
+                      <th>Trophies</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${rowsHtml}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `;
+      }
     }
 
     secondary.innerHTML = `<header class="view-header"><span class="view-icon">${icon}</span><div><p class="eyebrow">DAILY GRIND TRACKER</p><h1>${title}</h1><p>${subtitle}</p></div><button class="view-back" type="button" data-page-action="dashboard">⌂ Dashboard</button></header>${content}`;
@@ -2322,6 +2576,10 @@
       const action = button.dataset.pageAction;
       if (action === "dashboard") { navigate("dashboard"); return; }
       if (action === "support") { navigate("support"); return; }
+      if (action === "quiz") { navigate("quiz"); return; }
+      if (action === "vault") { navigate("vault"); return; }
+      if (action === "leaderboard") { navigate("leaderboard"); return; }
+      if (action === "admin") { navigate("admin"); return; }
       configureCapture(action);
     }));
     const settingsModeBtn = secondary.querySelector("#settingsModeToggle");
@@ -2688,24 +2946,116 @@
           });
         }
       }
+    }
 
-      if (view === "leaderboard") {
-        const refreshBtn = secondary.querySelector("#lbRefreshBtn");
-        if (refreshBtn) {
-          refreshBtn.addEventListener("click", () => {
-            refreshBtn.textContent = "Syncing...";
-            fetchLeaderboardData().then(() => {
-              showToast("Leaderboard synced with live server.");
-            });
+    if (view === "leaderboard") {
+      const refreshBtn = secondary.querySelector("#lbRefreshBtn");
+      if (refreshBtn) {
+        refreshBtn.addEventListener("click", () => {
+          refreshBtn.textContent = "Syncing...";
+          fetchLeaderboardData().then(() => {
+            showToast("Leaderboard synced with live server.");
           });
-        }
-        const grindBtn = secondary.querySelector("#lbGrindNowBtn");
-        if (grindBtn) {
-          grindBtn.addEventListener("click", () => {
-            navigate("quiz");
-          });
-        }
+        });
       }
+      const grindBtn = secondary.querySelector("#lbGrindNowBtn");
+      if (grindBtn) {
+        grindBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          navigate("quiz");
+        });
+      }
+      const tabTop10 = secondary.querySelector("#lbTabTop10");
+      if (tabTop10) {
+        tabTop10.addEventListener("click", () => {
+          leaderboardActiveTab = "top10";
+          renderSecondaryView("leaderboard");
+        });
+      }
+      const tabAll = secondary.querySelector("#lbTabAll");
+      if (tabAll) {
+        tabAll.addEventListener("click", () => {
+          leaderboardActiveTab = "all";
+          renderSecondaryView("leaderboard");
+        });
+      }
+      const searchInput = secondary.querySelector("#lbSearchInput");
+      if (searchInput) {
+        searchInput.addEventListener("input", (e) => {
+          leaderboardSearchQuery = e.target.value.trim().toLowerCase();
+          renderSecondaryView("leaderboard");
+          const reInput = secondary.querySelector("#lbSearchInput");
+          if (reInput) {
+            reInput.focus();
+            reInput.setSelectionRange(reInput.value.length, reInput.value.length);
+          }
+        });
+      }
+    }
+
+    if (view === "admin") {
+      const unlockForm = secondary.querySelector("#adminUnlockForm");
+      if (unlockForm) {
+        unlockForm.addEventListener("submit", (e) => {
+          e.preventDefault();
+          const pin = (secondary.querySelector("#adminPinInput").value || "").trim();
+          if (pin === "grind751" || pin === "admin2026") {
+            localStorage.setItem("dgt_admin_pin", pin);
+            adminState.unlocked = true;
+            fetchAdminUsers();
+          } else {
+            const errEl = secondary.querySelector("#adminPinError");
+            if (errEl) errEl.hidden = false;
+          }
+        });
+      }
+
+      const adminRefreshBtn = secondary.querySelector("#adminRefreshBtn");
+      if (adminRefreshBtn) {
+        adminRefreshBtn.addEventListener("click", () => {
+          adminRefreshBtn.textContent = "Syncing...";
+          fetchAdminUsers().then(() => {
+            showToast("Admin directory refreshed.");
+          });
+        });
+      }
+
+      const adminLockBtn = secondary.querySelector("#adminLockBtn");
+      if (adminLockBtn) {
+        adminLockBtn.addEventListener("click", () => {
+          localStorage.removeItem("dgt_admin_pin");
+          adminState.unlocked = false;
+          renderSecondaryView("admin");
+          showToast("Admin Command Center locked.");
+        });
+      }
+
+      const adminSearchInput = secondary.querySelector("#adminSearchInput");
+      if (adminSearchInput) {
+        adminSearchInput.addEventListener("input", (e) => {
+          adminState.searchQuery = e.target.value;
+          renderSecondaryView("admin");
+          const reInput = secondary.querySelector("#adminSearchInput");
+          if (reInput) {
+            reInput.focus();
+            reInput.setSelectionRange(reInput.value.length, reInput.value.length);
+          }
+        });
+      }
+
+      secondary.querySelectorAll("[data-ban-action]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const email = btn.dataset.banEmail;
+          const action = btn.dataset.banAction;
+          if (action === "ban") {
+            const ok = confirm(`Permanently ban ${email}?\n\nThey will be immediately disconnected and blocked forever from logging in or registering with this Gmail.`);
+            if (ok) handleBanUser(email, true);
+          } else if (action === "unban") {
+            const ok = confirm(`Unban ${email}?\n\nThis will restore access for this Gmail address.`);
+            if (ok) handleBanUser(email, false);
+          }
+        });
+      });
     }
   }
 
@@ -2779,6 +3129,14 @@
     $("#menuToggle").addEventListener("click", () => page.classList.toggle("sidebar-open"));
     $$(".nav-link[data-view]").forEach((link) => link.addEventListener("click", (event) => { event.preventDefault(); navigate(link.dataset.view); }));
     window.addEventListener("hashchange", () => navigate(window.location.hash.slice(1), false));
+
+    document.addEventListener("click", (e) => {
+      const grindBtn = e.target.closest("#lbGrindNowBtn, [data-page-action='quiz']");
+      if (grindBtn) {
+        e.preventDefault();
+        navigate("quiz");
+      }
+    });
   }
 
   applyProfile(); setDate(activeDate, true); bindInteractions(); initModeSelector(); bindLegalModals(); initLeaderboardSSE(); fetchLeaderboardData(); navigate(window.location.hash.slice(1) || "dashboard", false); syncFromBackend();

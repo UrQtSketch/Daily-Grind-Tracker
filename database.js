@@ -17,7 +17,8 @@ function initLocalDb() {
       users: [],
       trackerStates: {},
       sessions: {},
-      supportTickets: []
+      supportTickets: [],
+      bannedEmails: {}
     };
     fs.writeFileSync(DB_FILE, JSON.stringify(initial, null, 2), "utf8");
   }
@@ -27,10 +28,12 @@ function readLocalDb() {
   initLocalDb();
   try {
     const raw = fs.readFileSync(DB_FILE, "utf8");
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    parsed.bannedEmails = parsed.bannedEmails || {};
+    return parsed;
   } catch (err) {
     console.error("Error reading local database file:", err);
-    return { users: [], trackerStates: {}, sessions: {}, supportTickets: [] };
+    return { users: [], trackerStates: {}, sessions: {}, supportTickets: [], bannedEmails: {} };
   }
 }
 
@@ -98,11 +101,18 @@ const otpSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now, expires: "10m" }
 });
 
+const bannedEmailSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+  reason: { type: String, default: "Violation of rules" },
+  bannedAt: { type: Date, default: Date.now }
+});
+
 const UserModel = mongoose.models.User || mongoose.model("User", userSchema);
 const TrackerStateModel = mongoose.models.TrackerState || mongoose.model("TrackerState", trackerStateSchema);
 const SessionModel = mongoose.models.Session || mongoose.model("Session", sessionSchema);
 const SupportTicketModel = mongoose.models.SupportTicket || mongoose.model("SupportTicket", supportTicketSchema);
 const OtpModel = mongoose.models.Otp || mongoose.model("Otp", otpSchema);
+const BannedEmailModel = mongoose.models.BannedEmail || mongoose.model("BannedEmail", bannedEmailSchema);
 
 let isMongoConnected = false;
 const localOtpStore = new Map();
@@ -222,6 +232,9 @@ module.exports = {
     if (parts.length !== 2 || parts[0].length < 1 || parts[1] !== "gmail.com") {
       throw new Error("Only @gmail.com email addresses are allowed.");
     }
+    if (await this.isEmailBanned(cleanEmail)) {
+      throw new Error("This email has been permanently banned from accessing Daily Grind Tracker.");
+    }
 
     const salt = crypto.randomBytes(16).toString("hex");
     const hash = hashPassword(password, salt);
@@ -279,6 +292,10 @@ module.exports = {
 
   async verifyUser(email, password) {
     const cleanEmail = email.trim().toLowerCase();
+    if (await this.isEmailBanned(cleanEmail)) {
+      throw new Error("This account has been permanently suspended by the website administrator.");
+    }
+
     let user;
     if (isMongoConnected) {
       user = await UserModel.findOne({ email: cleanEmail }).lean();
@@ -453,18 +470,26 @@ module.exports = {
     const cleanUserEmail = (currentUserEmail || "").trim().toLowerCase();
     let usersList = [];
     const statesMap = {};
+    const bansMap = {};
 
     if (isMongoConnected) {
       const dbUsers = await UserModel.find({}, "id name email createdAt").lean();
       const dbStates = await TrackerStateModel.find({}, "email trophies lastActiveDate updatedAt").lean();
+      const dbBans = await BannedEmailModel.find({}, "email").lean();
       usersList = dbUsers || [];
       for (const s of dbStates || []) {
         if (s && s.email) statesMap[s.email.toLowerCase()] = s;
+      }
+      for (const b of dbBans || []) {
+        if (b && b.email) bansMap[b.email.toLowerCase()] = true;
       }
     } else {
       const db = readLocalDb();
       usersList = db.users || [];
       Object.assign(statesMap, db.trackerStates || {});
+      for (const bEmail of Object.keys(db.bannedEmails || {})) {
+        bansMap[bEmail.toLowerCase()] = true;
+      }
     }
 
     function maskEmail(email) {
@@ -474,22 +499,25 @@ module.exports = {
       return user.slice(0, 2) + "***@" + domain;
     }
 
-    const competitors = usersList.map((u) => {
-      const email = (u.email || "").toLowerCase();
-      const state = statesMap[email] || {};
-      const trophies = Number(state.trophies) || 0;
-      const lastActive = state.lastActiveDate || (state.updatedAt ? String(state.updatedAt).slice(0, 10) : "");
-      return {
-        id: u.id,
-        name: u.name || "Disciplined Grinder",
-        emailMasked: maskEmail(email),
-        email,
-        trophies,
-        lastActive
-      };
-    });
+    const competitors = usersList
+      .filter((u) => !bansMap[(u.email || "").toLowerCase()])
+      .map((u) => {
+        const email = (u.email || "").toLowerCase();
+        const state = statesMap[email] || {};
+        const trophies = Number(state.trophies) || 0;
+        const lastActive = state.lastActiveDate || (state.updatedAt ? String(state.updatedAt).slice(0, 10) : "");
+        return {
+          id: u.id,
+          name: u.name || "Disciplined Grinder",
+          emailMasked: maskEmail(email),
+          email,
+          trophies,
+          lastActive
+        };
+      });
 
     for (const [emailKey, state] of Object.entries(statesMap)) {
+      if (bansMap[emailKey.toLowerCase()]) continue;
       if (!competitors.some((c) => c.email === emailKey.toLowerCase())) {
         competitors.push({
           id: emailKey,
@@ -529,6 +557,7 @@ module.exports = {
 
     return {
       top10,
+      allRanks: rankedList,
       userRank,
       totalUsers: rankedList.length,
       updatedAt: new Date().toISOString()
@@ -648,5 +677,138 @@ module.exports = {
       delete db.otps[cleanEmail];
       writeLocalDb(db);
     }
+  },
+
+  async isEmailBanned(email) {
+    if (!email) return false;
+    const cleanEmail = email.trim().toLowerCase();
+    if (isMongoConnected) {
+      const found = await BannedEmailModel.findOne({ email: cleanEmail }).lean();
+      return !!found;
+    }
+    const db = readLocalDb();
+    return !!(db.bannedEmails && db.bannedEmails[cleanEmail]);
+  },
+
+  async banUser(email, reason = "Permanent ban by Admin") {
+    if (!email) throw new Error("Email is required to ban user");
+    const cleanEmail = email.trim().toLowerCase();
+    const bannedRecord = {
+      email: cleanEmail,
+      reason: reason || "Permanent ban by Admin",
+      bannedAt: new Date().toISOString(),
+      bannedBy: "Owner Admin"
+    };
+
+    if (isMongoConnected) {
+      await BannedEmailModel.findOneAndUpdate(
+        { email: cleanEmail },
+        { $set: { ...bannedRecord, bannedAt: new Date() } },
+        { upsert: true, new: true }
+      );
+      // Invalidate all active sessions for this banned user immediately
+      await SessionModel.deleteMany({ "user.email": cleanEmail });
+      return bannedRecord;
+    }
+
+    const db = readLocalDb();
+    db.bannedEmails = db.bannedEmails || {};
+    db.bannedEmails[cleanEmail] = bannedRecord;
+    // Invalidate sessions immediately
+    for (const [t, s] of Object.entries(db.sessions || {})) {
+      if (s && s.user && s.user.email && s.user.email.toLowerCase() === cleanEmail) {
+        delete db.sessions[t];
+      }
+    }
+    writeLocalDb(db);
+    return bannedRecord;
+  },
+
+  async unbanUser(email) {
+    if (!email) return false;
+    const cleanEmail = email.trim().toLowerCase();
+    if (isMongoConnected) {
+      await BannedEmailModel.deleteOne({ email: cleanEmail });
+      return true;
+    }
+    const db = readLocalDb();
+    if (db.bannedEmails && db.bannedEmails[cleanEmail]) {
+      delete db.bannedEmails[cleanEmail];
+      writeLocalDb(db);
+      return true;
+    }
+    return false;
+  },
+
+  async getAdminUsersList() {
+    const todayStr = new Date().toISOString().slice(0, 10);
+    let usersList = [];
+    const statesMap = {};
+    const bansMap = {};
+
+    if (isMongoConnected) {
+      const dbUsers = await UserModel.find({}, "id name email createdAt").lean();
+      const dbStates = await TrackerStateModel.find({}, "email trophies lastActiveDate updatedAt").lean();
+      const dbBans = await BannedEmailModel.find({}).lean();
+      usersList = dbUsers || [];
+      for (const s of dbStates || []) {
+        if (s && s.email) statesMap[s.email.toLowerCase()] = s;
+      }
+      for (const b of dbBans || []) {
+        if (b && b.email) bansMap[b.email.toLowerCase()] = b;
+      }
+    } else {
+      const db = readLocalDb();
+      usersList = db.users || [];
+      Object.assign(statesMap, db.trackerStates || {});
+      Object.assign(bansMap, db.bannedEmails || {});
+    }
+
+    const adminUsers = usersList.map((u) => {
+      const email = (u.email || "").toLowerCase();
+      const state = statesMap[email] || {};
+      const ban = bansMap[email];
+      const trophies = Number(state.trophies) || 0;
+      const lastActive = state.lastActiveDate || (state.updatedAt ? String(state.updatedAt).slice(0, 10) : "");
+      return {
+        id: u.id,
+        name: u.name || "Disciplined Grinder",
+        email: u.email,
+        createdAt: u.createdAt || "",
+        trophies,
+        lastActiveDate: lastActive,
+        isActiveToday: lastActive === todayStr,
+        isBanned: !!ban,
+        banReason: ban ? ban.reason : null,
+        bannedAt: ban ? ban.bannedAt : null
+      };
+    });
+
+    // Also include any banned emails that might have been created without a User record
+    for (const [bEmail, ban] of Object.entries(bansMap)) {
+      if (!adminUsers.some((u) => (u.email || "").toLowerCase() === bEmail.toLowerCase())) {
+        adminUsers.push({
+          id: bEmail,
+          name: "Banned Account",
+          email: bEmail,
+          createdAt: ban.bannedAt || "",
+          trophies: 0,
+          lastActiveDate: "",
+          isActiveToday: false,
+          isBanned: true,
+          banReason: ban.reason || "Permanent Ban",
+          bannedAt: ban.bannedAt || null
+        });
+      }
+    }
+
+    // Sort: banned at bottom or top? Let's sort active today first, then most trophies, then banned at bottom
+    adminUsers.sort((a, b) => {
+      if (a.isBanned !== b.isBanned) return a.isBanned ? 1 : -1;
+      if (a.isActiveToday !== b.isActiveToday) return a.isActiveToday ? -1 : 1;
+      return (b.trophies || 0) - (a.trophies || 0);
+    });
+
+    return adminUsers;
   }
 };
