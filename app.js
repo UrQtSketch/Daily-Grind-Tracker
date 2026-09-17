@@ -1223,7 +1223,7 @@
   /* -------------------------------------------------------------
      OWNER ADMIN COMMAND CENTER STATE & HELPERS
      ------------------------------------------------------------- */
-  let adminState = { unlocked: false, users: [], totalUsers: 0, activeToday: 0, bannedCount: 0, searchQuery: "" };
+  let adminState = { unlocked: false, users: [], messages: [], totalUsers: 0, activeToday: 0, bannedCount: 0, searchQuery: "", activeTab: "users" };
 
   async function fetchAdminUsers() {
     try {
@@ -1239,6 +1239,7 @@
         const data = await res.json();
         adminState.unlocked = true;
         adminState.users = data.users || [];
+        adminState.messages = data.messages || [];
         adminState.totalUsers = data.totalUsers || 0;
         adminState.activeToday = data.activeToday || 0;
         adminState.bannedCount = data.bannedCount || 0;
@@ -2443,7 +2444,7 @@
                 <button class="primary-button" style="width:100%;" type="submit">Unlock Command Center 🛡️</button>
               </form>
               <div style="margin-top:16px; font-size:11px; color:#64748b;">
-                Master PIN is preconfigured for owner access (e.g. grind751).
+                🔒 Confidential Owner Portal · Authorized Access Only
               </div>
             </div>
           </div>
@@ -2455,6 +2456,7 @@
         }
 
         const users = adminState.users || [];
+        const messages = adminState.messages || [];
         const q = (adminState.searchQuery || "").trim().toLowerCase();
         const filtered = q
           ? users.filter(u => (u.name || "").toLowerCase().includes(q) || (u.email || "").toLowerCase().includes(q))
@@ -2498,6 +2500,40 @@
               `;
             }).join("");
 
+        const messagesHtml = messages.length === 0
+          ? `<div style="text-align:center; padding:48px 20px; color:#64748b;">
+              <span style="font-size:36px; display:block; margin-bottom:12px;">📭</span>
+              <strong style="font-size:15px; color:#cbd5e1; display:block;">No messages received yet</strong>
+              <p style="font-size:13px; margin:6px 0 0;">When grinders send a message from the Support & Help section, it will immediately appear right here.</p>
+            </div>`
+          : messages.map(msg => {
+              const initial = (msg.name || "G").charAt(0).toUpperCase();
+              const dateStr = msg.createdAt ? new Date(msg.createdAt).toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "Recent";
+              return `
+                <article class="admin-message-card" style="background:rgba(15,23,42,0.6); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:18px 20px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                      <div class="admin-avatar" style="width:38px; height:38px; font-size:15px;">${initial}</div>
+                      <div>
+                        <strong style="color:#f8fafc; font-size:15px;">${escapeHtml(msg.name || "Grinder")}</strong>
+                        <span class="admin-email-tag" style="margin-left:8px; font-size:12px;">${escapeHtml(msg.email)}</span>
+                      </div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                      <span class="badge-active-today" style="background:rgba(96,165,250,0.15); color:#60a5fa; border-color:rgba(96,165,250,0.3); font-size:11px;">🏷️ ${escapeHtml(msg.category || "General")}</span>
+                      <small style="color:#94a3b8; font-family:'DM Mono', monospace; font-size:11px;">${dateStr}</small>
+                    </div>
+                  </div>
+                  <div style="background:rgba(2,6,23,0.5); border-left:3px solid #38bdf8; padding:14px 18px; border-radius:0 8px 8px 0; color:#e2e8f0; font-size:13.5px; line-height:1.65; white-space:pre-wrap;">${escapeHtml(msg.message)}</div>
+                  <div style="display:flex; justify-content:flex-end; margin-top:12px;">
+                    <a href="mailto:${encodeURIComponent(msg.email)}?subject=Regarding%20your%20Daily%20Grind%20Tracker%20ticket:%20${encodeURIComponent(msg.category || 'Support')}" class="primary-button" style="padding:7px 16px; font-size:12px; display:inline-flex; align-items:center; gap:6px;">
+                      ✉ Reply to Grinder via Gmail →
+                    </a>
+                  </div>
+                </article>
+              `;
+            }).join("");
+
         content = `
           <div class="admin-view-wrap">
             <div class="admin-banner">
@@ -2505,7 +2541,7 @@
                 <div class="admin-banner-shield">🛡️</div>
                 <div>
                   <h2 class="admin-banner-title">OWNER COMMAND CENTER</h2>
-                  <p class="admin-banner-subtitle">Real-time user directory, live activity monitoring, and permanent ban management.</p>
+                  <p class="admin-banner-subtitle">Real-time user directory, live user messages inbox, and permanent ban management.</p>
                 </div>
               </div>
               <div style="display:flex; align-items:center; gap:10px;">
@@ -2514,7 +2550,7 @@
               </div>
             </div>
 
-            <div class="admin-stats-grid">
+            <div class="admin-stats-grid" style="grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));">
               <div class="admin-stat-card">
                 <div class="admin-stat-icon stat-icon-users">👥</div>
                 <div>
@@ -2526,45 +2562,77 @@
                 <div class="admin-stat-icon stat-icon-active">🟢</div>
                 <div>
                   <div class="admin-stat-val">${adminState.activeToday}</div>
-                  <div class="admin-stat-lbl">Active Grinders Today</div>
+                  <div class="admin-stat-lbl">Active Today</div>
                 </div>
               </div>
               <div class="admin-stat-card">
                 <div class="admin-stat-icon stat-icon-banned">🚫</div>
                 <div>
                   <div class="admin-stat-val">${adminState.bannedCount}</div>
-                  <div class="admin-stat-lbl">Permanently Banned</div>
+                  <div class="admin-stat-lbl">Banned Users</div>
+                </div>
+              </div>
+              <div class="admin-stat-card">
+                <div class="admin-stat-icon" style="background:rgba(96,165,250,0.15); border:1px solid rgba(96,165,250,0.3); color:#60a5fa;">📬</div>
+                <div>
+                  <div class="admin-stat-val">${messages.length}</div>
+                  <div class="admin-stat-lbl">Support Messages</div>
                 </div>
               </div>
             </div>
 
-            <div class="admin-table-panel">
-              <div class="admin-table-header">
-                <div class="admin-table-title">
-                  <span>📋</span>
-                  <strong>Registered Accounts Directory (${filtered.length} Users)</strong>
-                </div>
-                <input type="search" class="admin-search-input" id="adminSearchInput" placeholder="Search by name or email..." value="${escapeHtml(adminState.searchQuery || '')}" />
-              </div>
-              <div class="admin-table-wrapper">
-                <table class="admin-users-table">
-                  <thead>
-                    <tr>
-                      <th>Grinder Name</th>
-                      <th>Gmail Address</th>
-                      <th>Joined Date</th>
-                      <th>Last Active</th>
-                      <th>Live Status</th>
-                      <th>Trophies</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    ${rowsHtml}
-                  </tbody>
-                </table>
-              </div>
+            <!-- Admin Nav Tabs -->
+            <div style="display:flex; gap:10px; margin-bottom:16px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:12px;">
+              <button class="leaderboard-tab-btn ${adminState.activeTab === 'users' ? 'is-active' : ''}" id="adminTabUsers" type="button">
+                👥 Registered Accounts (${users.length})
+              </button>
+              <button class="leaderboard-tab-btn ${adminState.activeTab === 'messages' ? 'is-active' : ''}" id="adminTabMessages" type="button">
+                📬 User Support Messages (${messages.length})
+              </button>
             </div>
+
+            ${adminState.activeTab === 'users' ? `
+              <div class="admin-table-panel">
+                <div class="admin-table-header">
+                  <div class="admin-table-title">
+                    <span>📋</span>
+                    <strong>Registered Accounts Directory (${filtered.length} Users)</strong>
+                  </div>
+                  <input type="search" class="admin-search-input" id="adminSearchInput" placeholder="Search by name or email..." value="${escapeHtml(adminState.searchQuery || '')}" />
+                </div>
+                <div class="admin-table-wrapper">
+                  <table class="admin-users-table">
+                    <thead>
+                      <tr>
+                        <th>Grinder Name</th>
+                        <th>Gmail Address</th>
+                        <th>Joined Date</th>
+                        <th>Last Active</th>
+                        <th>Live Status</th>
+                        <th>Trophies</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${rowsHtml}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ` : `
+              <div class="admin-table-panel">
+                <div class="admin-table-header">
+                  <div class="admin-table-title">
+                    <span>📬</span>
+                    <strong>Support & Feedback Messages Inbox (${messages.length})</strong>
+                  </div>
+                  <button class="arena-refresh-btn" id="adminRefreshMessagesBtn" type="button">↻ Reload Messages</button>
+                </div>
+                <div style="padding:16px; display:grid; gap:14px;">
+                  ${messagesHtml}
+                </div>
+              </div>
+            `}
           </div>
         `;
       }
@@ -2656,10 +2724,13 @@
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ email: profile.email, name: profile.name, category, message })
             });
+            if (adminState.unlocked) {
+              fetchAdminUsers();
+            }
           }
         } catch {}
         feedbackForm.reset();
-        showToast("Message sent to creator! We'll review your message.");
+        showToast("Message sent to Admin! Creator has received your message in Admin Center.");
       });
     }
     if (view === "quiz") {
@@ -3027,6 +3098,32 @@
           adminState.unlocked = false;
           renderSecondaryView("admin");
           showToast("Admin Command Center locked.");
+        });
+      }
+
+      const tabUsers = secondary.querySelector("#adminTabUsers");
+      if (tabUsers) {
+        tabUsers.addEventListener("click", () => {
+          adminState.activeTab = "users";
+          renderSecondaryView("admin");
+        });
+      }
+
+      const tabMessages = secondary.querySelector("#adminTabMessages");
+      if (tabMessages) {
+        tabMessages.addEventListener("click", () => {
+          adminState.activeTab = "messages";
+          renderSecondaryView("admin");
+        });
+      }
+
+      const refreshMessagesBtn = secondary.querySelector("#adminRefreshMessagesBtn");
+      if (refreshMessagesBtn) {
+        refreshMessagesBtn.addEventListener("click", () => {
+          refreshMessagesBtn.textContent = "Syncing...";
+          fetchAdminUsers().then(() => {
+            showToast("Support messages refreshed.");
+          });
         });
       }
 

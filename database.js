@@ -586,6 +586,27 @@ module.exports = {
     return ticket;
   },
 
+  async getSupportTickets() {
+    if (isMongoConnected) {
+      try {
+        const list = await SupportTicketModel.find({}).sort({ createdAt: -1 }).limit(100).lean();
+        return list.map(t => ({
+          id: t.id || t._id.toString(),
+          email: t.email,
+          name: t.name || "Grinder",
+          category: t.category || "General Question",
+          message: t.message,
+          createdAt: t.createdAt
+        }));
+      } catch (err) {
+        console.warn("MongoDB fetch support tickets error:", err.message);
+      }
+    }
+    const db = readLocalDb();
+    const tickets = db.supportTickets || [];
+    return [...tickets].reverse();
+  },
+
   async saveOtp(email, name, password, otp) {
     const cleanEmail = email.trim().toLowerCase();
     const expiresAt = Date.now() + 10 * 60 * 1000;

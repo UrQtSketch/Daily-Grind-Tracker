@@ -408,10 +408,13 @@ app.get("/api/admin/check", async (req, res) => {
   }
 });
 
-// Admin Users List endpoint
+// Admin Users List & Support Messages endpoint
 app.get("/api/admin/users", adminAuth, async (req, res) => {
   try {
-    const users = await db.getAdminUsersList();
+    const [users, messages] = await Promise.all([
+      db.getAdminUsersList(),
+      db.getSupportTickets()
+    ]);
     const activeToday = users.filter((u) => u.isActiveToday).length;
     const bannedCount = users.filter((u) => u.isBanned).length;
     res.json({
@@ -419,10 +422,21 @@ app.get("/api/admin/users", adminAuth, async (req, res) => {
       totalUsers: users.length,
       activeToday,
       bannedCount,
-      users
+      users,
+      messages: messages || []
     });
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch admin users list" });
+  }
+});
+
+// Dedicated Admin Support Messages endpoint
+app.get("/api/admin/messages", adminAuth, async (req, res) => {
+  try {
+    const messages = await db.getSupportTickets();
+    res.json({ success: true, messages: messages || [] });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch support messages" });
   }
 });
 
