@@ -25,6 +25,66 @@ function getTransporter() {
   return transporter;
 }
 
+const BREVO_API_KEY = process.env.BREVO_API_KEY || "";
+const RESEND_API_KEY = process.env.RESEND_API_KEY || "";
+
+async function sendViaHttpApi({ to, name, subject, html }) {
+  if (BREVO_API_KEY) {
+    try {
+      const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+        method: "POST",
+        headers: {
+          "accept": "application/json",
+          "api-key": BREVO_API_KEY,
+          "content-type": "application/json"
+        },
+        body: JSON.stringify({
+          sender: { name: "Daily Grind Tracker", email: SENDER_EMAIL },
+          to: [{ email: to, name: name || "Grinder" }],
+          subject,
+          htmlContent: html
+        })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        console.log(`✅ [BREVO HTTP SENT] Delivered to ${to}. MessageId: ${data.messageId}`);
+        return { success: true, simulated: false, messageId: data.messageId, to };
+      }
+      console.warn(`[BREVO HTTP ERROR]`, data);
+    } catch (err) {
+      console.warn(`[BREVO EXCEPTION]`, err.message);
+    }
+  }
+
+  if (RESEND_API_KEY) {
+    try {
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${RESEND_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          from: "Daily Grind Tracker <onboarding@resend.dev>",
+          to: [to],
+          subject,
+          html
+        })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        console.log(`✅ [RESEND HTTP SENT] Delivered to ${to}. MessageId: ${data.id}`);
+        return { success: true, simulated: false, messageId: data.id, to };
+      }
+      console.warn(`[RESEND HTTP ERROR]`, data);
+    } catch (err) {
+      console.warn(`[RESEND EXCEPTION]`, err.message);
+    }
+  }
+
+  return null;
+}
+
 function generateReminderHtml({ name, trophies = 0, pendingTasksCount = 9, dateStr = "" }) {
   const safeName = name || "Grinder";
   return `<!DOCTYPE html>
@@ -118,6 +178,9 @@ async function sendDailyTaskReminder({ to, name, trophies = 0, pendingTasksCount
 
   const subject = `⚡ Daily Grind Alert: Complete your tasks today, ${name || "Grinder"}!`;
   const html = generateReminderHtml({ name, trophies, pendingTasksCount, dateStr });
+
+  const httpRes = await sendViaHttpApi({ to, name, subject, html });
+  if (httpRes && httpRes.success) return httpRes;
 
   if (!SENDER_PASS) {
     console.log(`[EMAIL SIMULATION] Reminder triggered for ${to} (${name}). Pending: ${pendingTasksCount}, Trophies: ${trophies}`);
@@ -233,6 +296,9 @@ async function sendOtpEmail({ to, name, otp }) {
 
   const subject = `🔐 ${otp} is your Daily Grind verification code`;
   const html = generateOtpHtml({ name, otp });
+
+  const httpRes = await sendViaHttpApi({ to, name, subject, html });
+  if (httpRes && httpRes.success) return httpRes;
 
   if (!SENDER_PASS) {
     console.log(`[EMAIL SIMULATION] OTP sent to ${to} (${name}): ${otp}`);

@@ -83,13 +83,8 @@ app.post("/api/auth/send-otp", async (req, res) => {
 
     const emailRes = await mailer.sendOtpEmail({ to: cleanEmail, name: name.trim(), otp });
     if (!emailRes.success && !emailRes.simulated) {
-      console.warn(`[OTP NOTICE] SMTP dispatch blocked on host (${emailRes.error}). Providing code fallback for ${cleanEmail}: ${otp}`);
-      return res.json({
-        success: true,
-        message: `Verification code generated! (Cloud host blocked SMTP ports. Your code: ${otp})`,
-        email: cleanEmail,
-        devOtp: otp
-      });
+      console.error(`[OTP ERROR] Failed to send verification email to ${cleanEmail}:`, emailRes.error);
+      return res.status(500).json({ error: `Unable to deliver email: ${emailRes.error || "Please try again."}` });
     }
 
     res.json({
@@ -161,12 +156,8 @@ app.post("/api/auth/resend-otp", async (req, res) => {
 
     const emailRes = await mailer.sendOtpEmail({ to: cleanEmail, name: record.name, otp: newOtp });
     if (!emailRes.success && !emailRes.simulated) {
-      console.warn(`[OTP NOTICE] SMTP dispatch blocked on host (${emailRes.error}). Providing code fallback for ${cleanEmail}: ${newOtp}`);
-      return res.json({
-        success: true,
-        message: `Fresh verification code: ${newOtp}`,
-        devOtp: newOtp
-      });
+      console.error(`[OTP ERROR] Failed to resend verification email to ${cleanEmail}:`, emailRes.error);
+      return res.status(500).json({ error: `Unable to resend email: ${emailRes.error || "Please try again."}` });
     }
 
     res.json({ success: true, message: `A new verification code was sent to ${cleanEmail}` });

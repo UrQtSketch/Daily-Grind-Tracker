@@ -295,15 +295,13 @@
           if (stepDetails) stepDetails.style.display = "none";
           if (stepOtp) stepOtp.style.display = "block";
           if (otpCodeInput) {
-            otpCodeInput.value = resData?.devOtp || "";
+            otpCodeInput.value = "";
             otpCodeInput.focus();
           }
           if (otpError) otpError.textContent = "";
           if (otpSuccess) {
             otpSuccess.style.display = "block";
-            otpSuccess.textContent = resData?.devOtp
-              ? `Verification Code: ${resData.devOtp}`
-              : `Verification code sent to ${pendingEmail}`;
+            otpSuccess.textContent = `A 6-digit verification code has been sent to ${pendingEmail}. Please check your inbox (or Spam folder).`;
             setTimeout(() => { if (otpSuccess) otpSuccess.style.display = "none"; }, 10000);
           }
           startResendTimer();
@@ -357,12 +355,7 @@
           const resendData = await auth.resendRegistrationOtp(pendingEmail);
           if (otpSuccess) {
             otpSuccess.style.display = "block";
-            otpSuccess.textContent = resendData?.devOtp
-              ? `Fresh Verification Code: ${resendData.devOtp}`
-              : `A fresh code has been sent to ${pendingEmail}`;
-            if (otpCodeInput && resendData?.devOtp) {
-              otpCodeInput.value = resendData.devOtp;
-            }
+            otpSuccess.textContent = `A fresh verification code has been sent to ${pendingEmail}.`;
             setTimeout(() => { if (otpSuccess) otpSuccess.style.display = "none"; }, 10000);
           }
           startResendTimer();
