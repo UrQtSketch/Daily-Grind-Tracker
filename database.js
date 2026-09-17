@@ -449,6 +449,92 @@ module.exports = {
     return db.trackerStates[cleanEmail];
   },
 
+  async getLeaderboard(currentUserEmail = "") {
+    const cleanUserEmail = (currentUserEmail || "").trim().toLowerCase();
+    let usersList = [];
+    const statesMap = {};
+
+    if (isMongoConnected) {
+      const dbUsers = await UserModel.find({}, "id name email createdAt").lean();
+      const dbStates = await TrackerStateModel.find({}, "email trophies lastActiveDate updatedAt").lean();
+      usersList = dbUsers || [];
+      for (const s of dbStates || []) {
+        if (s && s.email) statesMap[s.email.toLowerCase()] = s;
+      }
+    } else {
+      const db = readLocalDb();
+      usersList = db.users || [];
+      Object.assign(statesMap, db.trackerStates || {});
+    }
+
+    function maskEmail(email) {
+      if (!email || !email.includes("@")) return "Anonymous";
+      const [user, domain] = email.split("@");
+      if (user.length <= 2) return user + "***@" + domain;
+      return user.slice(0, 2) + "***@" + domain;
+    }
+
+    const competitors = usersList.map((u) => {
+      const email = (u.email || "").toLowerCase();
+      const state = statesMap[email] || {};
+      const trophies = Number(state.trophies) || 0;
+      const lastActive = state.lastActiveDate || (state.updatedAt ? String(state.updatedAt).slice(0, 10) : "");
+      return {
+        id: u.id,
+        name: u.name || "Disciplined Grinder",
+        emailMasked: maskEmail(email),
+        email,
+        trophies,
+        lastActive
+      };
+    });
+
+    for (const [emailKey, state] of Object.entries(statesMap)) {
+      if (!competitors.some((c) => c.email === emailKey.toLowerCase())) {
+        competitors.push({
+          id: emailKey,
+          name: "Disciplined Grinder",
+          emailMasked: maskEmail(emailKey),
+          email: emailKey.toLowerCase(),
+          trophies: Number(state.trophies) || 0,
+          lastActive: state.lastActiveDate || ""
+        });
+      }
+    }
+
+    // Sort descending by trophies, tie breaker: recent active date
+    competitors.sort((a, b) => {
+      if (b.trophies !== a.trophies) {
+        return b.trophies - a.trophies;
+      }
+      return (b.lastActive || "").localeCompare(a.lastActive || "");
+    });
+
+    const rankedList = competitors.map((c, index) => {
+      const isCurrentUser = cleanUserEmail && c.email === cleanUserEmail;
+      return {
+        rank: index + 1,
+        name: c.name,
+        emailMasked: c.emailMasked,
+        trophies: c.trophies,
+        lastActive: c.lastActive,
+        isCurrentUser: !!isCurrentUser
+      };
+    });
+
+    const top10 = rankedList.slice(0, 10);
+    const userRank = cleanUserEmail
+      ? rankedList.find((r) => r.isCurrentUser) || null
+      : null;
+
+    return {
+      top10,
+      userRank,
+      totalUsers: rankedList.length,
+      updatedAt: new Date().toISOString()
+    };
+  },
+
   async saveSupportFeedback(feedback) {
     const ticket = {
       id: crypto.randomUUID(),

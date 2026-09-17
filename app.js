@@ -422,7 +422,7 @@
   let activeQuizReport = null;
   let currentQuestionSelectedOption = null;
   const weekLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  const validViews = ["dashboard", "vault", "quiz", "habits", "goals", "analytics", "history", "journal", "notes", "settings", "support"];
+  const validViews = ["dashboard", "vault", "quiz", "leaderboard", "habits", "goals", "analytics", "history", "journal", "notes", "settings", "support"];
 
   /* -------------------------------------------------------------
      30-TIER DISCIPLINED TITLES PROGRESSION ROSTER
@@ -1212,12 +1212,181 @@
     return `<article class="goal-overview ${tone}"><span class="overview-icon">${icon}</span><div><h3>${escapeHtml(title)}</h3><p>${escapeHtml(detail)}</p><div class="mini-progress"><span style="width:${progress}%"></span></div><strong>${progress}% complete</strong></div></article>`;
   }
 
+  /* -------------------------------------------------------------
+     REAL-TIME LIVE LEADERBOARD (SSE + TOP 10 + USER RANK)
+     ------------------------------------------------------------- */
+  let liveLeaderboardData = { top10: [], userRank: null, totalUsers: 0, sseConnected: false };
+  let leaderboardEventSource = null;
+
+  async function fetchLeaderboardData() {
+    try {
+      const token = auth.getToken();
+      const headers = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+      const res = await fetch("/api/leaderboard", { headers });
+      if (res.ok) {
+        const data = await res.json();
+        liveLeaderboardData.top10 = data.top10 || [];
+        liveLeaderboardData.userRank = data.userRank || null;
+        liveLeaderboardData.totalUsers = data.totalUsers || (data.top10 ? data.top10.length : 0);
+        renderDashboardLeaderboardWidget();
+        if (currentView === "leaderboard") {
+          renderSecondaryView("leaderboard");
+        }
+      }
+    } catch (e) {
+      console.warn("Leaderboard fetch error:", e);
+    }
+  }
+
+  function initLeaderboardSSE() {
+    if (typeof EventSource === "undefined") return;
+    if (leaderboardEventSource) {
+      try { leaderboardEventSource.close(); } catch (e) {}
+    }
+
+    try {
+      leaderboardEventSource = new EventSource("/api/leaderboard/stream");
+
+      leaderboardEventSource.onopen = () => {
+        liveLeaderboardData.sseConnected = true;
+        updateLeaderboardLiveStatus();
+      };
+
+      leaderboardEventSource.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data);
+          if (payload.type === "connected") {
+            liveLeaderboardData.sseConnected = true;
+            updateLeaderboardLiveStatus();
+            fetchLeaderboardData();
+          } else if (payload.type === "leaderboard_update") {
+            liveLeaderboardData.top10 = payload.top10 || [];
+            liveLeaderboardData.totalUsers = payload.totalUsers || liveLeaderboardData.top10.length;
+
+            // Trigger real-time alert ticker / toast if someone gained trophies
+            if (payload.eventNotice && payload.eventNotice.name) {
+              showLeaderboardLiveAlert(payload.eventNotice);
+            }
+
+            // Sync user rank with latest data
+            const currentUser = auth.getUser();
+            const currentEmail = currentUser ? currentUser.email.toLowerCase() : "";
+            if (currentEmail) {
+              const matchedInTop10 = (payload.top10 || []).find(u => u.isCurrentUser || (u.email && u.email.toLowerCase() === currentEmail));
+              if (matchedInTop10) {
+                liveLeaderboardData.userRank = matchedInTop10;
+              } else {
+                fetchLeaderboardData();
+              }
+            }
+
+            renderDashboardLeaderboardWidget();
+            if (currentView === "leaderboard") {
+              renderSecondaryView("leaderboard");
+              flashLeaderboardRow(payload.eventNotice);
+            }
+          }
+        } catch (err) {
+          console.error("SSE parse error:", err);
+        }
+      };
+
+      leaderboardEventSource.onerror = () => {
+        liveLeaderboardData.sseConnected = false;
+        updateLeaderboardLiveStatus();
+      };
+    } catch (e) {
+      console.warn("SSE init error:", e);
+    }
+  }
+
+  function showLeaderboardLiveAlert(notice) {
+    const ticker = $("#leaderboardLiveTicker");
+    const safeName = escapeHtml(notice.name || "A grinder");
+    const text = `⚡ Real-Time Trophy Update: <strong>${safeName}</strong> earned trophies! Vault balance: <strong>${notice.trophies} 🏆</strong>`;
+    if (ticker) {
+      ticker.innerHTML = text;
+      ticker.hidden = false;
+      ticker.classList.remove("ticker-flash");
+      void ticker.offsetWidth;
+      ticker.classList.add("ticker-flash");
+      clearTimeout(ticker._hideTimeout);
+      ticker._hideTimeout = setTimeout(() => { ticker.hidden = true; }, 6000);
+    }
+    if (currentView !== "leaderboard") {
+      showToast(`🏆 Live Leaderboard: ${notice.name} just earned trophies (${notice.trophies} 🏆 total)!`);
+    }
+  }
+
+  function updateLeaderboardLiveStatus() {
+    const dot = $("#leaderboardLiveDot");
+    const text = $("#leaderboardLiveStatusText");
+    if (dot) dot.className = liveLeaderboardData.sseConnected ? "live-dot is-connected" : "live-dot is-reconnecting";
+    if (text) text.textContent = liveLeaderboardData.sseConnected ? "LIVE SYNC ACTIVE" : "RECONNECTING...";
+  }
+
+  function flashLeaderboardRow(notice) {
+    if (!notice || !notice.name) return;
+    const rows = document.querySelectorAll(".leaderboard-row, .podium-card");
+    rows.forEach(r => {
+      if (r.textContent.includes(notice.name)) {
+        r.classList.add("rank-row-flash");
+        setTimeout(() => r.classList.remove("rank-row-flash"), 2000);
+      }
+    });
+  }
+
+  function renderDashboardLeaderboardWidget() {
+    const container = $("#dashboardLeaderboardWidget");
+    if (!container) return;
+    const top10 = liveLeaderboardData.top10 || [];
+    const top3 = top10.slice(0, 3);
+    const userRank = liveLeaderboardData.userRank;
+
+    if (top3.length === 0) {
+      container.innerHTML = `<div class="lb-widget-empty">No contenders yet. Earn trophies to take #1!</div>`;
+      return;
+    }
+
+    const rowsHtml = top3.map((u, i) => {
+      const medal = i === 0 ? '🥇' : (i === 1 ? '🥈' : '🥉');
+      return `
+        <div class="lb-widget-row ${u.isCurrentUser ? 'is-self' : ''}">
+          <span class="lb-widget-medal">${medal}</span>
+          <span class="lb-widget-name">${escapeHtml(u.name)}</span>
+          <strong class="lb-widget-trophies">${u.trophies} 🏆</strong>
+        </div>`;
+    }).join("");
+
+    let userSnippet = "";
+    if (userRank) {
+      userSnippet = `
+        <div class="lb-widget-user-pill">
+          <span>Your Rank: <b>#${userRank.rank}</b></span>
+          <span><b>${userRank.trophies}</b> Trophies</span>
+        </div>`;
+    }
+
+    container.innerHTML = `
+      <div class="lb-widget-list">${rowsHtml}</div>
+      ${userSnippet}
+      <button class="lb-widget-full-btn" id="widgetViewLeaderboardBtn" type="button">View Full Top 10 Board →</button>
+    `;
+
+    const btn = container.querySelector("#widgetViewLeaderboardBtn");
+    if (btn) {
+      btn.addEventListener("click", () => navigate("leaderboard"));
+    }
+  }
+
   function renderSecondaryView(view) {
     const secondary = $("#secondaryView");
     const metrics = trackerMetrics();
     const pageMeta = {
       vault: ["Trophy Vault & Titles", "Your disciplined achievements, hard-earned titles, and daily trophy ledger.", "🏆"],
       quiz: ["Skill Quiz Arena", "Test your knowledge in Data Science, Web Dev, and AI/ML with 2-minute timed questions & earn vault trophies.", "⚡"],
+      leaderboard: ["Global Live Leaderboard", "Real-time rankings of disciplined grinders worldwide. Compete, complete daily tasks, earn trophies, and climb to #1.", "🏅"],
       habits: ["Daily habits", "Small actions repeated become your system.", "◌"],
       goals: ["Your goals", "Three focused goals. One stronger version of you.", "⌁"],
       analytics: ["Analytics", "See the proof of your consistency.", "▥"],
@@ -1955,6 +2124,198 @@
         </div>
       `;
     }
+
+    if (view === "leaderboard") {
+      const top10 = liveLeaderboardData.top10 || [];
+      const userRank = liveLeaderboardData.userRank;
+      const totalUsers = liveLeaderboardData.totalUsers || (top10 ? top10.length : 0);
+      const currentUser = auth.getUser();
+      const isUserAuthed = !!currentUser && !isDemo();
+
+      const rank1 = top10[0] || null;
+      const rank2 = top10[1] || null;
+      const rank3 = top10[2] || null;
+      const ranks4to10 = top10.slice(3, 10);
+
+      let userBannerHtml = "";
+      if (isUserAuthed) {
+        if (userRank) {
+          const r = userRank.rank;
+          const userTrophies = userRank.trophies || 0;
+          let rankPillClass = "rank-pill-top10";
+          let badgeIcon = "🔥";
+          let rankMessage = "";
+
+          if (r === 1) {
+            rankPillClass = "rank-pill-gold";
+            badgeIcon = "👑";
+            rankMessage = `You are leading the world at <strong>Rank #1</strong>! Absolute Champion!`;
+          } else if (r <= 3) {
+            rankPillClass = "rank-pill-podium";
+            badgeIcon = "🥈";
+            rankMessage = `You are on the Arena Podium at <strong>Rank #${r}</strong>! Push for the Crown!`;
+          } else if (r <= 10) {
+            rankPillClass = "rank-pill-top10";
+            badgeIcon = "🔥";
+            const diff = (top10[r - 2] ? (top10[r - 2].trophies - userTrophies) : 1);
+            rankMessage = `You are <strong>Rank #${r}</strong> in the Top 10! Only ${Math.max(1, diff)} more ${diff === 1 ? 'trophy' : 'trophies'} to overtake #${r - 1}!`;
+          } else {
+            rankPillClass = "rank-pill-grinder";
+            badgeIcon = "⚡";
+            const tenthTrophies = top10[9] ? top10[9].trophies : 0;
+            const needed = Math.max(1, (tenthTrophies - userTrophies) + 1);
+            rankMessage = `You are <strong>Rank #${r}</strong> of ${totalUsers}. Need <strong>${needed}</strong> more ${needed === 1 ? 'trophy' : 'trophies'} to enter Top 10!`;
+          }
+
+          userBannerHtml = `
+            <div class="user-live-rank-card ${rankPillClass}">
+              <div class="user-rank-left">
+                <span class="user-rank-badge-icon">${badgeIcon}</span>
+                <div>
+                  <div class="user-rank-title-row">
+                    <span class="user-rank-number">RANK #${r}</span>
+                    <span class="user-rank-tag">YOUR LIVE STANDING</span>
+                  </div>
+                  <p class="user-rank-desc">${rankMessage}</p>
+                </div>
+              </div>
+              <div class="user-rank-right">
+                <div class="user-rank-trophy-box">
+                  <strong>${userTrophies}</strong>
+                  <small>TROPHIES</small>
+                </div>
+                <button class="primary-button user-rank-grind-btn" id="lbGrindNowBtn" type="button">Earn Trophies <span>⚡</span></button>
+              </div>
+            </div>`;
+        } else {
+          userBannerHtml = `
+            <div class="user-live-rank-card rank-pill-grinder">
+              <div class="user-rank-left">
+                <span class="user-rank-badge-icon">⚡</span>
+                <div>
+                  <span class="user-rank-number">CALCULATING RANK...</span>
+                  <p class="user-rank-desc">Complete daily tasks or play the Skill Arena to earn trophies and lock in your global rank!</p>
+                </div>
+              </div>
+              <div class="user-rank-right">
+                <button class="primary-button user-rank-grind-btn" id="lbGrindNowBtn" type="button">Earn Trophies <span>⚡</span></button>
+              </div>
+            </div>`;
+        }
+      } else {
+        userBannerHtml = `
+          <div class="user-live-rank-card rank-pill-guest">
+            <div class="user-rank-left">
+              <span class="user-rank-badge-icon">🔒</span>
+              <div>
+                <span class="user-rank-number">GUEST / PREVIEW MODE</span>
+                <p class="user-rank-desc">Create an account or log in to track your trophies and claim your permanent rank on the live global board!</p>
+              </div>
+            </div>
+            <div class="user-rank-right">
+              <a href="register.html" class="primary-button user-rank-grind-btn">Join Arena <span>→</span></a>
+            </div>
+          </div>`;
+      }
+
+      function renderPodiumSlot(user, rankNum, modifier) {
+        if (!user) {
+          return `
+            <div class="podium-card podium-${modifier} is-empty">
+              <div class="podium-rank-crown">${rankNum === 1 ? '👑' : (rankNum === 2 ? '🥈' : '🥉')}</div>
+              <div class="podium-avatar">?</div>
+              <h3 class="podium-name">Empty Spot</h3>
+              <p class="podium-email">Be the first!</p>
+              <div class="podium-trophies">0 <span>🏆</span></div>
+              <div class="podium-pedestal"><span class="podium-pedestal-num">#${rankNum}</span></div>
+            </div>`;
+        }
+        const isCurrent = user.isCurrentUser;
+        const initial = (user.name || "G").charAt(0).toUpperCase();
+        return `
+          <div class="podium-card podium-${modifier} ${isCurrent ? 'is-self' : ''}">
+            <div class="podium-rank-crown">${rankNum === 1 ? '👑' : (rankNum === 2 ? '🥈' : '🥉')}</div>
+            <div class="podium-avatar">${initial}</div>
+            <h3 class="podium-name">${escapeHtml(user.name)}${isCurrent ? ' <span class="self-tag">(You)</span>' : ''}</h3>
+            <p class="podium-email">${user.emailMasked}</p>
+            <div class="podium-trophies">${user.trophies} <span>🏆</span></div>
+            <div class="podium-pedestal">
+              <span class="podium-pedestal-num">#${rankNum}</span>
+              <small class="podium-pedestal-lbl">${rankNum === 1 ? 'CHAMPION' : (rankNum === 2 ? 'RUNNER UP' : 'THIRD PLACE')}</small>
+            </div>
+          </div>`;
+      }
+
+      let ranks4to10Html = "";
+      if (ranks4to10.length === 0) {
+        ranks4to10Html = `<div class="empty-state">No other contenders in ranks #4 to #10 yet. Earn trophies and claim your spot!</div>`;
+      } else {
+        ranks4to10Html = ranks4to10.map(u => {
+          const isSelf = u.isCurrentUser;
+          const initial = (u.name || "G").charAt(0).toUpperCase();
+          return `
+            <div class="leaderboard-row ${isSelf ? 'is-self' : ''}">
+              <div class="lb-rank-col">
+                <span class="lb-rank-badge">#${u.rank}</span>
+              </div>
+              <div class="lb-user-col">
+                <div class="lb-avatar">${initial}</div>
+                <div class="lb-user-info">
+                  <strong>${escapeHtml(u.name)}${isSelf ? ' <em class="self-tag">(You)</em>' : ''}</strong>
+                  <small>${u.emailMasked}</small>
+                </div>
+              </div>
+              <div class="lb-status-col">
+                <span class="lb-status-pill">Active Grinder</span>
+              </div>
+              <div class="lb-trophy-col">
+                <span class="lb-trophy-val">${u.trophies}</span>
+                <span class="lb-trophy-icon">🏆</span>
+              </div>
+            </div>`;
+        }).join("");
+      }
+
+      content = `
+        <div class="leaderboard-view-wrap">
+          <div class="arena-live-bar">
+            <div class="live-status-chip">
+              <span class="live-dot is-connected" id="leaderboardLiveDot"></span>
+              <span class="live-status-label" id="leaderboardLiveStatusText">LIVE SYNC ACTIVE</span>
+            </div>
+            <div class="arena-stats-pills">
+              <span class="arena-pill"><strong>${totalUsers}</strong> Competitors</span>
+              <span class="arena-pill"><strong>Top 10</strong> Leaderboard</span>
+              <button class="arena-refresh-btn" id="lbRefreshBtn" type="button" title="Refresh Live Data">↻ Sync</button>
+            </div>
+          </div>
+
+          <div class="leaderboard-live-ticker" id="leaderboardLiveTicker" hidden></div>
+
+          ${userBannerHtml}
+
+          <div class="podium-section">
+            <h2 class="podium-section-title">🏆 ARENA PODIUM · TOP 3 CHAMPIONS</h2>
+            <div class="podium-container">
+              ${renderPodiumSlot(rank2, 2, 'second')}
+              ${renderPodiumSlot(rank1, 1, 'first')}
+              ${renderPodiumSlot(rank3, 3, 'third')}
+            </div>
+          </div>
+
+          <div class="leaderboard-table-panel">
+            <div class="lb-panel-header">
+              <h3>⚔️ Ranks #4 to #10 · Top Contenders</h3>
+              <span>Updated Live by Trophies</span>
+            </div>
+            <div class="leaderboard-list">
+              ${ranks4to10Html}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
     secondary.innerHTML = `<header class="view-header"><span class="view-icon">${icon}</span><div><p class="eyebrow">DAILY GRIND TRACKER</p><h1>${title}</h1><p>${subtitle}</p></div><button class="view-back" type="button" data-page-action="dashboard">⌂ Dashboard</button></header>${content}`;
     secondary.querySelectorAll("[data-page-task]").forEach((button) => button.addEventListener("click", () => toggleTask(Number(button.dataset.pageTask))));
     secondary.querySelectorAll("[data-page-action]").forEach((button) => button.addEventListener("click", () => {
@@ -2327,6 +2688,24 @@
           });
         }
       }
+
+      if (view === "leaderboard") {
+        const refreshBtn = secondary.querySelector("#lbRefreshBtn");
+        if (refreshBtn) {
+          refreshBtn.addEventListener("click", () => {
+            refreshBtn.textContent = "Syncing...";
+            fetchLeaderboardData().then(() => {
+              showToast("Leaderboard synced with live server.");
+            });
+          });
+        }
+        const grindBtn = secondary.querySelector("#lbGrindNowBtn");
+        if (grindBtn) {
+          grindBtn.addEventListener("click", () => {
+            navigate("quiz");
+          });
+        }
+      }
     }
   }
 
@@ -2402,7 +2781,7 @@
     window.addEventListener("hashchange", () => navigate(window.location.hash.slice(1), false));
   }
 
-  applyProfile(); setDate(activeDate, true); bindInteractions(); initModeSelector(); bindLegalModals(); navigate(window.location.hash.slice(1) || "dashboard", false); syncFromBackend();
+  applyProfile(); setDate(activeDate, true); bindInteractions(); initModeSelector(); bindLegalModals(); initLeaderboardSSE(); fetchLeaderboardData(); navigate(window.location.hash.slice(1) || "dashboard", false); syncFromBackend();
   if (window.location.search.includes("testCelebration")) {
     setTimeout(() => {
       triggerDailyReward(activeDate);

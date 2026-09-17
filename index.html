@@ -24,6 +24,7 @@
           <a class="nav-link is-active" href="#dashboard" data-view="dashboard"><span>⌂</span>Dashboard</a>
           <a class="nav-link" href="#vault" data-view="vault"><span>🏆</span>Trophy Vault</a>
           <a class="nav-link" href="#quiz" data-view="quiz"><span>⚡</span>Skill Arena</a>
+          <a class="nav-link" href="#leaderboard" data-view="leaderboard"><span>🏅</span>Leaderboard <span class="nav-live-chip">LIVE</span></a>
           <a class="nav-link" href="#habits" data-view="habits"><span>◌</span>Habits</a>
           <a class="nav-link" href="#goals" data-view="goals"><span>⌁</span>Goals</a>
           <a class="nav-link" href="#analytics" data-view="analytics"><span>▥</span>Analytics</a>
@@ -155,6 +156,15 @@
             <article class="panel weekly-panel" id="analytics">
               <div class="panel-heading"><h2>Weekly Progress</h2><a href="#analytics">View All <span>→</span></a></div>
               <div class="chart-wrap"><div class="chart-y"><span>100%</span><span>50%</span><span>0%</span></div><div class="bar-chart" id="barChart" aria-label="Weekly completion chart"></div></div>
+            </article>
+            <article class="panel quick-leaderboard-panel">
+              <div class="panel-heading">
+                <div><span class="heading-icon">🏆</span><h2>Live Leaderboard</h2></div>
+                <a href="#leaderboard" data-view="leaderboard">Top 10 <span>→</span></a>
+              </div>
+              <div class="dashboard-leaderboard-widget" id="dashboardLeaderboardWidget">
+                <div class="lb-widget-loading">Connecting live ranks...</div>
+              </div>
             </article>
             <article class="motivation-strip"><span>“Progress, not perfection.”</span><div class="mini-line"><i></i><i></i><i></i></div></article>
             <article class="panel action-panel" id="notes">

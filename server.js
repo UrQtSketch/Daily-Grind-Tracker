@@ -237,6 +237,91 @@ app.get("/api/auth/me", authenticate, (req, res) => {
   res.json({ user: req.user });
 });
 
+// Optional authentication helper (non-blocking for public or authenticated reads)
+async function optionalAuthenticate(req) {
+  try {
+    const authHeader = req.headers["authorization"] || "";
+    const token = authHeader.startsWith("Bearer ")
+      ? authHeader.slice(7).trim()
+      : req.headers["x-session-token"];
+    if (!token) return null;
+    return await db.getUserBySession(token);
+  } catch (e) {
+    return null;
+  }
+}
+
+// Real-Time SSE Connection Pool for Live Leaderboard
+const sseLeaderboardClients = new Set();
+
+setInterval(() => {
+  for (const client of sseLeaderboardClients) {
+    try {
+      client.write(": keep-alive\n\n");
+    } catch (e) {
+      sseLeaderboardClients.delete(client);
+    }
+  }
+}, 20000);
+
+async function broadcastLeaderboardUpdate(eventNotice = null) {
+  if (sseLeaderboardClients.size === 0) return;
+  try {
+    const baseData = await db.getLeaderboard("");
+    const payload = JSON.stringify({
+      type: "leaderboard_update",
+      top10: baseData.top10,
+      totalUsers: baseData.totalUsers,
+      eventNotice,
+      timestamp: new Date().toISOString()
+    });
+
+    for (const client of sseLeaderboardClients) {
+      try {
+        client.write(`data: ${payload}\n\n`);
+      } catch (err) {
+        sseLeaderboardClients.delete(client);
+      }
+    }
+  } catch (err) {
+    console.error("Live Leaderboard SSE broadcast error:", err.message);
+  }
+}
+
+// Real-Time Leaderboard SSE Stream endpoint
+app.get("/api/leaderboard/stream", (req, res) => {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache, no-transform");
+  res.setHeader("Connection", "keep-alive");
+  res.setHeader("X-Accel-Buffering", "no");
+  if (res.flushHeaders) res.flushHeaders();
+
+  res.write(`data: ${JSON.stringify({ type: "connected", timestamp: new Date().toISOString() })}\n\n`);
+  sseLeaderboardClients.add(res);
+
+  req.on("close", () => {
+    sseLeaderboardClients.delete(res);
+  });
+});
+
+// Leaderboard Snapshot endpoint
+app.get("/api/leaderboard", async (req, res) => {
+  try {
+    const user = await optionalAuthenticate(req);
+    const userEmail = user ? user.email : (req.query.email || "");
+    const data = await db.getLeaderboard(userEmail);
+    res.json({
+      success: true,
+      top10: data.top10,
+      userRank: data.userRank,
+      totalUsers: data.totalUsers,
+      updatedAt: data.updatedAt
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to load leaderboard" });
+  }
+});
+
 // Tracker state endpoints
 app.get("/api/tracker", authenticate, async (req, res) => {
   try {
@@ -250,6 +335,19 @@ app.get("/api/tracker", authenticate, async (req, res) => {
 app.put("/api/tracker", authenticate, async (req, res) => {
   try {
     const saved = await db.saveTrackerState(req.user.email, req.body || {});
+
+    // Broadcast real-time update to all connected leaderboard clients
+    const cleanEmail = req.user.email || "";
+    const masked = cleanEmail.includes("@")
+      ? (cleanEmail.slice(0, 2) + "***@" + cleanEmail.split("@")[1])
+      : "Anonymous";
+
+    broadcastLeaderboardUpdate({
+      name: req.user.name || "Disciplined Grinder",
+      emailMasked: masked,
+      trophies: Number(saved.trophies) || 0
+    });
+
     res.json({ success: true, state: saved });
   } catch (err) {
     res.status(500).json({ error: "Failed to save tracker state" });
