@@ -314,7 +314,7 @@
   }
 
   function trackerStorageKey() { return `daily-grind-tracker:${user().email.toLowerCase()}`; }
-  function freshTrackerState() { return { dailyTasks: {}, goals: [], notes: [], journal: [], rewards: {}, trophies: 0, lastActiveDate: localDateKey(), recentPenalty: null }; }
+  function freshTrackerState() { return { dailyTasks: {}, goals: [], notes: [], journal: [], rewards: {}, trophies: 0, lastActiveDate: localDateKey(), recentPenalty: null, songBaseOffset: null }; }
   function freshDemoState() {
     return {
       dailyTasks: {
@@ -595,6 +595,399 @@
     frame();
   }
 
+  /* -------------------------------------------------------------
+     MOTIVATIONAL CELEBRATION SONG ENGINE (70% Hindi, 30% English)
+     Non-repeating for 10-day cycles with Web Audio Synthesis
+  ------------------------------------------------------------- */
+  const CELEBRATION_TRACKS = [
+    {
+      id: 1,
+      title: "Aarambh Hai Prachand (Victory March)",
+      lang: "HINDI",
+      flag: "🇮🇳",
+      energy: "High Voltage Prana Anthem",
+      duration: 65,
+      bpm: 128,
+      rootFreq: 146.83,
+      scale: [146.83, 164.81, 174.61, 196.00, 220.00, 246.94, 261.63, 293.66],
+      speech: "Aarambh hai prachand! Shabaash, aaj ka din jeet liya hai!"
+    },
+    {
+      id: 2,
+      title: "Kar Har Maidan Fateh (Unstoppable Spirit)",
+      lang: "HINDI",
+      flag: "🇮🇳",
+      energy: "Triumphant Warrior March",
+      duration: 65,
+      bpm: 132,
+      rootFreq: 164.81,
+      scale: [164.81, 185.00, 196.00, 220.00, 246.94, 261.63, 293.66, 329.63],
+      speech: "Kar har maidan fateh! Har chunauti ko cheer kar aage badho!"
+    },
+    {
+      id: 3,
+      title: "Hall of Fame (Champion's Awakening)",
+      lang: "ENGLISH",
+      flag: "🌍",
+      energy: "Epic Heroic Orchestral Anthem",
+      duration: 65,
+      bpm: 126,
+      rootFreq: 130.81,
+      scale: [130.81, 146.83, 164.81, 196.00, 220.00, 261.63, 293.66, 329.63],
+      speech: "Standing in the Hall of Fame! You conquered the day, champion!"
+    },
+    {
+      id: 4,
+      title: "Lakshya (The Sacred Bullseye)",
+      lang: "HINDI",
+      flag: "🇮🇳",
+      energy: "Deep Focus & War Drums",
+      duration: 65,
+      bpm: 125,
+      rootFreq: 110.00,
+      scale: [110.00, 123.47, 130.81, 146.83, 164.81, 174.61, 196.00, 220.00],
+      speech: "Lakshya toh har haal mein paana hai! Yeh naya aagaz hai!"
+    },
+    {
+      id: 5,
+      title: "Chak De (Fire In The Blood)",
+      lang: "HINDI",
+      flag: "🇮🇳",
+      energy: "High-BPM Punjabi Dholak Groove",
+      duration: 65,
+      bpm: 136,
+      rootFreq: 98.00,
+      scale: [98.00, 110.00, 123.47, 146.83, 164.81, 196.00, 220.00, 246.94],
+      speech: "Chak de! Koi rok nahi sakta jab iraada pukaar kare!"
+    },
+    {
+      id: 6,
+      title: "Unstoppable (Indomitable Titan)",
+      lang: "ENGLISH",
+      flag: "🌍",
+      energy: "Soaring Cinematic Crescendo",
+      duration: 65,
+      bpm: 130,
+      rootFreq: 87.31,
+      scale: [87.31, 98.00, 110.00, 130.81, 146.83, 174.61, 196.00, 220.00],
+      speech: "I am unstoppable! Powerful execution, relentless progress!"
+    },
+    {
+      id: 7,
+      title: "Ziddi Dil (Unyielding Roar)",
+      lang: "HINDI",
+      flag: "🇮🇳",
+      energy: "Heavy Bass & Electric Energy",
+      duration: 65,
+      bpm: 134,
+      rootFreq: 123.47,
+      scale: [123.47, 138.59, 146.83, 164.81, 185.00, 220.00, 246.94],
+      speech: "Dil ziddi hai, hausla buland hai! Shandaar jeet!"
+    },
+    {
+      id: 8,
+      title: "Sultan (The Rebirth of Grit)",
+      lang: "HINDI",
+      flag: "🇮🇳",
+      energy: "Akhaada Drums & Golden Brass",
+      duration: 65,
+      bpm: 124,
+      rootFreq: 146.83,
+      scale: [146.83, 164.81, 185.00, 220.00, 246.94, 293.66],
+      speech: "Khoon mein teri mitti, mitti mein tera khoon! Sultan ki jeet!"
+    },
+    {
+      id: 9,
+      title: "Rise Up (Battle Tested Legend)",
+      lang: "ENGLISH",
+      flag: "🌍",
+      energy: "Electrifying Stadium Anthem",
+      duration: 65,
+      bpm: 128,
+      rootFreq: 82.41,
+      scale: [82.41, 98.00, 110.00, 123.47, 146.83, 164.81, 196.00],
+      speech: "Rise up! The day is conquered, the grind never stops!"
+    },
+    {
+      id: 10,
+      title: "Vijayi Bhava (Sacred Divine Conquest)",
+      lang: "HINDI",
+      flag: "🇮🇳",
+      energy: "Grand Spiritual Fanfare & Temple Bells",
+      duration: 65,
+      bpm: 122,
+      rootFreq: 130.81,
+      scale: [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33],
+      speech: "Vijayi bhava! Samar jeeta hai tumne aaj, pranaam tumhari tapasya ko!"
+    }
+  ];
+
+  let currentAudioCtx = null;
+  let audioMasterGain = null;
+  let songIntervalTimer = null;
+  let songProgressTimer = null;
+  let isSongActive = false;
+  let isSongPaused = false;
+  let currentSongDuration = 65;
+  let songElapsedSec = 0;
+  let activeCelebrationTrack = null;
+
+  function createNoiseBuffer(ctx, duration = 0.5) {
+    const bufferSize = ctx.sampleRate * duration;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+    return buffer;
+  }
+
+  function playSynthHit(ctx, dest, time, type, track) {
+    if (!ctx || ctx.state === "closed") return;
+    try {
+      if (type === "kick") {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(145, time);
+        osc.frequency.exponentialRampToValueAtTime(32, time + 0.24);
+        gain.gain.setValueAtTime(0.9, time);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.24);
+        osc.connect(gain);
+        gain.connect(dest);
+        osc.start(time);
+        osc.stop(time + 0.24);
+      } else if (type === "snare") {
+        const noise = ctx.createBufferSource();
+        noise.buffer = createNoiseBuffer(ctx, 0.22);
+        const filter = ctx.createBiquadFilter();
+        filter.type = "bandpass";
+        filter.frequency.value = 1750;
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.55, time);
+        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.2);
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(dest);
+        noise.start(time);
+        noise.stop(time + 0.2);
+      } else if (type === "hihat") {
+        const noise = ctx.createBufferSource();
+        noise.buffer = createNoiseBuffer(ctx, 0.05);
+        const filter = ctx.createBiquadFilter();
+        filter.type = "highpass";
+        filter.frequency.value = 7500;
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.2, time);
+        gain.gain.exponentialRampToValueAtTime(0.005, time + 0.05);
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(dest);
+        noise.start(time);
+        noise.stop(time + 0.05);
+      } else if (type === "lead") {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const filter = ctx.createBiquadFilter();
+        osc.type = Math.random() > 0.4 ? "sawtooth" : "triangle";
+        const scale = track.scale;
+        const note = scale[Math.floor(Math.random() * scale.length)];
+        osc.frequency.setValueAtTime(note, time);
+        filter.type = "lowpass";
+        filter.frequency.setValueAtTime(1400, time);
+        filter.frequency.exponentialRampToValueAtTime(320, time + 0.26);
+        gain.gain.setValueAtTime(0.26, time);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.26);
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(dest);
+        osc.start(time);
+        osc.stop(time + 0.26);
+      }
+    } catch {}
+  }
+
+  function hashString(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = ((hash << 5) - hash) + str.charCodeAt(i);
+      hash |= 0;
+    }
+    return Math.abs(hash);
+  }
+
+  function getCelebrationTrack(dayNum, currentUser, dateStr) {
+    if (typeof trackerState === "undefined" || !trackerState) {
+      trackerState = {};
+    }
+    if (trackerState.songBaseOffset == null || isNaN(trackerState.songBaseOffset)) {
+      const calendarDay = Math.floor(new Date(dateStr || localDateKey()).getTime() / (1000 * 60 * 60 * 24));
+      const userIdent = (currentUser && (currentUser.email || currentUser.name)) || (typeof user === "function" ? (user().email || user().name) : "guest");
+      const uHash = hashString(userIdent);
+      trackerState.songBaseOffset = Math.abs(calendarDay + uHash) % CELEBRATION_TRACKS.length;
+      if (typeof saveTrackerState === "function") saveTrackerState();
+    }
+    const offset = Number(trackerState.songBaseOffset) || 0;
+    const trackIndex = (offset + (Number(dayNum || 1) - 1)) % CELEBRATION_TRACKS.length;
+    return CELEBRATION_TRACKS[trackIndex];
+  }
+
+  function playMotivationalCelebration(dayNum, currentUser, dateStr) {
+    stopMotivationalCelebration();
+
+    const track = getCelebrationTrack(dayNum, currentUser, dateStr);
+    activeCelebrationTrack = track;
+    currentSongDuration = track.duration || 65;
+    songElapsedSec = 0;
+    isSongActive = true;
+    isSongPaused = false;
+
+    // Update UI Elements in #rewardSongCard
+    const badge = $("#rewardSongLangBadge");
+    const title = $("#rewardSongTitle");
+    const desc = $("#rewardSongDesc");
+    const bar = $("#rewardSongProgressBar");
+    const eq = $("#rewardSongEq");
+    const toggleBtn = $("#rewardSongToggleBtn");
+
+    if (badge) badge.innerHTML = `${track.flag} ${track.lang} MOTIVATIONAL ANTHEM`;
+    if (title) title.textContent = track.title;
+    if (desc) desc.textContent = `${track.energy} · Day ${dayNum} Conquered`;
+    if (bar) bar.style.width = "0%";
+    if (eq) eq.classList.remove("is-paused");
+    if (toggleBtn) toggleBtn.textContent = "⏸";
+
+    // Setup Web Audio Context
+    try {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) return;
+      currentAudioCtx = new AudioContextClass();
+      audioMasterGain = currentAudioCtx.createGain();
+      audioMasterGain.gain.setValueAtTime(0.7, currentAudioCtx.currentTime);
+      audioMasterGain.connect(currentAudioCtx.destination);
+
+      let step = 0;
+      const bpm = track.bpm || 128;
+      const stepMs = (60 / bpm / 2) * 1000; // 8th note resolution
+
+      songIntervalTimer = setInterval(() => {
+        if (isSongPaused || !currentAudioCtx || currentAudioCtx.state !== "running") return;
+        const now = currentAudioCtx.currentTime;
+
+        // Drum & synth pattern
+        const pat = step % 8;
+        if (pat === 0) {
+          playSynthHit(currentAudioCtx, audioMasterGain, now, "kick", track);
+          playSynthHit(currentAudioCtx, audioMasterGain, now, "lead", track);
+        } else if (pat === 2) {
+          playSynthHit(currentAudioCtx, audioMasterGain, now, "snare", track);
+          playSynthHit(currentAudioCtx, audioMasterGain, now, "lead", track);
+        } else if (pat === 4) {
+          playSynthHit(currentAudioCtx, audioMasterGain, now, "kick", track);
+          playSynthHit(currentAudioCtx, audioMasterGain, now, "lead", track);
+        } else if (pat === 5) {
+          playSynthHit(currentAudioCtx, audioMasterGain, now, "kick", track);
+        } else if (pat === 6) {
+          playSynthHit(currentAudioCtx, audioMasterGain, now, "snare", track);
+          playSynthHit(currentAudioCtx, audioMasterGain, now, "lead", track);
+        }
+        playSynthHit(currentAudioCtx, audioMasterGain, now, "hihat", track);
+        step++;
+      }, stepMs);
+
+      // Voice Victory Chant
+      setTimeout(() => {
+        if (!isSongActive || isSongPaused) return;
+        try {
+          if ("speechSynthesis" in window) {
+            window.speechSynthesis.cancel();
+            const utter = new SpeechSynthesisUtterance(track.speech);
+            utter.rate = 0.96;
+            utter.pitch = 1.05;
+            utter.volume = 0.88;
+            if (track.lang === "HINDI") {
+              utter.lang = "hi-IN";
+            } else {
+              utter.lang = "en-US";
+            }
+            window.speechSynthesis.speak(utter);
+          }
+        } catch {}
+      }, 1300);
+
+      // Progress bar animation timer (over 65 seconds)
+      songProgressTimer = setInterval(() => {
+        if (isSongPaused) return;
+        songElapsedSec += 0.2;
+        const pct = Math.min(100, (songElapsedSec / currentSongDuration) * 100);
+        if (bar) bar.style.width = `${pct}%`;
+
+        if (songElapsedSec >= currentSongDuration) {
+          stopMotivationalCelebration();
+        }
+      }, 200);
+
+    } catch (e) {
+      console.warn("Audio Context init notice:", e);
+    }
+  }
+
+  function toggleMotivationalSong() {
+    const toggleBtn = $("#rewardSongToggleBtn");
+    const eq = $("#rewardSongEq");
+    if (!currentAudioCtx) return;
+
+    if (!isSongPaused) {
+      // Pause
+      isSongPaused = true;
+      if (currentAudioCtx.state === "running") {
+        currentAudioCtx.suspend();
+      }
+      if (toggleBtn) toggleBtn.textContent = "▶";
+      if (eq) eq.classList.add("is-paused");
+    } else {
+      // Resume
+      isSongPaused = false;
+      if (currentAudioCtx.state === "suspended") {
+        currentAudioCtx.resume();
+      }
+      if (toggleBtn) toggleBtn.textContent = "⏸";
+      if (eq) eq.classList.remove("is-paused");
+    }
+  }
+
+  function stopMotivationalCelebration() {
+    isSongActive = false;
+    isSongPaused = false;
+    if (songIntervalTimer) { clearInterval(songIntervalTimer); songIntervalTimer = null; }
+    if (songProgressTimer) { clearInterval(songProgressTimer); songProgressTimer = null; }
+
+    try {
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+    } catch {}
+
+    if (currentAudioCtx) {
+      try {
+        if (audioMasterGain && currentAudioCtx.state === "running") {
+          audioMasterGain.gain.setTargetAtTime(0, currentAudioCtx.currentTime, 0.08);
+        }
+        setTimeout(() => {
+          try { currentAudioCtx.close(); } catch {}
+          currentAudioCtx = null;
+        }, 120);
+      } catch {
+        currentAudioCtx = null;
+      }
+    }
+
+    const eq = $("#rewardSongEq");
+    if (eq) eq.classList.add("is-paused");
+    const bar = $("#rewardSongProgressBar");
+    if (bar) bar.style.width = "0%";
+    const toggleBtn = $("#rewardSongToggleBtn");
+    if (toggleBtn) toggleBtn.textContent = "▶";
+  }
+
   function triggerDailyReward(date) {
     trackerState.rewards = trackerState.rewards || {};
     const metrics = trackerMetrics();
@@ -633,6 +1026,7 @@
 
     modal.showModal();
     startConfetti();
+    playMotivationalCelebration(dayNum, currentUser, date);
   }
 
   function toggleTask(id) {
@@ -1076,6 +1470,7 @@
     $("#profileButton").addEventListener("click", () => { const menu = $("#profileMenu"); menu.hidden = !menu.hidden; $("#profileButton").setAttribute("aria-expanded", String(!menu.hidden)); });
     document.addEventListener("click", (event) => { if (!event.target.closest(".profile-wrap")) { $("#profileMenu").hidden = true; $("#profileButton").setAttribute("aria-expanded", "false"); } });
     const closeRewardModal = () => {
+      stopMotivationalCelebration();
       const modal = $("#rewardModal");
       if (modal && modal.open) {
         modal.close();
@@ -1084,6 +1479,8 @@
     };
     if ($("#rewardCloseBtn")) $("#rewardCloseBtn").addEventListener("click", closeRewardModal);
     if ($("#claimRewardBtn")) $("#claimRewardBtn").addEventListener("click", closeRewardModal);
+    if ($("#rewardModal")) $("#rewardModal").addEventListener("cancel", stopMotivationalCelebration);
+    if ($("#rewardSongToggleBtn")) $("#rewardSongToggleBtn").addEventListener("click", toggleMotivationalSong);
 
     $("#signOutButton").addEventListener("click", async () => { await auth.signOut(); window.location.assign("login.html"); });
     $("#menuToggle").addEventListener("click", () => page.classList.toggle("sidebar-open"));
@@ -1092,4 +1489,9 @@
   }
 
   applyProfile(); setDate(activeDate, true); bindInteractions(); initModeSelector(); bindLegalModals(); navigate(window.location.hash.slice(1) || "dashboard", false); syncFromBackend();
+  if (window.location.search.includes("testCelebration")) {
+    setTimeout(() => {
+      triggerDailyReward(activeDate);
+    }, 400);
+  }
 })();

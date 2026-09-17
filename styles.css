@@ -193,6 +193,31 @@ a { color: inherit; text-decoration: none; }
 .reward-emblem { display: grid; place-items: center; width: 72px; height: 72px; font-size: 38px; border-radius: 20px; background: linear-gradient(135deg, rgba(255, 193, 7, .25), rgba(255, 64, 93, .3)); border: 2px solid rgba(255, 215, 0, .6); box-shadow: 0 0 25px rgba(255, 193, 7, .45); }
 .reward-card h2 { margin: 4px 0 14px; font-size: 26px; letter-spacing: -1px; }
 .reward-card h2 em { color: #ffc107; font-style: normal; }
+
+/* Motivational Song Player inside Celebration Modal */
+.reward-song-card { width: 100%; padding: 13px 16px; margin-bottom: 14px; border-radius: 12px; background: linear-gradient(135deg, rgba(22, 32, 54, .92), rgba(12, 17, 30, .96)); border: 1px solid rgba(255, 193, 7, .38); box-shadow: 0 4px 20px rgba(0,0,0,.45); display: flex; flex-direction: column; gap: 8px; text-align: left; }
+.reward-song-header { display: flex; align-items: center; justify-content: space-between; }
+.reward-song-badge { font-family: "DM Mono", monospace; font-size: 10px; font-weight: 700; letter-spacing: .8px; color: #ffe082; background: rgba(255, 193, 7, .18); padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(255, 193, 7, .35); display: inline-flex; align-items: center; gap: 4px; }
+.reward-song-eq { display: flex; align-items: flex-end; gap: 3px; height: 16px; }
+.reward-song-eq span { display: block; width: 3px; border-radius: 2px; background: linear-gradient(180deg, #ffca28, #ff5722); animation: eq-bounce 0.75s ease-in-out infinite alternate; }
+.reward-song-eq span:nth-child(1) { height: 60%; animation-delay: 0.1s; }
+.reward-song-eq span:nth-child(2) { height: 100%; animation-delay: 0.3s; }
+.reward-song-eq span:nth-child(3) { height: 40%; animation-delay: 0.2s; }
+.reward-song-eq span:nth-child(4) { height: 85%; animation-delay: 0.4s; }
+.reward-song-eq span:nth-child(5) { height: 55%; animation-delay: 0.15s; }
+.reward-song-eq.is-paused span { animation-play-state: paused; opacity: 0.35; }
+@keyframes eq-bounce { from { height: 20%; } to { height: 100%; } }
+
+.reward-song-info { display: flex; align-items: center; gap: 12px; }
+.reward-song-note { font-size: 24px; filter: drop-shadow(0 0 10px rgba(255, 193, 7, .7)); }
+.reward-song-text { flex: 1; min-width: 0; }
+.reward-song-text strong { display: block; font-size: 13px; color: #fff; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.reward-song-text small { display: block; font-size: 11px; color: #a4b5cb; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.reward-song-toggle { width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(255, 193, 7, .45); background: rgba(255, 193, 7, .18); color: #ffca28; font-size: 14px; display: grid; place-items: center; cursor: pointer; transition: all .2s ease; flex-shrink: 0; }
+.reward-song-toggle:hover { background: #ffc107; color: #080b13; transform: scale(1.08); }
+.reward-song-progress-wrap { width: 100%; height: 4px; border-radius: 99px; background: rgba(255, 255, 255, .08); overflow: hidden; margin-top: 2px; }
+.reward-song-bar { height: 100%; width: 0%; border-radius: inherit; background: linear-gradient(90deg, #ff5722, #ffc107); transition: width 0.25s linear; }
+
 .reward-quote-card { position: relative; width: 100%; padding: 16px 20px; margin-bottom: 18px; border-radius: 12px; background: rgba(18, 26, 42, .85); border: 1px solid rgba(255, 215, 110, .22); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05); }
 .reward-quote-glyph { position: absolute; top: -6px; left: 12px; font-family: Georgia, serif; font-size: 38px; color: rgba(255, 193, 7, .3); line-height: 1; }
 .reward-quote-card p { margin: 0 0 8px; font-size: 13px; font-weight: 600; line-height: 1.55; color: #fff0cf; }

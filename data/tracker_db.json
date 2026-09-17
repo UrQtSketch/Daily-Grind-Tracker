@@ -47,6 +47,14 @@
       "salt": "4dcc940a5d8994e3c35e9fc08239c4e9",
       "hash": "49e496c2a952af991c321980eb0af2337b6c2b366b127c7805adf1a1dc8817cb5e76d68702f1466537046dc19cd84c903228e266035c22c1721e3405c20f1648",
       "createdAt": "2026-09-16T07:01:55.007Z"
+    },
+    {
+      "id": "7e0a3d7d-75d9-4548-bea6-178d4622f728",
+      "name": "Test User",
+      "email": "testcloud@gmail.com",
+      "salt": "d8b56dbb498b9d883050d3c49f6f3cb2",
+      "hash": "eef6362694f7ccc60d47cbbf1a823a6994f454a74053fd241937572bee819cb09e63244167877faee4821594c2062a5de69ea8770696541dfe8ad7093e4da90c",
+      "createdAt": "2026-09-17T00:13:30.468Z"
     }
   ],
   "trackerStates": {
@@ -392,6 +400,15 @@
       },
       "trophies": 1,
       "updatedAt": "2026-09-16T07:01:58.958Z"
+    },
+    "testcloud@gmail.com": {
+      "dailyTasks": {},
+      "goals": [],
+      "notes": [],
+      "journal": [],
+      "rewards": {},
+      "trophies": 0,
+      "updatedAt": "2026-09-17T00:13:30.468Z"
     }
   },
   "sessions": {
@@ -458,6 +475,14 @@
         "email": "disciplined.warrior.1789542113463@gmail.com"
       },
       "createdAt": "2026-09-16T07:01:55.008Z"
+    },
+    "1b64495c342ab4478a1c3a9066621d47ac36a1b81c2b2e3b708f8e626e38e548": {
+      "user": {
+        "id": "7e0a3d7d-75d9-4548-bea6-178d4622f728",
+        "name": "Test User",
+        "email": "testcloud@gmail.com"
+      },
+      "createdAt": "2026-09-17T00:13:30.469Z"
     }
   },
   "supportTickets": [
