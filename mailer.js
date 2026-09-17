@@ -30,43 +30,32 @@ const FALLBACK_BREVO_KEY = Buffer.from(FALLBACK_BREVO_BYTES.map(b => b ^ 0x5a)).
 const BREVO_API_KEY = process.env.BREVO_API_KEY || FALLBACK_BREVO_KEY;
 const RESEND_API_KEY = process.env.RESEND_API_KEY || "";
 
+const BREVO_VERIFIED_SENDER = "sketchfallinlove@gmail.com";
+
 async function sendViaHttpApi({ to, name, subject, html }) {
   if (BREVO_API_KEY) {
     try {
-      const sendPayload = (fromEmail) => ({
-        sender: { name: "Daily Grind Tracker", email: fromEmail },
+      const payload = {
+        sender: { name: "Daily Grind Tracker", email: BREVO_VERIFIED_SENDER },
         to: [{ email: to, name: name || "Grinder" }],
+        replyTo: { email: "support.dailygrind@gmail.com", name: "Daily Grind Tracker Support" },
         subject,
         htmlContent: html
-      });
+      };
 
-      let res = await fetch("https://api.brevo.com/v3/smtp/email", {
+      const res = await fetch("https://api.brevo.com/v3/smtp/email", {
         method: "POST",
         headers: {
           "accept": "application/json",
           "api-key": BREVO_API_KEY,
           "content-type": "application/json"
         },
-        body: JSON.stringify(sendPayload(SENDER_EMAIL))
+        body: JSON.stringify(payload)
       });
 
-      let data = await res.json();
-      if (!res.ok && (data.message || "").toLowerCase().includes("sender")) {
-        // Fallback to active account sender if secondary sender needs validation
-        res = await fetch("https://api.brevo.com/v3/smtp/email", {
-          method: "POST",
-          headers: {
-            "accept": "application/json",
-            "api-key": BREVO_API_KEY,
-            "content-type": "application/json"
-          },
-          body: JSON.stringify(sendPayload("sketchfallinlove@gmail.com"))
-        });
-        data = await res.json();
-      }
-
+      const data = await res.json();
       if (res.ok) {
-        console.log(`✅ [BREVO HTTP SENT] Delivered to ${to}. MessageId: ${data.messageId}`);
+        console.log(`✅ [BREVO HTTP SENT] Delivered to ${to} via verified sender. MessageId: ${data.messageId}`);
         return { success: true, simulated: false, messageId: data.messageId, to };
       }
       console.warn(`[BREVO HTTP ERROR]`, data);
