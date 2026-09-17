@@ -417,8 +417,12 @@
   ];
   let query = "";
   let currentView = "dashboard";
+  let quizSelectedTopic = "datascience";
+  let quizSelectedLevel = "beginner";
+  let activeQuizReport = null;
+  let currentQuestionSelectedOption = null;
   const weekLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  const validViews = ["dashboard", "vault", "habits", "goals", "analytics", "history", "journal", "notes", "settings", "support"];
+  const validViews = ["dashboard", "vault", "quiz", "habits", "goals", "analytics", "history", "journal", "notes", "settings", "support"];
 
   /* -------------------------------------------------------------
      30-TIER DISCIPLINED TITLES PROGRESSION ROSTER
@@ -532,6 +536,22 @@
       });
     }
 
+    if (trackerState && Array.isArray(trackerState.quizRewards)) {
+      trackerState.quizRewards.forEach((q, idx) => {
+        records.push({
+          id: `quiz-${q.timestamp || idx}`,
+          date: q.date || localDateKey(),
+          day: "Arena",
+          type: "reward",
+          trophies: Number(q.trophies) || 1,
+          source: `Skill Arena: ${q.topicTitle} (${(q.level || 'Beginner').toUpperCase()}) · Score ${q.score}/10`,
+          quote: q.rankTitle || "Knowledge meets relentless execution.",
+          author: "SKILL ARENA",
+          timestamp: new Date(q.timestamp || Date.now()).toISOString()
+        });
+      });
+    }
+
     records.sort((a, b) => new Date(b.timestamp || b.date).getTime() - new Date(a.timestamp || a.date).getTime());
     return records;
   }
@@ -556,7 +576,10 @@
       return Number(trackerState.trophies);
     }
     const rewards = (typeof trackerState !== "undefined" && trackerState?.rewards) || {};
-    return Object.values(rewards).reduce((acc, r) => acc + (Number(r.trophiesEarned) || getTrophiesForDay(r.day || 1)), 0);
+    let total = Object.values(rewards).reduce((acc, r) => acc + (Number(r.trophiesEarned) || getTrophiesForDay(r.day || 1)), 0);
+    const quizRewards = (typeof trackerState !== "undefined" && trackerState?.quizRewards) || [];
+    total += quizRewards.reduce((acc, q) => acc + (Number(q.trophies) || 1), 0);
+    return total;
   }
 
   function updateTrophyDisplay() {
@@ -576,7 +599,7 @@
   }
 
   function trackerStorageKey() { return `daily-grind-tracker:${user().email.toLowerCase()}`; }
-  function freshTrackerState() { return { dailyTasks: {}, goals: [], notes: [], journal: [], rewards: {}, trophies: 0, lastActiveDate: localDateKey(), recentPenalty: null, songBaseOffset: null }; }
+  function freshTrackerState() { return { dailyTasks: {}, goals: [], notes: [], journal: [], rewards: {}, quizRewards: [], trophies: 0, lastActiveDate: localDateKey(), recentPenalty: null, songBaseOffset: null }; }
   function freshDemoState() {
     return {
       dailyTasks: {
@@ -589,6 +612,7 @@
       },
       goals: demoGoals.map((goal) => ({ ...goal })),
       notes: demoNotes.map((note) => ({ ...note })),
+      quizRewards: [],
       trophies: 1,
       lastActiveDate: localDateKey(),
       recentPenalty: null,
@@ -638,6 +662,7 @@
         notes: saved?.notes || [],
         journal: saved?.journal || [],
         rewards: rewards,
+        quizRewards: saved?.quizRewards || [],
         trophies: saved?.trophies != null && !isNaN(saved.trophies) ? Number(saved.trophies) : computedTrophies,
         lastActiveDate: saved?.lastActiveDate || localDateKey(),
         recentPenalty: saved?.recentPenalty || null
@@ -702,6 +727,11 @@
           if (data.state.notes && data.state.notes.length) trackerState.notes = data.state.notes;
           if (data.state.journal && data.state.journal.length) trackerState.journal = data.state.journal;
           trackerState.rewards = { ...data.state.rewards, ...trackerState.rewards };
+          if (Array.isArray(data.state.quizRewards)) {
+            const existingIds = new Set((trackerState.quizRewards || []).map((r) => r.id || r.completedAt));
+            const newRewards = data.state.quizRewards.filter((r) => !existingIds.has(r.id || r.completedAt));
+            trackerState.quizRewards = [...(trackerState.quizRewards || []), ...newRewards];
+          }
           if (data.state.trophies != null && !isNaN(data.state.trophies)) {
             trackerState.trophies = Number(data.state.trophies);
           } else {
@@ -1167,6 +1197,7 @@
     const metrics = trackerMetrics();
     const pageMeta = {
       vault: ["Trophy Vault & Titles", "Your disciplined achievements, hard-earned titles, and daily trophy ledger.", "🏆"],
+      quiz: ["Skill Quiz Arena", "Test your knowledge in Data Science, Web Dev, and AI/ML with 2-minute timed questions & earn vault trophies.", "⚡"],
       habits: ["Daily habits", "Small actions repeated become your system.", "◌"],
       goals: ["Your goals", "Three focused goals. One stronger version of you.", "⌁"],
       analytics: ["Analytics", "See the proof of your consistency.", "▥"],
@@ -1382,6 +1413,248 @@
           </div>
         </div>
       `;
+    }
+
+    if (view === "quiz") {
+      const sess = (typeof DailyGrindQuiz !== "undefined") ? DailyGrindQuiz.getSession() : { questions: [], completed: true };
+
+      if (sess && sess.questions && sess.questions.length > 0 && !sess.completed) {
+        // ACTIVE ARENA VIEW
+        const q = sess.questions[sess.currentIndex];
+        const progressPct = Math.round(((sess.currentIndex) / sess.questions.length) * 100);
+        const optionsHtml = q.options.map((opt, optIdx) => {
+          const letter = String.fromCharCode(65 + optIdx);
+          const isSelected = currentQuestionSelectedOption === optIdx;
+          return `
+            <button class="arena-option-btn ${isSelected ? 'is-selected' : ''}" type="button" data-opt-index="${optIdx}">
+              <span class="arena-opt-letter">${letter}</span>
+              <span class="arena-opt-text">${escapeHtml(opt)}</span>
+            </button>
+          `;
+        }).join("");
+
+        content = `
+          <div class="quiz-layout">
+            <div class="arena-card">
+              <div class="arena-topbar">
+                <div class="arena-topic-badge">
+                  <span>${sess.topicIcon || '⚡'}</span>
+                  <span>${escapeHtml(sess.topicTitle)}</span>
+                  <span style="color: #94a3b8;">·</span>
+                  <span style="text-transform: capitalize; color: #ffc107;">${sess.level}</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:12px;">
+                  <span class="arena-counter-pill">Question ${sess.currentIndex + 1} of ${sess.questions.length}</span>
+                  <div class="arena-timer-wrap">
+                    <span style="font-size:12px;">⏱️</span>
+                    <span id="arenaTimerDisplay" class="arena-timer-pill">02:00</span>
+                  </div>
+                </div>
+              </div>
+              <div class="arena-progress-line">
+                <div class="arena-progress-fill" style="width: ${progressPct}%;"></div>
+              </div>
+              <div class="arena-body">
+                <h2 class="arena-question-heading">${escapeHtml(q.q)}</h2>
+                ${q.code ? `<pre class="arena-code-block"><code>${escapeHtml(q.code)}</code></pre>` : ''}
+                <div class="arena-options-grid">
+                  ${optionsHtml}
+                </div>
+                <div class="arena-footer">
+                  <span class="arena-time-tip">⏳ Max 2:00 mins to submit · Question auto-advances at 00:00</span>
+                  <button class="arena-next-btn" id="arenaSubmitBtn" type="button" ${currentQuestionSelectedOption === null ? 'disabled' : ''}>
+                    ${sess.currentIndex === sess.questions.length - 1 ? 'Finish & View Scorecard ➔' : 'Submit & Next Question ➔'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (activeQuizReport) {
+        // FINAL REPORT & SCORECARD VIEW
+        const rep = activeQuizReport;
+        const totalTrophies = calculateTotalTrophies();
+        const sess = DailyGrindQuiz.getSession();
+        const hasRolled = sess && sess.trophiesAwarded != null;
+
+        const reviewsHtml = rep.review.map((item) => {
+          const isCorrect = item.isCorrect;
+          const userChosenText = item.userAnswerIndex !== null ? item.options[item.userAnswerIndex] : "No answer selected (Time Expired)";
+          const correctText = item.options[item.correctAnswerIndex];
+
+          return `
+            <article class="review-card-item ${isCorrect ? 'is-correct' : 'is-wrong'}">
+              <div class="review-top-meta">
+                <span style="font-family:'DM Mono', monospace; color:#94a3b8;">Question ${item.index} of ${rep.total}</span>
+                ${isCorrect 
+                  ? '<span class="review-badge-correct">✓ Correct (+1 Mark)</span>' 
+                  : '<span class="review-badge-wrong">✗ Incorrect</span>'}
+              </div>
+              <h4 class="review-q-title">${escapeHtml(item.question)}</h4>
+              ${item.code ? `<pre class="arena-code-block" style="margin:8px 0 12px; font-size:12px; padding:10px 14px;"><code>${escapeHtml(item.code)}</code></pre>` : ''}
+              <div class="review-ans-row" style="color: ${isCorrect ? '#10b981' : '#f87171'};">
+                <strong>Your Answer:</strong> ${escapeHtml(userChosenText)}
+              </div>
+              ${!isCorrect ? `
+                <div class="review-ans-row" style="color: #10b981;">
+                  <strong>Correct Answer:</strong> ${escapeHtml(correctText)}
+                </div>
+              ` : ''}
+              <div class="review-explanation-box">
+                <b style="color:#ffc107;">💡 Key Insight:</b> ${escapeHtml(item.explanation)}
+              </div>
+            </article>
+          `;
+        }).join("");
+
+        content = `
+          <div class="quiz-layout">
+            <div class="report-hero-card">
+              <div class="report-score-circle">
+                <span class="report-score-num">${rep.score}<small style="font-size:18px; color:#94a3b8;">/${rep.total}</small></span>
+                <span class="report-score-pct">${rep.percentage}% ACCURACY</span>
+              </div>
+              <div>
+                <span class="report-rank-badge">${escapeHtml(rep.rankTitle)}</span>
+                <p class="report-rank-desc">${escapeHtml(rep.rankDesc)}</p>
+              </div>
+
+              <!-- Luck-Based Trophy Chest -->
+              <div class="trophy-chest-card">
+                <div class="trophy-chest-icon">${hasRolled ? '🏆' : '🎁'}</div>
+                <h3 class="trophy-chest-title">${hasRolled ? 'Trophy Reward Deposited!' : 'Open Your Luck-Based Trophy Chest'}</h3>
+                <p class="trophy-chest-subtitle">
+                  ${hasRolled 
+                    ? 'Congratulations! These trophies have been permanently secured in your vault.' 
+                    : 'Every completed quiz session grants between 1 and 10 random trophies. 10 trophies is an ultra-rare Apex Jackpot!'}
+                </p>
+                ${hasRolled ? `
+                  <div class="trophy-awarded-pill">
+                    <span style="font-size:24px;">🏆</span>
+                    <strong class="trophy-awarded-num">+${sess.trophiesAwarded} TROPHIES EARNED!</strong>
+                  </div>
+                ` : `
+                  <button class="trophy-roll-btn" id="rollTrophyBtn" type="button">
+                    Roll Trophy Chest (1 - 10 🏆) ⚡
+                  </button>
+                `}
+              </div>
+
+              <div style="display:flex; justify-content:center; gap:14px; flex-wrap:wrap; margin-top:24px;">
+                <button class="primary-button" id="quizPlayAgainBtn" type="button" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2);">
+                  Play Another Quiz ↺
+                </button>
+                <button class="primary-button" id="quizViewVaultBtn" type="button">
+                  View in Trophy Vault (${totalTrophies} 🏆) →
+                </button>
+              </div>
+            </div>
+
+            <!-- Detailed Question Breakdown -->
+            <div class="review-section">
+              <div class="quiz-section-title">
+                <span>📋</span>
+                <span>Question-by-Question Detailed Review</span>
+              </div>
+              ${reviewsHtml}
+            </div>
+          </div>
+        `;
+      } else {
+        // TOPIC & LEVEL SELECTION LOBBY VIEW
+        const bank = (typeof DailyGrindQuiz !== "undefined") ? DailyGrindQuiz.getBank() : {};
+        const totalTrophies = calculateTotalTrophies();
+
+        content = `
+          <div class="quiz-layout">
+            <div class="quiz-hero-card">
+              <div class="quiz-hero-top">
+                <div class="quiz-hero-title">
+                  <span class="eyebrow" style="color:#ffc107;">SKILL ARENA · CODING & CONCEPT COMBAT</span>
+                  <h2>Test Your Mastery.<br /><em>Earn Vault Trophies.</em></h2>
+                  <p>Choose your technical domain, face 10 timed challenges (2 mins max per question), and roll for luck-based trophy rewards.</p>
+                </div>
+                <div class="quiz-hero-vault-badge">
+                  <span>🏆 Vault Balance:</span>
+                  <strong id="quizVaultBalance">${totalTrophies}</strong>
+                </div>
+              </div>
+              <div class="quiz-pills-row">
+                <span class="quiz-pill-item"><span>⚡</span> 10 Questions Per Session</span>
+                <span class="quiz-pill-item"><span>⏱️</span> 120 Seconds Max Per Question</span>
+                <span class="quiz-pill-item"><span>🎲</span> 1 to 10 Luck-Based Trophies</span>
+                <span class="quiz-pill-item"><span>💡</span> In-Depth Explanations</span>
+              </div>
+            </div>
+
+            <!-- Domain Selection -->
+            <div>
+              <div class="quiz-section-title">
+                <span>1️⃣</span>
+                <span>Choose Your Domain / Interest</span>
+              </div>
+              <div class="quiz-topics-grid">
+                <article class="quiz-topic-card ${quizSelectedTopic === 'datascience' ? 'is-selected' : ''}" data-topic="datascience">
+                  <div class="quiz-topic-icon">📊</div>
+                  <h3>Data Science</h3>
+                  <p>Master Python, Pandas vectorization, NumPy broadcasting, SQL window functions, and predictive modeling logic.</p>
+                  <span class="quiz-topic-tag">Python · Pandas · SQL · Stats</span>
+                </article>
+
+                <article class="quiz-topic-card ${quizSelectedTopic === 'webdev' ? 'is-selected' : ''}" data-topic="webdev">
+                  <div class="quiz-topic-icon">🌐</div>
+                  <h3>Web Development</h3>
+                  <p>Modern JavaScript event loops, closures, CSS Grid/Flexbox, Async/Await, Web APIs, and browser performance.</p>
+                  <span class="quiz-topic-tag">JS · DOM · CSS Grid · APIs</span>
+                </article>
+
+                <article class="quiz-topic-card ${quizSelectedTopic === 'aiml' ? 'is-selected' : ''}" data-topic="aiml">
+                  <div class="quiz-topic-icon">🤖</div>
+                  <h3>AI / Machine Learning</h3>
+                  <p>Neural networks, backpropagation, loss functions, Transformers, attention mechanisms, and LLM fine-tuning.</p>
+                  <span class="quiz-topic-tag">PyTorch · Deep Learning · LLMs</span>
+                </article>
+              </div>
+            </div>
+
+            <!-- Difficulty Selection -->
+            <div>
+              <div class="quiz-section-title">
+                <span>2️⃣</span>
+                <span>Select Difficulty Tier</span>
+              </div>
+              <div class="quiz-levels-row">
+                <div class="quiz-level-card ${quizSelectedLevel === 'beginner' ? 'is-selected' : ''}" data-level="beginner">
+                  <div class="quiz-level-badge">🟢</div>
+                  <strong>Beginner</strong>
+                  <small>Core concepts, syntax, and foundational mental models.</small>
+                </div>
+                <div class="quiz-level-card ${quizSelectedLevel === 'intermediate' ? 'is-selected' : ''}" data-level="intermediate">
+                  <div class="quiz-level-badge">🟡</div>
+                  <strong>Intermediate</strong>
+                  <small>Real-world coding snippets, edge cases & performance tradeoffs.</small>
+                </div>
+                <div class="quiz-level-card ${quizSelectedLevel === 'advanced' ? 'is-selected' : ''}" data-level="advanced">
+                  <div class="quiz-level-badge">🔴</div>
+                  <strong>Advanced</strong>
+                  <small>Deep system internals, algorithmic complexity & architectural rigor.</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Launch Bar -->
+            <div class="quiz-launch-bar">
+              <div class="quiz-launch-meta">
+                <strong id="quizSelectedSummary">${(bank[quizSelectedTopic]?.title) || 'Data Science'} · ${quizSelectedLevel.toUpperCase()}</strong>
+                <span>10 Questions · 2 Minutes per question countdown</span>
+              </div>
+              <button class="quiz-start-action-btn" id="startQuizBtn" type="button">
+                Enter The Arena ⚡
+              </button>
+            </div>
+          </div>
+        `;
+      }
     }
 
     if (view === "history") {
@@ -1657,10 +1930,161 @@
         showToast("Message sent to creator! We'll review your message.");
       });
     }
+    if (view === "quiz") {
+      // 1. Lobby Topic & Level Selectors
+      secondary.querySelectorAll(".quiz-topic-card").forEach((card) => {
+        card.addEventListener("click", () => {
+          quizSelectedTopic = card.dataset.topic;
+          secondary.querySelectorAll(".quiz-topic-card").forEach(c => c.classList.toggle("is-selected", c.dataset.topic === quizSelectedTopic));
+          updateLobbySummary();
+        });
+      });
+
+      secondary.querySelectorAll(".quiz-level-card").forEach((card) => {
+        card.addEventListener("click", () => {
+          quizSelectedLevel = card.dataset.level;
+          secondary.querySelectorAll(".quiz-level-card").forEach(c => c.classList.toggle("is-selected", c.dataset.level === quizSelectedLevel));
+          updateLobbySummary();
+        });
+      });
+
+      function updateLobbySummary() {
+        const sumEl = secondary.querySelector("#quizSelectedSummary");
+        if (sumEl && typeof DailyGrindQuiz !== "undefined") {
+          const bank = DailyGrindQuiz.getBank();
+          const title = bank[quizSelectedTopic]?.title || "Data Science";
+          sumEl.textContent = `${title} · ${quizSelectedLevel.toUpperCase()}`;
+        }
+      }
+
+      const startBtn = secondary.querySelector("#startQuizBtn");
+      if (startBtn) {
+        startBtn.addEventListener("click", () => {
+          if (typeof DailyGrindQuiz !== "undefined") {
+            DailyGrindQuiz.startSession(quizSelectedTopic, quizSelectedLevel);
+            currentQuestionSelectedOption = null;
+            activeQuizReport = null;
+            renderSecondaryView("quiz");
+          }
+        });
+      }
+
+      // 2. Active Arena bindings
+      const sess = (typeof DailyGrindQuiz !== "undefined") ? DailyGrindQuiz.getSession() : null;
+      if (sess && sess.questions && sess.questions.length > 0 && !sess.completed) {
+        // Start 120s timer per question
+        DailyGrindQuiz.startQuestionTimer(
+          (secondsLeft) => {
+            const timerEl = secondary.querySelector("#arenaTimerDisplay");
+            if (!timerEl) return;
+            const mins = Math.floor(secondsLeft / 60);
+            const secs = secondsLeft % 60;
+            timerEl.textContent = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+            timerEl.classList.toggle("timer-warning", secondsLeft <= 60 && secondsLeft > 30);
+            timerEl.classList.toggle("timer-danger", secondsLeft <= 30);
+          },
+          () => {
+            // Expired!
+            DailyGrindQuiz.recordAnswer(sess.currentIndex, currentQuestionSelectedOption);
+            showToast("⏱️ 2 minutes expired! Moving to next question.");
+            if (sess.currentIndex < sess.questions.length - 1) {
+              sess.currentIndex++;
+              currentQuestionSelectedOption = null;
+              renderSecondaryView("quiz");
+            } else {
+              activeQuizReport = DailyGrindQuiz.generateFinalReport();
+              renderSecondaryView("quiz");
+            }
+          }
+        );
+
+        // Options selection
+        secondary.querySelectorAll(".arena-option-btn").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const optIdx = Number(btn.dataset.optIndex);
+            currentQuestionSelectedOption = optIdx;
+            secondary.querySelectorAll(".arena-option-btn").forEach(b => b.classList.toggle("is-selected", Number(b.dataset.optIndex) === optIdx));
+            const subBtn = secondary.querySelector("#arenaSubmitBtn");
+            if (subBtn) subBtn.disabled = false;
+          });
+        });
+
+        // Submit button
+        const submitBtn = secondary.querySelector("#arenaSubmitBtn");
+        if (submitBtn) {
+          submitBtn.addEventListener("click", () => {
+            DailyGrindQuiz.recordAnswer(sess.currentIndex, currentQuestionSelectedOption);
+            if (sess.currentIndex < sess.questions.length - 1) {
+              sess.currentIndex++;
+              currentQuestionSelectedOption = null;
+              renderSecondaryView("quiz");
+            } else {
+              activeQuizReport = DailyGrindQuiz.generateFinalReport();
+              renderSecondaryView("quiz");
+            }
+          });
+        }
+      }
+
+      // 3. Scorecard & Trophy Chest bindings
+      const rollBtn = secondary.querySelector("#rollTrophyBtn");
+      if (rollBtn && activeQuizReport) {
+        rollBtn.addEventListener("click", () => {
+          rollBtn.disabled = true;
+          rollBtn.textContent = "Rolling Lucky Trophies... 🎲";
+          setTimeout(() => {
+            const rolled = DailyGrindQuiz.rollTrophies(activeQuizReport.score);
+            DailyGrindQuiz.getSession().trophiesAwarded = rolled;
+
+            trackerState.quizRewards = trackerState.quizRewards || [];
+            trackerState.quizRewards.unshift({
+              timestamp: Date.now(),
+              date: localDateKey(),
+              topic: activeQuizReport.topic,
+              topicTitle: activeQuizReport.topicTitle,
+              level: activeQuizReport.level,
+              score: activeQuizReport.score,
+              trophies: rolled,
+              rankTitle: activeQuizReport.rankTitle
+            });
+            trackerState.trophies = (Number(trackerState.trophies) || 0) + rolled;
+            saveTrackerState();
+            refreshMetrics();
+            updateTrophyDisplay();
+            showToast(`🏆 ${rolled} ${rolled === 1 ? 'Trophy' : 'Trophies'} added to your Vault!`);
+            renderSecondaryView("quiz");
+          }, 500);
+        });
+      }
+
+      const playAgainBtn = secondary.querySelector("#quizPlayAgainBtn");
+      if (playAgainBtn) {
+        playAgainBtn.addEventListener("click", () => {
+          activeQuizReport = null;
+          currentQuestionSelectedOption = null;
+          if (typeof DailyGrindQuiz !== "undefined") {
+            DailyGrindQuiz.stopTimer();
+            DailyGrindQuiz.getSession().questions = [];
+            DailyGrindQuiz.getSession().completed = false;
+          }
+          renderSecondaryView("quiz");
+        });
+      }
+
+      const viewVaultBtn = secondary.querySelector("#quizViewVaultBtn");
+      if (viewVaultBtn) {
+        viewVaultBtn.addEventListener("click", () => {
+          navigate("vault");
+        });
+      }
+    }
   }
 
   function navigate(view, updateHash = true) {
     const nextView = validViews.includes(view) ? view : "dashboard";
+    if (currentView === "quiz" && nextView !== "quiz" && typeof DailyGrindQuiz !== "undefined") {
+      DailyGrindQuiz.stopTimer();
+    }
     currentView = nextView;
     $("#dashboardView").hidden = nextView !== "dashboard";
     $("#secondaryView").hidden = nextView === "dashboard";
