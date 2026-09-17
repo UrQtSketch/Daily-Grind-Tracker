@@ -42,7 +42,7 @@
       }
       if (isHttp()) {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000);
+        const timeoutId = setTimeout(() => controller.abort(), 25000);
         try {
           const res = await fetch("/api/auth/send-otp", {
             method: "POST",
@@ -57,7 +57,7 @@
         } catch (err) {
           clearTimeout(timeoutId);
           if (err.name === "AbortError") {
-            throw new Error("Connection timed out. Please try clicking Send again.");
+            throw new Error("Server took too long to respond. It may be waking up—please try clicking Send again.");
           }
           throw err;
         }

@@ -281,13 +281,20 @@
           return;
         }
 
+        let statusTimer = null;
         if (sendOtpBtn) {
           sendOtpBtn.disabled = true;
-          sendOtpBtn.textContent = "Sending Code...";
+          sendOtpBtn.textContent = "Sending Code to Gmail...";
+          statusTimer = setTimeout(() => {
+            if (sendOtpBtn && sendOtpBtn.disabled) {
+              sendOtpBtn.textContent = "Connecting to email server...";
+            }
+          }, 3500);
         }
 
         try {
           const resData = await auth.sendRegistrationOtp(name, email, password);
+          if (statusTimer) clearTimeout(statusTimer);
           pendingEmail = email.toLowerCase();
           if (otpEmailTarget) otpEmailTarget.textContent = pendingEmail;
 
@@ -301,11 +308,12 @@
           if (otpError) otpError.textContent = "";
           if (otpSuccess) {
             otpSuccess.style.display = "block";
-            otpSuccess.textContent = `A 6-digit verification code has been sent to ${pendingEmail}. Please check your inbox (or Spam folder).`;
+            otpSuccess.textContent = `A 6-digit verification code has been sent to ${pendingEmail}. Please check your Gmail inbox (or Spam folder).`;
             setTimeout(() => { if (otpSuccess) otpSuccess.style.display = "none"; }, 10000);
           }
           startResendTimer();
         } catch (err) {
+          if (statusTimer) clearTimeout(statusTimer);
           if (registerError) registerError.textContent = err.message || "Failed to send verification code.";
         } finally {
           if (sendOtpBtn) {
