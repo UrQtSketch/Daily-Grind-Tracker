@@ -63,6 +63,7 @@ const trackerStateSchema = new mongoose.Schema({
   rewards: { type: mongoose.Schema.Types.Mixed, default: {} },
   trophies: { type: Number, default: 0 },
   lastActiveDate: { type: String },
+  lastReminderDate: { type: String, default: null },
   recentPenalty: { type: mongoose.Schema.Types.Mixed, default: null },
   updatedAt: { type: Date, default: Date.now }
 });
@@ -192,6 +193,14 @@ module.exports = {
     }
     const db = readLocalDb();
     return db.users.find((u) => u.email.toLowerCase() === cleanEmail) || null;
+  },
+
+  async getAllUsers() {
+    if (isMongoConnected) {
+      return await UserModel.find({}, "id name email createdAt").lean();
+    }
+    const db = readLocalDb();
+    return (db.users || []).map((u) => ({ id: u.id, name: u.name, email: u.email, createdAt: u.createdAt }));
   },
 
   async createUser(name, email, password) {
@@ -336,6 +345,7 @@ module.exports = {
       rewards: {},
       trophies: 0,
       lastActiveDate: todayStr,
+      lastReminderDate: null,
       recentPenalty: null,
       updatedAt: new Date().toISOString()
     };
@@ -380,6 +390,7 @@ module.exports = {
       rewards: updatedState.rewards || {},
       trophies: updatedState.trophies != null ? Number(updatedState.trophies) : 0,
       lastActiveDate: updatedState.lastActiveDate,
+      lastReminderDate: updatedState.lastReminderDate || null,
       recentPenalty: updatedState.recentPenalty || null,
       updatedAt: updatedState.updatedAt ? (updatedState.updatedAt.toISOString ? updatedState.updatedAt.toISOString() : updatedState.updatedAt) : new Date().toISOString()
     };
@@ -396,6 +407,7 @@ module.exports = {
       rewards: state.rewards || {},
       trophies: state.trophies != null ? Number(state.trophies) : 0,
       lastActiveDate: state.lastActiveDate || todayStr,
+      lastReminderDate: state.lastReminderDate !== undefined ? state.lastReminderDate : null,
       recentPenalty: state.recentPenalty || null,
       updatedAt: new Date()
     };

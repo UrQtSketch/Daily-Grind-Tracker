@@ -1353,7 +1353,7 @@
     if (view === "settings") {
       const profile = user();
       const currentMode = getAppMode() === "classic" ? "Classic Mode" : "Basic Mode";
-      content = `<div class="settings-layout"><article class="profile-card"><span class="settings-avatar">${initials(profile.name)}</span><div><span class="eyebrow">YOUR PROFILE</span><h2>${escapeHtml(profile.name)}</h2><p>${escapeHtml(profile.email)} · <b style="color:#ffca42;">🏆 ${calculateTotalTrophies()} Trophies</b></p></div><a href="login.html">Switch account →</a></article><article class="setting-list"><div><span><b>🏛️</b> Theme Style: <strong id="settingsModeLabel" style="color:var(--accent,#00d26a);">${currentMode}</strong></span><button class="history-jump-btn" id="settingsModeToggle" type="button">Switch Mode ⇄</button></div><div><span><b>✦</b> Daily reminder</span><button class="toggle is-on" type="button" aria-label="Daily reminder enabled"><i></i></button></div><div><span><b>◒</b> Focus mode</span><button class="toggle" type="button" aria-label="Focus mode disabled"><i></i></button></div><div><span><b>◌</b> Week starts on Monday</span><button class="toggle is-on" type="button" aria-label="Week starts on Monday"><i></i></button></div><div><span><b>✉</b> Need Help or Have Feedback?</span><button class="history-jump-btn" type="button" data-page-action="support">Open Support Center →</button></div></article><article class="danger-zone"><div><h3>${isDemo() ? "Demo mode" : "Your tracker data"}</h3><p>${isDemo() ? "Demo changes are not saved. Create an account to begin your own Day 0." : "Your progress is stored privately in this browser for this account."}</p></div><button type="button" data-page-action="dashboard">Back to dashboard</button></article></div>`;
+      content = `<div class="settings-layout"><article class="profile-card"><span class="settings-avatar">${initials(profile.name)}</span><div><span class="eyebrow">YOUR PROFILE</span><h2>${escapeHtml(profile.name)}</h2><p>${escapeHtml(profile.email)} · <b style="color:#ffca42;">🏆 ${calculateTotalTrophies()} Trophies</b></p></div><a href="login.html">Switch account →</a></article><article class="setting-list"><div><span><b>🏛️</b> Theme Style: <strong id="settingsModeLabel" style="color:var(--accent,#00d26a);">${currentMode}</strong></span><button class="history-jump-btn" id="settingsModeToggle" type="button">Switch Mode ⇄</button></div><div><div><span><b>⚡</b> Daily Pending Task Reminder</span><small style="display:block; font-size:11px; color:#8ba2bd; margin-top:2px;">Automated alert from support.dailygrind@gmail.com if no tasks are ticked by 8:00 PM</small></div><button class="history-jump-btn" id="sendTestReminderBtn" type="button">Test Reminder ✉</button></div><div><span><b>◒</b> Focus mode</span><button class="toggle" type="button" aria-label="Focus mode disabled"><i></i></button></div><div><span><b>◌</b> Week starts on Monday</span><button class="toggle is-on" type="button" aria-label="Week starts on Monday"><i></i></button></div><div><span><b>✉</b> Need Help or Have Feedback?</span><button class="history-jump-btn" type="button" data-page-action="support">Open Support Center →</button></div></article><article class="danger-zone"><div><h3>${isDemo() ? "Demo mode" : "Your tracker data"}</h3><p>${isDemo() ? "Demo changes are not saved. Create an account to begin your own Day 0." : "Your progress is stored privately in this browser for this account."}</p></div><button type="button" data-page-action="dashboard">Back to dashboard</button></article></div>`;
     }
     if (view === "support") {
       const profile = user();
@@ -1420,6 +1420,10 @@
                 <h4><b>🔒</b> Is my progress saved securely?</h4>
                 <p>Yes. Your account and history are isolated to your profile, protected by PBKDF2 cryptography, and safely saved in the server database.</p>
               </div>
+              <div class="support-faq-item">
+                <h4><b>⚡</b> What if I forget to tick my tasks today?</h4>
+                <p>If no tasks are checked by 8:00 PM, an automated reminder is sent to your registered Gmail address from support.dailygrind@gmail.com to protect your streak and prevent the 5-day inactivity penalty.</p>
+              </div>
             </div>
           </div>
         </div>
@@ -1440,6 +1444,38 @@
         applyMode(nextMode, true);
         const lbl = secondary.querySelector("#settingsModeLabel");
         if (lbl) lbl.textContent = nextMode === "classic" ? "Classic Mode" : "Basic Mode";
+      });
+    }
+    const sendTestReminderBtn = secondary.querySelector("#sendTestReminderBtn");
+    if (sendTestReminderBtn) {
+      sendTestReminderBtn.addEventListener("click", async () => {
+        if (isDemo()) {
+          showToast("Create or log in to an account to test email reminders.");
+          return;
+        }
+        const token = auth.getToken();
+        sendTestReminderBtn.disabled = true;
+        sendTestReminderBtn.textContent = "Sending...";
+        try {
+          const res = await fetch("/api/reminders/send-test", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            }
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            showToast(`⚡ Reminder sent to ${user().email}!`);
+          } else {
+            showToast(data.error || "Failed to trigger reminder.");
+          }
+        } catch {
+          showToast("Unable to reach server to test reminder.");
+        } finally {
+          sendTestReminderBtn.disabled = false;
+          sendTestReminderBtn.textContent = "Test Reminder ✉";
+        }
       });
     }
     secondary.querySelectorAll(".toggle").forEach((button) => button.addEventListener("click", () => { button.classList.toggle("is-on"); button.setAttribute("aria-label", button.classList.contains("is-on") ? "Setting enabled" : "Setting disabled"); showToast(button.classList.contains("is-on") ? "Setting turned on." : "Setting turned off."); }));

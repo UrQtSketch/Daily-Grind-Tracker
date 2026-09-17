@@ -2,6 +2,8 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const db = require("./database");
+const mailer = require("./mailer");
+const reminderService = require("./reminderService");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -145,6 +147,36 @@ app.post("/api/support/feedback", async (req, res) => {
   }
 });
 
+// Reminder endpoints
+app.get("/api/reminders/status", (req, res) => {
+  res.json({
+    status: "ok",
+    senderEmail: mailer.SENDER_EMAIL,
+    smtpConfigured: mailer.isConfigured(),
+    mode: mailer.isConfigured() ? "live_smtp" : "simulation",
+    istTime: reminderService.getIstDateInfo()
+  });
+});
+
+app.post("/api/reminders/check-now", async (req, res) => {
+  try {
+    const force = req.body && req.body.force !== undefined ? Boolean(req.body.force) : true;
+    const summary = await reminderService.checkAndSendDailyReminders({ force });
+    res.json({ success: true, summary });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to run reminder check", details: err.message });
+  }
+});
+
+app.post("/api/reminders/send-test", authenticate, async (req, res) => {
+  try {
+    const result = await reminderService.sendTestReminderToEmail(req.user.email);
+    res.json({ success: true, result });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to send test reminder", details: err.message });
+  }
+});
+
 // Fallback to index.html for SPA-like direct navigation
 app.use((req, res, next) => {
   if (req.path.startsWith("/api")) return next();
@@ -157,4 +189,7 @@ app.listen(PORT, "0.0.0.0", () => {
   console.log(`Port: ${PORT}`);
   console.log(`Health: /api/health`);
   console.log(`=========================================`);
+
+  // Start automated reminder scheduler
+  reminderService.startReminderScheduler();
 });
