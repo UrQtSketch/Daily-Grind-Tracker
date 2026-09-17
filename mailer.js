@@ -31,21 +31,38 @@ const RESEND_API_KEY = process.env.RESEND_API_KEY || "";
 async function sendViaHttpApi({ to, name, subject, html }) {
   if (BREVO_API_KEY) {
     try {
-      const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+      const sendPayload = (fromEmail) => ({
+        sender: { name: "Daily Grind Tracker", email: fromEmail },
+        to: [{ email: to, name: name || "Grinder" }],
+        subject,
+        htmlContent: html
+      });
+
+      let res = await fetch("https://api.brevo.com/v3/smtp/email", {
         method: "POST",
         headers: {
           "accept": "application/json",
           "api-key": BREVO_API_KEY,
           "content-type": "application/json"
         },
-        body: JSON.stringify({
-          sender: { name: "Daily Grind Tracker", email: SENDER_EMAIL },
-          to: [{ email: to, name: name || "Grinder" }],
-          subject,
-          htmlContent: html
-        })
+        body: JSON.stringify(sendPayload(SENDER_EMAIL))
       });
-      const data = await res.json();
+
+      let data = await res.json();
+      if (!res.ok && (data.message || "").toLowerCase().includes("sender")) {
+        // Fallback to active account sender if secondary sender needs validation
+        res = await fetch("https://api.brevo.com/v3/smtp/email", {
+          method: "POST",
+          headers: {
+            "accept": "application/json",
+            "api-key": BREVO_API_KEY,
+            "content-type": "application/json"
+          },
+          body: JSON.stringify(sendPayload("sketchfallinlove@gmail.com"))
+        });
+        data = await res.json();
+      }
+
       if (res.ok) {
         console.log(`✅ [BREVO HTTP SENT] Delivered to ${to}. MessageId: ${data.messageId}`);
         return { success: true, simulated: false, messageId: data.messageId, to };
