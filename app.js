@@ -199,6 +199,26 @@
     startSpiritualQuoteRotation();
     bindLegalModals();
 
+    // Universal password visibility toggle
+    document.addEventListener("click", (event) => {
+      const btn = event.target.closest(".password-toggle-btn");
+      if (!btn) return;
+      event.preventDefault();
+      const wrap = btn.closest(".password-input-wrap");
+      if (!wrap) return;
+      const input = wrap.querySelector("input");
+      if (!input) return;
+      if (input.type === "password") {
+        input.type = "text";
+        btn.textContent = "🙈";
+        btn.setAttribute("aria-label", "Hide password");
+      } else {
+        input.type = "password";
+        btn.textContent = "👁️";
+        btn.setAttribute("aria-label", "Show password");
+      }
+    });
+
     const form = $("#loginForm");
     if (form) {
       form.addEventListener("submit", async (event) => {
@@ -219,6 +239,171 @@
         }
       });
       $("#demoLogin").addEventListener("click", () => { auth.demo(); window.location.assign("index.html"); });
+
+      // Forgot Password Modal Wiring
+      const openForgotBtn = $("#openForgotPassBtn");
+      const forgotModal = $("#forgotPassModal");
+      const forgotStep1 = $("#forgotStep1");
+      const forgotStep2 = $("#forgotStep2");
+      const forgotForm1 = $("#forgotForm1");
+      const forgotForm2 = $("#forgotForm2");
+      const forgotEmailInput = $("#forgotEmailInput");
+      const forgotEmailDisplay = $("#forgotEmailDisplay");
+      const forgotError1 = $("#forgotError1");
+      const forgotError2 = $("#forgotError2");
+      const forgotSuccess = $("#forgotSuccess");
+      const sendResetCodeBtn = $("#sendResetCodeBtn");
+      const confirmResetBtn = $("#confirmResetBtn");
+      const resendForgotOtpBtn = $("#resendForgotOtpBtn");
+      const forgotResendTimer = $("#forgotResendTimer");
+      const backToStep1Btn = $("#backToStep1Btn");
+
+      let forgotPendingEmail = "";
+      let forgotCountdown = 30;
+      let forgotInterval = null;
+
+      function startForgotResendTimer() {
+        forgotCountdown = 30;
+        if (resendForgotOtpBtn) resendForgotOtpBtn.disabled = true;
+        if (forgotResendTimer) forgotResendTimer.textContent = `${forgotCountdown}s`;
+        clearInterval(forgotInterval);
+        forgotInterval = setInterval(() => {
+          forgotCountdown--;
+          if (forgotResendTimer) forgotResendTimer.textContent = `${forgotCountdown}s`;
+          if (forgotCountdown <= 0) {
+            clearInterval(forgotInterval);
+            if (resendForgotOtpBtn) {
+              resendForgotOtpBtn.disabled = false;
+              resendForgotOtpBtn.textContent = "Resend Code";
+            }
+          }
+        }, 1000);
+      }
+
+      if (openForgotBtn && forgotModal) {
+        openForgotBtn.addEventListener("click", () => {
+          if (forgotEmailInput && $("#loginEmail")) {
+            forgotEmailInput.value = $("#loginEmail").value.trim();
+          }
+          if (forgotError1) { forgotError1.textContent = ""; forgotError1.style.display = "none"; }
+          if (forgotError2) { forgotError2.textContent = ""; forgotError2.style.display = "none"; }
+          if (forgotSuccess) { forgotSuccess.textContent = ""; forgotSuccess.style.display = "none"; }
+          if (forgotStep1) forgotStep1.style.display = "block";
+          if (forgotStep2) forgotStep2.style.display = "none";
+          forgotModal.showModal();
+        });
+
+        if (forgotForm1) {
+          forgotForm1.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const email = (forgotEmailInput ? forgotEmailInput.value : "").trim().toLowerCase();
+            if (!isGmailAddress(email)) {
+              if (forgotError1) {
+                forgotError1.textContent = "Please enter a valid @gmail.com address.";
+                forgotError1.style.display = "block";
+              }
+              return;
+            }
+            if (forgotError1) forgotError1.style.display = "none";
+            if (sendResetCodeBtn) {
+              sendResetCodeBtn.disabled = true;
+              sendResetCodeBtn.textContent = "Sending Code...";
+            }
+            try {
+              await auth.sendForgotPasswordOtp(email);
+              forgotPendingEmail = email;
+              if (forgotEmailDisplay) forgotEmailDisplay.textContent = email;
+              if (forgotStep1) forgotStep1.style.display = "none";
+              if (forgotStep2) forgotStep2.style.display = "block";
+              startForgotResendTimer();
+            } catch (err) {
+              if (forgotError1) {
+                forgotError1.textContent = err.message || "Failed to send reset code.";
+                forgotError1.style.display = "block";
+              }
+            } finally {
+              if (sendResetCodeBtn) {
+                sendResetCodeBtn.disabled = false;
+                sendResetCodeBtn.textContent = "Send Reset Code ⚡";
+              }
+            }
+          });
+        }
+
+        if (forgotForm2) {
+          forgotForm2.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const otp = ($("#resetOtpInput") ? $("#resetOtpInput").value : "").trim();
+            const newPassword = ($("#newPasswordInput") ? $("#newPasswordInput").value : "");
+            if (otp.length !== 6) {
+              if (forgotError2) {
+                forgotError2.textContent = "Please enter the complete 6-digit code.";
+                forgotError2.style.display = "block";
+              }
+              return;
+            }
+            if (newPassword.length < 6) {
+              if (forgotError2) {
+                forgotError2.textContent = "Password must be at least 6 characters long.";
+                forgotError2.style.display = "block";
+              }
+              return;
+            }
+            if (forgotError2) forgotError2.style.display = "none";
+            if (confirmResetBtn) {
+              confirmResetBtn.disabled = true;
+              confirmResetBtn.textContent = "Updating Password...";
+            }
+            try {
+              await auth.verifyForgotPasswordOtp(forgotPendingEmail, otp, newPassword);
+              if (forgotSuccess) {
+                forgotSuccess.textContent = "Password updated! Redirecting to grind...";
+                forgotSuccess.style.display = "block";
+              }
+              setTimeout(() => {
+                window.location.assign("index.html");
+              }, 1000);
+            } catch (err) {
+              if (forgotError2) {
+                forgotError2.textContent = err.message || "Failed to reset password.";
+                forgotError2.style.display = "block";
+              }
+              if (confirmResetBtn) {
+                confirmResetBtn.disabled = false;
+                confirmResetBtn.textContent = "Update Password & Login 🔒";
+              }
+            }
+          });
+        }
+
+        if (resendForgotOtpBtn) {
+          resendForgotOtpBtn.addEventListener("click", async () => {
+            if (forgotCountdown > 0 || !forgotPendingEmail) return;
+            resendForgotOtpBtn.disabled = true;
+            resendForgotOtpBtn.textContent = "Sending...";
+            try {
+              await auth.sendForgotPasswordOtp(forgotPendingEmail);
+              startForgotResendTimer();
+              if (forgotError2) forgotError2.style.display = "none";
+            } catch (err) {
+              if (forgotError2) {
+                forgotError2.textContent = err.message || "Failed to resend code.";
+                forgotError2.style.display = "block";
+              }
+            }
+          });
+        }
+
+        if (backToStep1Btn) {
+          backToStep1Btn.addEventListener("click", () => {
+            clearInterval(forgotInterval);
+            if (forgotStep1) forgotStep1.style.display = "block";
+            if (forgotStep2) forgotStep2.style.display = "none";
+            if (forgotError1) forgotError1.style.display = "none";
+            if (forgotError2) forgotError2.style.display = "none";
+          });
+        }
+      }
     }
 
     const register = $("#registerForm");
@@ -793,8 +978,14 @@
   function applyProfile() {
     const profile = user();
     $$('[data-profile-name]').forEach((node) => { node.textContent = node.tagName === "SPAN" && node.closest(".sidebar-quote") ? profile.name.toUpperCase() : profile.name; });
-    $$('[data-avatar]').forEach((node) => { node.textContent = initials(profile.name); });
-    $$('[data-profile-email]').forEach((node) => { node.textContent = profile.email; });
+    $$('[data-avatar]').forEach((node) => {
+      if (profile && profile.avatarUrl) {
+        node.innerHTML = `<img src="${escapeHtml(profile.avatarUrl)}" alt="${escapeHtml(profile.name)}" class="topbar-avatar-img" />`;
+      } else {
+        node.textContent = initials(profile ? profile.name : "Grinder");
+      }
+    });
+    $$('[data-profile-email]').forEach((node) => { node.textContent = profile ? profile.email : ""; });
   }
 
   function renderTasks() {
@@ -2121,7 +2312,90 @@
     if (view === "settings") {
       const profile = user();
       const currentMode = getAppMode() === "classic" ? "Classic Mode" : "Basic Mode";
-      content = `<div class="settings-layout"><article class="profile-card"><span class="settings-avatar">${initials(profile.name)}</span><div><span class="eyebrow">YOUR PROFILE</span><h2>${escapeHtml(profile.name)}</h2><p>${escapeHtml(profile.email)} · <b style="color:#ffca42;">🏆 ${calculateTotalTrophies()} Trophies</b></p></div><a href="login.html">Switch account →</a></article><article class="setting-list"><div><span><b>🏛️</b> Theme Style: <strong id="settingsModeLabel" style="color:var(--accent,#00d26a);">${currentMode}</strong></span><button class="history-jump-btn" id="settingsModeToggle" type="button">Switch Mode ⇄</button></div><div><div><span><b>⚡</b> Daily Pending Task Reminder</span><small style="display:block; font-size:11px; color:#8ba2bd; margin-top:2px;">Automated alert from support.dailygrind@gmail.com if no tasks are ticked by 8:00 PM</small></div><button class="history-jump-btn" id="sendTestReminderBtn" type="button">Test Reminder ✉</button></div><div><span><b>◒</b> Focus mode</span><button class="toggle" type="button" aria-label="Focus mode disabled"><i></i></button></div><div><span><b>◌</b> Week starts on Monday</span><button class="toggle is-on" type="button" aria-label="Week starts on Monday"><i></i></button></div><div><span><b>✉</b> Need Help or Have Feedback?</span><button class="history-jump-btn" type="button" data-page-action="support">Open Support Center →</button></div></article><article class="danger-zone"><div><h3>${isDemo() ? "Demo mode" : "Your tracker data"}</h3><p>${isDemo() ? "Demo changes are not saved. Create an account to begin your own Day 0." : "Your progress is stored privately in this browser for this account."}</p></div><button type="button" data-page-action="dashboard">Back to dashboard</button></article></div>`;
+      const avatarHtml = (profile && profile.avatarUrl)
+        ? `<img src="${escapeHtml(profile.avatarUrl)}" alt="${escapeHtml(profile.name)}" class="avatar-img" />`
+        : initials(profile ? profile.name : "Grinder");
+
+      content = `
+        <div class="settings-layout">
+          <article class="profile-card profile-card-extended">
+            <div class="profile-card-left">
+              <div class="avatar-upload-wrap">
+                <div class="settings-avatar" id="settingsAvatarPreview">${avatarHtml}</div>
+                <label class="avatar-upload-btn" for="avatarFileInput" title="Upload profile picture">
+                  📷 Change Photo
+                </label>
+                <input type="file" id="avatarFileInput" accept="image/*" class="visually-hidden" />
+              </div>
+              <div class="profile-details">
+                <span class="eyebrow">YOUR PROFILE</span>
+                <h2 id="profileDisplayName">${escapeHtml(profile.name)}</h2>
+                <p id="profileDisplayEmail">${escapeHtml(profile.email)} · <b style="color:#ffca42;">🏆 ${calculateTotalTrophies()} Trophies</b></p>
+              </div>
+            </div>
+            <div class="profile-actions-wrap">
+              <button class="edit-profile-btn" id="editProfileToggleBtn" type="button">✏️ Edit Profile</button>
+              <a href="login.html" style="color:#9cdbff; font-size:11px; font-weight:700;">Switch account →</a>
+            </div>
+          </article>
+
+          <!-- Edit Profile Panel (Collapsible) -->
+          <article class="edit-profile-panel" id="editProfileFormPanel" style="display:none;">
+            <h3>✏️ Edit Your Profile</h3>
+            <form id="editProfileForm">
+              <label>Display Name (What should we call you?)
+                <input type="text" id="editNameInput" value="${escapeHtml(profile.name)}" maxlength="28" required autocomplete="name" />
+              </label>
+              <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+                <label class="avatar-upload-btn" for="avatarFileInput" style="padding:7px 14px; font-size:12px;">
+                  📷 Choose New Photo
+                </label>
+                <button type="button" class="history-jump-btn" id="removeAvatarBtn" style="color:#f87171; border-color:rgba(239,68,68,0.3); ${profile.avatarUrl ? '' : 'display:none;'}">
+                  🗑 Remove Photo
+                </button>
+              </div>
+              <p id="editProfileStatus" style="font-size:12px; margin:0 0 12px; display:none;"></p>
+              <div class="edit-profile-buttons">
+                <button type="submit" class="primary-button" id="saveProfileBtn">Save Changes ✓</button>
+                <button type="button" class="history-jump-btn" id="cancelEditProfileBtn">Cancel</button>
+              </div>
+            </form>
+          </article>
+
+          <article class="setting-list">
+            <div>
+              <span><b>🏛️</b> Theme Style: <strong id="settingsModeLabel" style="color:var(--accent,#00d26a);">${currentMode}</strong></span>
+              <button class="history-jump-btn" id="settingsModeToggle" type="button">Switch Mode ⇄</button>
+            </div>
+            <div>
+              <div>
+                <span><b>⚡</b> Daily Pending Task Reminder</span>
+                <small style="display:block; font-size:11px; color:#8ba2bd; margin-top:2px;">Automated alert from support.dailygrind@gmail.com if no tasks are ticked by 8:00 PM</small>
+              </div>
+              <button class="history-jump-btn" id="sendTestReminderBtn" type="button">Test Reminder ✉</button>
+            </div>
+            <div>
+              <span><b>◒</b> Focus mode</span>
+              <button class="toggle" type="button" aria-label="Focus mode disabled"><i></i></button>
+            </div>
+            <div>
+              <span><b>◌</b> Week starts on Monday</span>
+              <button class="toggle is-on" type="button" aria-label="Week starts on Monday"><i></i></button>
+            </div>
+            <div>
+              <span><b>✉</b> Need Help or Have Feedback?</span>
+              <button class="history-jump-btn" type="button" data-page-action="support">Open Support Center →</button>
+            </div>
+          </article>
+
+          <article class="danger-zone">
+            <div>
+              <h3>${isDemo() ? "Demo mode" : "Your tracker data"}</h3>
+              <p>${isDemo() ? "Demo changes are not saved. Create an account to begin your own Day 0." : "Your progress is stored privately in this browser for this account."}</p>
+            </div>
+            <button type="button" data-page-action="dashboard">Back to dashboard</button>
+          </article>
+        </div>`;
     }
     if (view === "support") {
       const profile = user();
@@ -2439,7 +2713,10 @@
                 Restricted access for Daily Grind Tracker creator & administrators. Enter your Master Owner PIN to manage registered grinders, active sessions, and access bans:
               </p>
               <form id="adminUnlockForm">
-                <input type="password" class="admin-pin-field" id="adminPinInput" placeholder="ENTER MASTER PIN" autofocus autocomplete="off" />
+                <div class="password-input-wrap" style="margin-bottom:12px;">
+                  <input type="password" class="admin-pin-field" id="adminPinInput" placeholder="ENTER MASTER PIN" autofocus autocomplete="off" style="margin-bottom:0;" />
+                  <button type="button" class="password-toggle-btn" aria-label="Show/Hide PIN" title="Show/Hide PIN">👁️</button>
+                </div>
                 <div id="adminPinError" style="color:#ef4444; font-size:12px; margin-bottom:12px;" hidden>Invalid PIN. Access denied.</div>
                 <button class="primary-button" style="width:100%;" type="submit">Unlock Command Center 🛡️</button>
               </form>
@@ -2650,6 +2927,165 @@
       if (action === "admin") { navigate("admin"); return; }
       configureCapture(action);
     }));
+
+    // Settings: Profile Edit & Avatar Upload
+    const editProfileToggleBtn = secondary.querySelector("#editProfileToggleBtn");
+    const editProfilePanel = secondary.querySelector("#editProfileFormPanel");
+    const cancelEditProfileBtn = secondary.querySelector("#cancelEditProfileBtn");
+    const editProfileForm = secondary.querySelector("#editProfileForm");
+    const avatarFileInput = secondary.querySelector("#avatarFileInput");
+    const settingsAvatarPreview = secondary.querySelector("#settingsAvatarPreview");
+    const removeAvatarBtn = secondary.querySelector("#removeAvatarBtn");
+    const editNameInput = secondary.querySelector("#editNameInput");
+    const editProfileStatus = secondary.querySelector("#editProfileStatus");
+    const saveProfileBtn = secondary.querySelector("#saveProfileBtn");
+
+    let stagedAvatarUrl = (user() && user().avatarUrl) || "";
+
+    if (editProfileToggleBtn && editProfilePanel) {
+      editProfileToggleBtn.addEventListener("click", () => {
+        const isHidden = editProfilePanel.style.display === "none";
+        editProfilePanel.style.display = isHidden ? "block" : "none";
+        editProfileToggleBtn.textContent = isHidden ? "✕ Close Editor" : "✏️ Edit Profile";
+        if (isHidden && editNameInput) {
+          editNameInput.focus();
+        }
+      });
+    }
+
+    if (cancelEditProfileBtn && editProfilePanel) {
+      cancelEditProfileBtn.addEventListener("click", () => {
+        editProfilePanel.style.display = "none";
+        if (editProfileToggleBtn) editProfileToggleBtn.textContent = "✏️ Edit Profile";
+        stagedAvatarUrl = (user() && user().avatarUrl) || "";
+        if (settingsAvatarPreview) {
+          if (stagedAvatarUrl) {
+            settingsAvatarPreview.innerHTML = `<img src="${escapeHtml(stagedAvatarUrl)}" alt="${escapeHtml(user().name)}" class="avatar-img" />`;
+          } else {
+            settingsAvatarPreview.textContent = initials(user() ? user().name : "Grinder");
+          }
+        }
+      });
+    }
+
+    if (avatarFileInput) {
+      avatarFileInput.addEventListener("change", (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        if (!file.type.startsWith("image/")) {
+          showToast("Please select an image file (PNG, JPG, WEBP, etc.)");
+          return;
+        }
+        if (file.size > 8 * 1024 * 1024) {
+          showToast("Image size is too large. Please select an image under 8MB.");
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (loadEvt) => {
+          const rawDataUrl = loadEvt.target.result;
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const maxDim = 256;
+            let width = img.width;
+            let height = img.height;
+            if (width > height) {
+              if (width > maxDim) {
+                height = Math.round((height * maxDim) / width);
+                width = maxDim;
+              }
+            } else {
+              if (height > maxDim) {
+                width = Math.round((width * maxDim) / height);
+                height = maxDim;
+              }
+            }
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, width, height);
+            stagedAvatarUrl = canvas.toDataURL("image/jpeg", 0.85);
+
+            if (settingsAvatarPreview) {
+              settingsAvatarPreview.innerHTML = `<img src="${stagedAvatarUrl}" alt="Avatar Preview" class="avatar-img" />`;
+            }
+            if (removeAvatarBtn) removeAvatarBtn.style.display = "inline-flex";
+            if (editProfilePanel && editProfilePanel.style.display === "none") {
+              editProfilePanel.style.display = "block";
+              if (editProfileToggleBtn) editProfileToggleBtn.textContent = "✕ Close Editor";
+            }
+            showToast("Photo selected! Click 'Save Changes' to update profile.");
+          };
+          img.src = rawDataUrl;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    if (removeAvatarBtn) {
+      removeAvatarBtn.addEventListener("click", () => {
+        stagedAvatarUrl = "";
+        if (settingsAvatarPreview) {
+          const curName = editNameInput ? editNameInput.value.trim() : (user() ? user().name : "Grinder");
+          settingsAvatarPreview.textContent = initials(curName);
+        }
+        removeAvatarBtn.style.display = "none";
+        showToast("Photo removed. Click 'Save Changes' to confirm.");
+      });
+    }
+
+    if (editProfileForm) {
+      editProfileForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const newName = (editNameInput ? editNameInput.value : "").trim();
+        if (newName.length < 2) {
+          showToast("Name must be at least 2 characters long.");
+          return;
+        }
+        if (saveProfileBtn) {
+          saveProfileBtn.disabled = true;
+          saveProfileBtn.textContent = "Saving...";
+        }
+        if (editProfileStatus) {
+          editProfileStatus.textContent = "Updating your profile...";
+          editProfileStatus.style.color = "#60a5fa";
+          editProfileStatus.style.display = "block";
+        }
+
+        try {
+          const updated = await auth.updateProfile({
+            name: newName,
+            avatarUrl: stagedAvatarUrl
+          });
+          applyProfile();
+          const displayNameEl = secondary.querySelector("#profileDisplayName");
+          if (displayNameEl) displayNameEl.textContent = updated.name;
+          if (editProfileStatus) {
+            editProfileStatus.textContent = "Profile updated successfully! ✨";
+            editProfileStatus.style.color = "#10b981";
+          }
+          showToast("Profile updated successfully! ✨");
+          setTimeout(() => {
+            if (editProfilePanel) editProfilePanel.style.display = "none";
+            if (editProfileToggleBtn) editProfileToggleBtn.textContent = "✏️ Edit Profile";
+            if (editProfileStatus) editProfileStatus.style.display = "none";
+          }, 800);
+        } catch (err) {
+          if (editProfileStatus) {
+            editProfileStatus.textContent = err.message || "Failed to update profile.";
+            editProfileStatus.style.color = "#ef4444";
+          }
+          showToast(err.message || "Failed to update profile.");
+        } finally {
+          if (saveProfileBtn) {
+            saveProfileBtn.disabled = false;
+            saveProfileBtn.textContent = "Save Changes ✓";
+          }
+        }
+      });
+    }
+
     const settingsModeBtn = secondary.querySelector("#settingsModeToggle");
     if (settingsModeBtn) {
       settingsModeBtn.addEventListener("click", () => {

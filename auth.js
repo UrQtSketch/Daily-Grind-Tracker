@@ -12,9 +12,15 @@
     localStorage.setItem(USERS_KEY, JSON.stringify(users));
   }
   function setSession(user, token = null) {
-    localStorage.setItem(SESSION_KEY, JSON.stringify({ name: user.name, email: user.email, isDemo: !!user.isDemo }));
+    localStorage.setItem(SESSION_KEY, JSON.stringify({
+      id: user.id || "",
+      name: user.name,
+      email: user.email,
+      avatarUrl: user.avatarUrl || "",
+      isDemo: !!user.isDemo
+    }));
     if (token) localStorage.setItem(TOKEN_KEY, token);
-    else localStorage.removeItem(TOKEN_KEY);
+    else if (token === false) localStorage.removeItem(TOKEN_KEY);
   }
 
   function isHttp() {
@@ -187,6 +193,72 @@
     demo() {
       setSession(demoUser);
       return demoUser;
+    },
+
+    updateSession(fields) {
+      const cur = this.current() || {};
+      const updated = { ...cur, ...fields };
+      localStorage.setItem(SESSION_KEY, JSON.stringify(updated));
+      return updated;
+    },
+
+    async sendForgotPasswordOtp(email) {
+      if (!validateGmail(email)) {
+        throw new Error("Only @gmail.com email addresses are allowed.");
+      }
+      if (isHttp()) {
+        const res = await fetch("/api/auth/forgot-password/send-otp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: email.trim().toLowerCase() })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to send reset code.");
+        return data;
+      }
+      return { success: true, message: "Reset code sent (offline demo: 123456)" };
+    },
+
+    async verifyForgotPasswordOtp(email, otp, newPassword) {
+      if (!validateGmail(email)) {
+        throw new Error("Only @gmail.com email addresses are allowed.");
+      }
+      if (isHttp()) {
+        const res = await fetch("/api/auth/forgot-password/verify-otp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: email.trim().toLowerCase(), otp: otp.trim(), newPassword })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to reset password.");
+        if (data.user && data.token) {
+          setSession(data.user, data.token);
+        }
+        return data;
+      }
+      return { success: true, message: "Password updated successfully." };
+    },
+
+    async updateProfile({ name, avatarUrl }) {
+      if (isHttp()) {
+        const token = this.getToken();
+        const res = await fetch("/api/user/profile", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({ name, avatarUrl })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to update profile.");
+        this.updateSession(data.user);
+        return data.user;
+      }
+      const cur = this.current() || {};
+      const updated = { ...cur, name: name || cur.name, avatarUrl: avatarUrl !== undefined ? avatarUrl : cur.avatarUrl };
+      this.updateSession(updated);
+      return updated;
     },
 
     async signOut() {

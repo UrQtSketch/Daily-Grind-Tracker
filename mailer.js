@@ -345,11 +345,131 @@ async function sendOtpEmail({ to, name, otp }) {
   }
 }
 
+function generatePasswordResetHtml({ name, otp }) {
+  const safeName = name || "Grinder";
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reset Password - Daily Grind Tracker</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #080b13; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #e2e8f0;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #080b13; width: 100% !important; min-height: 100vh;">
+    <tr>
+      <td align="center" style="padding: 36px 16px;">
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="max-width: 540px; width: 100%; background: linear-gradient(180deg, #111827 0%, #0c101d 100%); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 18px; overflow: hidden; box-shadow: 0 20px 45px rgba(0, 0, 0, 0.65);">
+          
+          <!-- Header Bar -->
+          <tr>
+            <td style="padding: 26px 32px 18px; text-align: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); background: radial-gradient(ellipse at top, rgba(239, 68, 68, 0.15), transparent 70%);">
+              <div style="display: inline-block; font-size: 28px; line-height: 1; margin-bottom: 6px;">🔒</div>
+              <h1 style="margin: 0; font-size: 20px; font-weight: 800; letter-spacing: 2px; color: #f87171; text-transform: uppercase;">DAILY GRIND TRACKER</h1>
+              <p style="margin: 4px 0 0; font-size: 11px; color: #94a3b8; letter-spacing: 1px; text-transform: uppercase;">Password Reset Request</p>
+            </td>
+          </tr>
+
+          <!-- Main Body -->
+          <tr>
+            <td style="padding: 32px 32px 28px;">
+              <h2 style="margin: 0 0 12px; font-size: 20px; font-weight: 700; color: #ffffff;">
+                Reset your password, ${safeName} 🔑
+              </h2>
+              <p style="margin: 0 0 20px; font-size: 14px; line-height: 1.6; color: #cbd5e1;">
+                We received a request to reset your Daily Grind Tracker password. Use the 6-digit verification code below to set a new password:
+              </p>
+
+              <!-- OTP Code Display -->
+              <div style="margin: 24px 0; padding: 20px 16px; text-align: center; background: rgba(239, 68, 68, 0.08); border: 2px dashed rgba(239, 68, 68, 0.55); border-radius: 14px;">
+                <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #fca5a5; margin-bottom: 8px;">PASSWORD RESET CODE</div>
+                <div style="font-family: 'DM Mono', Menlo, Consolas, Courier, monospace; font-size: 36px; font-weight: 800; letter-spacing: 12px; color: #f87171; padding-left: 12px;">
+                  ${otp}
+                </div>
+              </div>
+
+              <!-- Security Info -->
+              <div style="margin: 0 0 20px; padding: 14px 16px; background: rgba(15, 23, 42, 0.6); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.06);">
+                <p style="margin: 0; font-size: 12px; line-height: 1.5; color: #94a3b8;">
+                  ⏱️ <strong>Valid for 10 minutes.</strong> If you did not request this password reset, please ignore this email or reach out to support.
+                </p>
+              </div>
+
+              <p style="margin: 20px 0 0; text-align: center; font-size: 12px; font-style: italic; color: #64748b;">
+                “Never give up on what you really want to achieve.”
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 18px 32px; background-color: #080b13; border-top: 1px solid rgba(255, 255, 255, 0.08); text-align: center;">
+              <p style="margin: 0; font-size: 11px; color: #475569;">
+                Daily Grind Tracker · Official Support: <a href="mailto:${SENDER_EMAIL}" style="color: #f87171; text-decoration: none;">${SENDER_EMAIL}</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
+async function sendPasswordResetOtpEmail({ to, name, otp }) {
+  if (!to || !otp) throw new Error("Recipient email and OTP are required");
+
+  const subject = `🔒 ${otp} is your Daily Grind password reset code`;
+  const html = generatePasswordResetHtml({ name, otp });
+
+  const httpRes = await sendViaHttpApi({ to, name, subject, html });
+  if (httpRes && httpRes.success) return httpRes;
+
+  if (!SENDER_PASS) {
+    console.log(`[EMAIL SIMULATION] Password reset OTP sent to ${to} (${name}): ${otp}`);
+    return {
+      success: true,
+      simulated: true,
+      to,
+      subject,
+      otp
+    };
+  }
+
+  try {
+    const client = getTransporter();
+    const info = await client.sendMail({
+      from: `"Daily Grind Tracker" <${SENDER_EMAIL}>`,
+      to,
+      subject,
+      html
+    });
+
+    console.log(`✅ [RESET EMAIL SENT] Password reset code delivered to ${to}. MessageId: ${info.messageId}`);
+    return {
+      success: true,
+      simulated: false,
+      messageId: info.messageId,
+      to
+    };
+  } catch (err) {
+    console.error(`❌ [RESET EMAIL ERROR] Failed to send reset code to ${to}: ${err.message}`);
+    return {
+      success: false,
+      error: err.message,
+      to
+    };
+  }
+}
+
 module.exports = {
   SENDER_EMAIL,
   isConfigured: () => Boolean(BREVO_API_KEY || SENDER_PASS),
   generateReminderHtml,
   sendDailyTaskReminder,
   generateOtpHtml,
-  sendOtpEmail
+  sendOtpEmail,
+  generatePasswordResetHtml,
+  sendPasswordResetOtpEmail
 };

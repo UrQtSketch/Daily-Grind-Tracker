@@ -36,7 +36,14 @@ const authLimiter = rateLimit({
   max: 20, // only 20 login attempts per 15 min per IP
   message: { error: "Too many login attempts. Please wait 15 minutes and try again." },
 });
-app.use(["/api/login", "/api/register"], authLimiter);
+app.use([
+  "/api/login",
+  "/api/register",
+  "/api/auth/login",
+  "/api/auth/register",
+  "/api/auth/send-otp",
+  "/api/auth/forgot-password/send-otp"
+], authLimiter);
 
 // ── Admin Route Limiter ───────────────────────────────────────────────────────
 const adminLimiter = rateLimit({
@@ -290,6 +297,131 @@ app.post("/api/auth/logout", authenticate, async (req, res) => {
 
 app.get("/api/auth/me", authenticate, (req, res) => {
   res.json({ user: req.user });
+});
+
+// Forgot Password - Send OTP
+app.post("/api/auth/forgot-password/send-otp", async (req, res) => {
+  try {
+    const { email } = req.body || {};
+    if (!isGmail(email)) {
+      return res.status(400).json({ error: "Please enter a valid @gmail.com address." });
+    }
+    const cleanEmail = email.trim().toLowerCase();
+    if (await db.isEmailBanned(cleanEmail)) {
+      return res.status(403).json({ error: "This account has been permanently suspended." });
+    }
+    const user = await db.findUserByEmail(cleanEmail);
+    if (!user) {
+      return res.status(404).json({ error: "No registered account found with this Gmail address." });
+    }
+
+    const otp = crypto.randomInt(100000, 1000000).toString();
+    await db.saveOtp(cleanEmail, user.name || "Grinder", "FORGOT_PASSWORD", otp);
+
+    const emailRes = await mailer.sendPasswordResetOtpEmail({ to: cleanEmail, name: user.name, otp });
+    if (!emailRes.success && !emailRes.simulated) {
+      console.error(`[RESET OTP ERROR] Failed to send email to ${cleanEmail}:`, emailRes.error);
+      return res.status(500).json({ error: `Unable to deliver email: ${emailRes.error || "Please try again."}` });
+    }
+
+    res.json({
+      success: true,
+      message: `Password reset code sent to ${cleanEmail}`,
+      email: cleanEmail
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message || "Failed to process reset code." });
+  }
+});
+
+// Forgot Password - Verify OTP & Set New Password
+app.post("/api/auth/forgot-password/verify-otp", async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body || {};
+    if (!isGmail(email)) {
+      return res.status(400).json({ error: "Valid Gmail address is required." });
+    }
+    if (!otp || typeof otp !== "string" || otp.trim().length !== 6) {
+      return res.status(400).json({ error: "Please enter the 6-digit verification code." });
+    }
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ error: "Password must be at least 6 characters long." });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    if (await db.isEmailBanned(cleanEmail)) {
+      return res.status(403).json({ error: "This account has been permanently suspended." });
+    }
+
+    const record = await db.getOtp(cleanEmail);
+    if (!record) {
+      return res.status(400).json({ error: "Reset code has expired or was not requested. Please request a new code." });
+    }
+
+    if (record.attempts >= 5) {
+      await db.deleteOtp(cleanEmail);
+      return res.status(400).json({ error: "Too many incorrect attempts. Please request a new code." });
+    }
+
+    if (record.otp !== otp.trim()) {
+      const attempts = await db.incrementOtpAttempts(cleanEmail);
+      const remaining = Math.max(0, 5 - attempts);
+      return res.status(400).json({ error: `Incorrect verification code. ${remaining} attempts remaining.` });
+    }
+
+    // Update password in database
+    await db.updateUserPassword(cleanEmail, newPassword);
+    await db.deleteOtp(cleanEmail);
+
+    // Auto-login: create session
+    const updatedUser = await db.findUserByEmail(cleanEmail);
+    const token = await db.createSession(updatedUser);
+
+    res.json({
+      success: true,
+      message: "Password reset successfully! You are now logged in.",
+      user: {
+        id: updatedUser.id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        avatarUrl: updatedUser.avatarUrl || ""
+      },
+      token
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message || "Failed to reset password." });
+  }
+});
+
+// Update Profile: Name and Avatar
+app.put("/api/user/profile", authenticate, async (req, res) => {
+  try {
+    const { name, avatarUrl } = req.body || {};
+    if (name !== undefined && (typeof name !== "string" || name.trim().length < 2 || name.trim().length > 28)) {
+      return res.status(400).json({ error: "Display name must be between 2 and 28 characters." });
+    }
+    if (avatarUrl !== undefined && typeof avatarUrl === "string" && avatarUrl.length > 5 * 1024 * 1024) {
+      return res.status(400).json({ error: "Avatar image is too large. Max 4MB allowed." });
+    }
+
+    const updated = await db.updateUserProfile(req.user.email, {
+      name: name ? name.trim() : undefined,
+      avatarUrl: avatarUrl !== undefined ? avatarUrl : undefined
+    });
+
+    res.json({
+      success: true,
+      message: "Profile updated successfully!",
+      user: {
+        id: updated.id,
+        name: updated.name,
+        email: updated.email,
+        avatarUrl: updated.avatarUrl || ""
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message || "Failed to update profile." });
+  }
 });
 
 // Optional authentication helper (non-blocking for public or authenticated reads)

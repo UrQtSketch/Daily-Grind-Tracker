@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles.css?v=2.9" />
   </head>
   <body class="auth-body">
     <div class="auth-scene">
@@ -34,8 +34,14 @@
               <input id="loginEmail" type="email" autocomplete="email" placeholder="you@gmail.com" pattern=".+@gmail\.com" required />
             </label>
             <label>Password
-              <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Enter your password" required />
+              <div class="password-input-wrap">
+                <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Enter your password" required />
+                <button type="button" class="password-toggle-btn" aria-label="Show/Hide password" title="Show/Hide password">👁️</button>
+              </div>
             </label>
+            <div style="display: flex; justify-content: flex-end; margin-top: -6px; margin-bottom: 8px;">
+              <button type="button" class="forgot-pass-link" id="openForgotPassBtn">Forgot password?</button>
+            </div>
             <p class="form-error" id="loginError" role="alert"></p>
             <button class="primary-button auth-submit" type="submit">Enter your grind <span>→</span></button>
           </form>
@@ -109,7 +115,61 @@
       </div>
     </dialog>
 
-    <script src="auth.js"></script>
-    <script src="app.js"></script>
+    <!-- Forgot Password Modal -->
+    <dialog class="modal legal-modal forgot-modal" id="forgotPassModal">
+      <div class="legal-modal-content" style="max-width: 440px;">
+        <button class="modal-close" type="button" aria-label="Close" onclick="document.getElementById('forgotPassModal').close()">×</button>
+        
+        <!-- Step 1: Request Reset Code -->
+        <div id="forgotStep1">
+          <div style="font-size:32px; margin-bottom:10px;">🔒</div>
+          <h2>Reset Password</h2>
+          <p style="color:#94a3b8; font-size:13px; margin: 6px 0 18px; line-height:1.5;">
+            Enter your registered Gmail address. We will email you a 6-digit verification code to reset your password.
+          </p>
+          <form id="forgotForm1" novalidate>
+            <label style="display:block; font-size:12px; color:#cbd5e1; margin-bottom:6px; text-align:left;">
+              Registered Gmail Address
+              <input id="forgotEmailInput" type="email" autocomplete="email" placeholder="you@gmail.com" required style="width:100%; margin-top:6px;" />
+            </label>
+            <p class="form-error" id="forgotError1" role="alert" style="color:#ef4444; font-size:12px; margin:8px 0; display:none;"></p>
+            <button class="primary-button auth-submit" id="sendResetCodeBtn" type="submit" style="width:100%; margin-top:10px;">Send Reset Code ⚡</button>
+          </form>
+        </div>
+
+        <!-- Step 2: Verify Code & Set New Password -->
+        <div id="forgotStep2" style="display:none;">
+          <div style="font-size:32px; margin-bottom:10px;">🔑</div>
+          <h2>Enter New Password</h2>
+          <p style="color:#94a3b8; font-size:13px; margin: 6px 0 18px; line-height:1.5;">
+            We sent a 6-digit code to <strong id="forgotEmailDisplay" style="color:#ffc107;"></strong>. Enter the code and set your new password:
+          </p>
+          <form id="forgotForm2" novalidate>
+            <label style="display:block; font-size:12px; color:#cbd5e1; margin-bottom:12px; text-align:left;">
+              6-Digit Verification Code
+              <input id="resetOtpInput" type="text" inputmode="numeric" maxlength="6" placeholder="000000" style="font-family:'DM Mono', monospace; font-size:22px; letter-spacing:8px; text-align:center; width:100%; margin-top:6px;" required />
+            </label>
+            <label style="display:block; font-size:12px; color:#cbd5e1; margin-bottom:12px; text-align:left;">
+              New Password (at least 6 characters)
+              <div class="password-input-wrap" style="margin-top:6px;">
+                <input id="newPasswordInput" type="password" placeholder="Enter new password" minlength="6" required />
+                <button type="button" class="password-toggle-btn" aria-label="Show/Hide password" title="Show/Hide password">👁️</button>
+              </div>
+            </label>
+            <p class="form-error" id="forgotError2" role="alert" style="color:#ef4444; font-size:12px; margin:8px 0; display:none;"></p>
+            <p class="form-success" id="forgotSuccess" style="color:#10b981; font-size:12px; margin:8px 0; display:none;"></p>
+            <button class="primary-button auth-submit" id="confirmResetBtn" type="submit" style="width:100%; margin-top:10px;">Update Password & Login 🔒</button>
+          </form>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px; font-size:11px;">
+            <button type="button" class="legal-link-btn" id="resendForgotOtpBtn" style="color:#9ccff0; cursor:pointer;">Resend Code (<span id="forgotResendTimer">30s</span>)</button>
+            <button type="button" class="legal-link-btn" id="backToStep1Btn" style="color:#cbd5e1; cursor:pointer;">← Change Email</button>
+          </div>
+        </div>
+
+      </div>
+    </dialog>
+
+    <script src="auth.js?v=2.9"></script>
+    <script src="app.js?v=2.9"></script>
   </body>
 </html>

@@ -54,6 +54,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
   salt: { type: String, required: true },
   hash: { type: String, required: true },
+  avatarUrl: { type: String, default: "" },
   createdAt: { type: Date, default: Date.now }
 });
 
@@ -78,7 +79,8 @@ const sessionSchema = new mongoose.Schema({
   user: {
     id: String,
     name: String,
-    email: String
+    email: String,
+    avatarUrl: String
   },
   createdAt: { type: Date, default: Date.now, expires: "30d" }
 });
@@ -244,6 +246,7 @@ module.exports = {
       email: cleanEmail,
       salt,
       hash,
+      avatarUrl: "",
       createdAt: new Date().toISOString()
     };
 
@@ -267,7 +270,7 @@ module.exports = {
         recentPenalty: null,
         updatedAt: new Date()
       });
-      return { id: user.id, name: user.name, email: user.email };
+      return { id: user.id, name: user.name, email: user.email, avatarUrl: "" };
     }
 
     const db = readLocalDb();
@@ -287,7 +290,7 @@ module.exports = {
       updatedAt: new Date().toISOString()
     };
     writeLocalDb(db);
-    return { id: user.id, name: user.name, email: user.email };
+    return { id: user.id, name: user.name, email: user.email, avatarUrl: "" };
   },
 
   async verifyUser(email, password) {
@@ -311,7 +314,7 @@ module.exports = {
     if (checkHash !== user.hash) {
       throw new Error("That email or password doesn’t match.");
     }
-    return { id: user.id, name: user.name, email: user.email };
+    return { id: user.id, name: user.name, email: user.email, avatarUrl: user.avatarUrl || "" };
   },
 
   async createSession(user) {
@@ -319,7 +322,8 @@ module.exports = {
     const sessionData = {
       id: user.id,
       name: user.name,
-      email: user.email
+      email: user.email,
+      avatarUrl: user.avatarUrl || ""
     };
 
     if (isMongoConnected) {
@@ -831,5 +835,65 @@ module.exports = {
     });
 
     return adminUsers;
+  },
+
+  async updateUserPassword(email, newPassword) {
+    const cleanEmail = email.trim().toLowerCase();
+    const salt = crypto.randomBytes(16).toString("hex");
+    const hash = hashPassword(newPassword, salt);
+    if (isMongoConnected) {
+      const updated = await UserModel.findOneAndUpdate(
+        { email: cleanEmail },
+        { $set: { salt, hash } },
+        { new: true }
+      );
+      if (!updated) throw new Error("Account not found.");
+      return true;
+    }
+    const db = readLocalDb();
+    const user = db.users.find(u => u.email.toLowerCase() === cleanEmail);
+    if (!user) throw new Error("Account not found.");
+    user.salt = salt;
+    user.hash = hash;
+    writeLocalDb(db);
+    return true;
+  },
+
+  async updateUserProfile(email, { name, avatarUrl }) {
+    const cleanEmail = email.trim().toLowerCase();
+    if (isMongoConnected) {
+      const update = {};
+      if (name) update.name = name.trim();
+      if (avatarUrl !== undefined) update.avatarUrl = avatarUrl;
+      const updated = await UserModel.findOneAndUpdate(
+        { email: cleanEmail },
+        { $set: update },
+        { new: true }
+      ).lean();
+      if (!updated) throw new Error("Account not found.");
+      // Also update any active sessions for this user
+      await SessionModel.updateMany(
+        { "user.email": cleanEmail },
+        { $set: { "user.name": updated.name, "user.avatarUrl": updated.avatarUrl || "" } }
+      );
+      return { id: updated.id, name: updated.name, email: updated.email, avatarUrl: updated.avatarUrl || "" };
+    }
+
+    const db = readLocalDb();
+    const user = db.users.find(u => u.email.toLowerCase() === cleanEmail);
+    if (!user) throw new Error("Account not found.");
+    if (name) user.name = name.trim();
+    if (avatarUrl !== undefined) user.avatarUrl = avatarUrl;
+    // update active sessions in local JSON
+    if (db.sessions) {
+      for (const tok of Object.keys(db.sessions)) {
+        if (db.sessions[tok] && db.sessions[tok].user && db.sessions[tok].user.email.toLowerCase() === cleanEmail) {
+          if (name) db.sessions[tok].user.name = name.trim();
+          if (avatarUrl !== undefined) db.sessions[tok].user.avatarUrl = avatarUrl;
+        }
+      }
+    }
+    writeLocalDb(db);
+    return { id: user.id, name: user.name, email: user.email, avatarUrl: user.avatarUrl || "" };
   }
 };
