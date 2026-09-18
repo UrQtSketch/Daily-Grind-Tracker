@@ -1382,19 +1382,20 @@
 
   function refreshMetrics() {
     const metrics = trackerMetrics();
-    $("#completeCount").textContent = metrics.complete;
-    $("#taskCount").textContent = tasks.length;
-    $("#progressValue").textContent = `${metrics.weekly}%`;
-    $("#totalValue").textContent = metrics.total;
-    $("#streakValue").textContent = metrics.streak;
-    $("#goalValue").textContent = metrics.goals;
-    $("#heroDay").textContent = String(metrics.day).padStart(2, "0");
+    if ($("#completeCount")) $("#completeCount").textContent = metrics.complete;
+    if ($("#taskCount")) $("#taskCount").textContent = tasks.length;
+    if ($("#progressValue")) $("#progressValue").textContent = `${metrics.weekly}%`;
+    if ($("#totalValue")) $("#totalValue").textContent = metrics.total;
+    if ($("#streakValue")) $("#streakValue").textContent = metrics.streak;
+    if ($("#goalValue")) $("#goalValue").textContent = metrics.goals;
+    if ($("#heroDay")) $("#heroDay").textContent = String(metrics.day).padStart(2, "0");
     if ($("#heroDayPlain")) $("#heroDayPlain").textContent = metrics.day;
-    $("#momentumCurrent").textContent = metrics.complete;
-    $("#momentumTotal").textContent = tasks.length;
-    $("#momentumPercent").textContent = `${metrics.progress}%`;
-    $("#momentumBar").style.width = `${metrics.progress}%`;
-    $(".progress-track").setAttribute("aria-valuenow", String(metrics.progress));
+    if ($("#momentumCurrent")) $("#momentumCurrent").textContent = metrics.complete;
+    if ($("#momentumTotal")) $("#momentumTotal").textContent = tasks.length;
+    if ($("#momentumPercent")) $("#momentumPercent").textContent = `${metrics.progress}%`;
+    if ($("#momentumBar")) $("#momentumBar").style.width = `${metrics.progress}%`;
+    const track = $(".progress-track");
+    if (track) track.setAttribute("aria-valuenow", String(metrics.progress));
 
     if ($("#questCompletedDays")) $("#questCompletedDays").textContent = metrics.questDays;
     if ($("#questPercent")) $("#questPercent").textContent = `${metrics.questPercent.toFixed(1)}%`;
@@ -1412,9 +1413,11 @@
   }
 
   function renderChart() {
+    const chart = $("#barChart");
+    if (!chart) return;
     const values = getWeekProgress();
     const todayIndex = isDemo() ? 3 : (new Date().getDay() + 6) % 7;
-    $("#barChart").innerHTML = values.map((value, index) => `<div class="bar-slot ${index === todayIndex ? "today" : ""}"><div class="bar" style="height:${Math.max(value, 2)}%"></div><span>${weekLabels[index]}</span></div>`).join("");
+    chart.innerHTML = values.map((value, index) => `<div class="bar-slot ${index === todayIndex ? "today" : ""}"><div class="bar" style="height:${Math.max(value, 2)}%"></div><span>${weekLabels[index]}</span></div>`).join("");
   }
 
   let toastTimer;
@@ -3090,34 +3093,6 @@
               <div class="admin-table-panel">
                 <div class="admin-table-header">
                   <div class="admin-table-title">
-                    <span>📋</span>
-                    <strong>Registered Accounts Directory (${filtered.length} Users)</strong>
-                  </div>
-                  <input type="search" class="admin-search-input" id="adminSearchInput" placeholder="Search by name or email..." value="${escapeHtml(adminState.searchQuery || '')}" />
-                </div>
-                <div class="admin-table-wrapper">
-                  <table class="admin-users-table">
-                    <thead>
-                      <tr>
-                        <th>Grinder Name</th>
-                        <th>Gmail Address</th>
-                        <th>Joined Date</th>
-                        <th>Last Active</th>
-                        <th>Live Status</th>
-                        <th>Trophies</th>
-                        <th>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      ${rowsHtml}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            ` : `
-              <div class="admin-table-panel">
-                <div class="admin-table-header">
-                  <div class="admin-table-title">
                     <span>📬</span>
                     <strong>Support & Feedback Messages Inbox (${messages.length})</strong>
                   </div>
@@ -3974,26 +3949,26 @@
   }
 
   function bindInteractions() {
-    $("#taskSearch").addEventListener("input", (event) => { query = event.target.value.trim().toLowerCase(); renderTasks(); });
-    $("#openTaskModal").addEventListener("click", () => { $("#taskModal").showModal(); $("#newTaskName").focus(); });
-    $("#taskForm").addEventListener("submit", (event) => {
+    if ($("#taskSearch")) $("#taskSearch").addEventListener("input", (event) => { query = event.target.value.trim().toLowerCase(); renderTasks(); });
+    if ($("#openTaskModal")) $("#openTaskModal").addEventListener("click", () => { if ($("#taskModal")) $("#taskModal").showModal(); if ($("#newTaskName")) $("#newTaskName").focus(); });
+    if ($("#taskForm")) $("#taskForm").addEventListener("submit", (event) => {
       event.preventDefault();
-      const name = $("#newTaskName").value.trim(); if (!name) return;
-      const type = $("#newTaskCategory").value;
-      const icon = { focus: "◆", fitness: "⌁", learning: "‹/›", mindset: "◒" }[type];
-      tasks.unshift({ id: Date.now(), label: name, icon, type, done: false }); trackerState.dailyTasks[activeDate] = tasks; saveTrackerState(); renderTasks(); renderChart(); $("#taskModal").close(); event.target.reset(); showToast(isDemo() ? "Demo task added for this preview only." : "Task added. Make it count.");
+      const name = $("#newTaskName")?.value.trim(); if (!name) return;
+      const type = $("#newTaskCategory")?.value || "focus";
+      const icon = { focus: "◆", fitness: "⌁", learning: "‹/›", mindset: "◒" }[type] || "◆";
+      tasks.unshift({ id: Date.now(), label: name, icon, type, done: false }); trackerState.dailyTasks[activeDate] = tasks; saveTrackerState(); renderTasks(); renderChart(); if ($("#taskModal")) $("#taskModal").close(); event.target.reset(); showToast(isDemo() ? "Demo task added for this preview only." : "Task added. Make it count.");
     });
     $$(".quick-action").forEach((button) => button.addEventListener("click", () => {
       const action = button.dataset.action;
       if (action === "stats") { const metrics = trackerMetrics(); navigate("analytics"); showToast(metrics.weekly ? `Your weekly momentum is ${metrics.weekly}%.` : "Your progress will appear after your first completed task."); return; }
       configureCapture(action);
     }));
-    $("#captureForm").addEventListener("submit", (event) => {
+    if ($("#captureForm")) $("#captureForm").addEventListener("submit", (event) => {
       event.preventDefault();
-      const kind = $("#captureModal").dataset.kind;
-      const text = $("#captureInput").value.trim();
+      const kind = $("#captureModal")?.dataset.kind;
+      const text = $("#captureInput")?.value.trim();
       if (!text) return;
-      $("#captureModal").close(); event.target.reset();
+      if ($("#captureModal")) $("#captureModal").close(); event.target.reset();
       if (isDemo()) { showToast("Demo mode: this is only a preview. Create an account to save your own data."); return; }
       if (kind === "goal") trackerState.goals.unshift({ title: text, detail: "New goal — add your first action today.", progress: 0 });
       if (kind === "note") trackerState.notes.unshift({ tag: "NOTE", text, date: "Today" });
@@ -4002,10 +3977,24 @@
       if (currentView === `${kind}s` || (kind === "journal" && currentView === "journal")) renderSecondaryView(currentView);
       showToast(kind === "goal" ? "Goal saved. Now honour the commitment." : "Saved to your daily space.");
     });
-    $("#dateButton").addEventListener("click", () => $("#datePicker").showPicker ? $("#datePicker").showPicker() : $("#datePicker").click());
-    $("#datePicker").addEventListener("change", (event) => setDate(event.target.value));
-    $("#profileButton").addEventListener("click", () => { const menu = $("#profileMenu"); menu.hidden = !menu.hidden; $("#profileButton").setAttribute("aria-expanded", String(!menu.hidden)); });
-    document.addEventListener("click", (event) => { if (!event.target.closest(".profile-wrap")) { $("#profileMenu").hidden = true; $("#profileButton").setAttribute("aria-expanded", "false"); } });
+    if ($("#dateButton")) $("#dateButton").addEventListener("click", () => {
+      const dp = $("#datePicker");
+      if (dp) dp.showPicker ? dp.showPicker() : dp.click();
+    });
+    if ($("#datePicker")) $("#datePicker").addEventListener("change", (event) => setDate(event.target.value));
+    if ($("#profileButton")) $("#profileButton").addEventListener("click", () => {
+      const menu = $("#profileMenu");
+      if (menu) {
+        menu.hidden = !menu.hidden;
+        if ($("#profileButton")) $("#profileButton").setAttribute("aria-expanded", String(!menu.hidden));
+      }
+    });
+    document.addEventListener("click", (event) => {
+      if (!event.target.closest(".profile-wrap") && $("#profileMenu")) {
+        $("#profileMenu").hidden = true;
+        if ($("#profileButton")) $("#profileButton").setAttribute("aria-expanded", "false");
+      }
+    });
     const closeRewardModal = () => {
       stopMotivationalCelebration();
       const modal = $("#rewardModal");
@@ -4020,11 +4009,11 @@
     if ($("#userTrophyBadge")) $("#userTrophyBadge").addEventListener("click", () => navigate("vault"));
     if ($("#profileVaultLink")) $("#profileVaultLink").addEventListener("click", (e) => {
       e.preventDefault();
-      $("#profileMenu").hidden = true;
+      if ($("#profileMenu")) $("#profileMenu").hidden = true;
       navigate("vault");
     });
 
-    $("#signOutButton").addEventListener("click", async () => { await auth.signOut(); window.location.assign("login.html"); });
+    if ($("#signOutButton")) $("#signOutButton").addEventListener("click", async () => { await auth.signOut(); window.location.assign("login.html"); });
 
     function toggleSidebar() {
       if (window.innerWidth <= 768) {
