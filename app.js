@@ -172,6 +172,19 @@
       settingsLabel.textContent = getModeDisplayName(validMode);
     }
 
+    const settingsIcon = document.getElementById("settingsModeIcon");
+    const settingsText = document.getElementById("settingsModeLabelText");
+    if (settingsIcon) settingsIcon.textContent = getModeIcon(validMode);
+    if (settingsText) settingsText.textContent = getModeDisplayName(validMode);
+
+    const themeCards = document.querySelectorAll("[data-set-theme]");
+    themeCards.forEach((card) => {
+      const isActive = card.dataset.setTheme === validMode;
+      card.classList.toggle("is-active", isActive);
+      const badge = card.querySelector(".theme-badge-check");
+      if (badge) badge.textContent = isActive ? "ACTIVE ✓" : "SELECT";
+    });
+
     if (showNotification && typeof showToast === "function") {
       if (validMode === "anime") {
         showToast("⚔️ Anime Mode awakened: Solo Leveling shadow aura, neon surges & battle warrior quotes!");
@@ -185,49 +198,7 @@
 
   function initModeSelector() {
     const savedMode = getAppMode();
-    const modeModal = document.getElementById("modeSelectorModal");
-
-    if (!localStorage.getItem("daily-grind-mode") && modeModal) {
-      modeModal.showModal();
-    } else {
-      applyMode(savedMode || "basic", false);
-    }
-
-    const basicCard = document.getElementById("selectBasicCard");
-    if (basicCard) {
-      basicCard.addEventListener("click", () => {
-        applyMode("basic", true);
-        if (modeModal && modeModal.open) modeModal.close();
-      });
-    }
-
-    const classicCard = document.getElementById("selectClassicCard");
-    if (classicCard) {
-      classicCard.addEventListener("click", () => {
-        applyMode("classic", true);
-        if (modeModal && modeModal.open) modeModal.close();
-      });
-    }
-
-    const animeCard = document.getElementById("selectAnimeCard");
-    if (animeCard) {
-      animeCard.addEventListener("click", () => {
-        applyMode("anime", true);
-        if (modeModal && modeModal.open) modeModal.close();
-      });
-    }
-
-    const toggleBtn = document.getElementById("modeToggleBtn");
-    if (toggleBtn) {
-      toggleBtn.addEventListener("click", () => {
-        const current = getAppMode();
-        let next = "classic";
-        if (current === "basic") next = "classic";
-        else if (current === "classic") next = "anime";
-        else next = "basic";
-        applyMode(next, true);
-      });
-    }
+    applyMode(savedMode || "basic", false);
   }
 
   function isGmailAddress(email) {
@@ -2584,11 +2555,51 @@
             </div>
           </article>
 
-          <article class="setting-list">
-            <div>
-              <span><b>🏛️</b> Theme Style: <strong id="settingsModeLabel" style="color:var(--accent,#00d26a);">${currentMode}</strong></span>
-              <button class="history-jump-btn" id="settingsModeToggle" type="button">Switch Mode ⇄</button>
+          <!-- Visual Theme & Aura Customizer -->
+          <article class="setting-theme-card">
+            <div class="setting-theme-header">
+              <div class="setting-theme-info">
+                <span class="eyebrow" style="color:var(--accent,#35b9ff);">INTERFACE THEME</span>
+                <h3 style="margin:4px 0 2px; font-size:16px;">Visual Theme & Atmosphere</h3>
+                <p style="margin:0; font-size:12px; color:#8ba2bd;">Choose your daily focus atmosphere. Customize your environment anytime directly from Settings.</p>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="current-theme-chip" id="settingsModeLabelChip">
+                  <span id="settingsModeIcon">${getModeIcon(getAppMode())}</span>
+                  <span id="settingsModeLabelText">${currentMode}</span>
+                </span>
+                <button class="history-jump-btn" id="settingsModeToggle" type="button" title="Quick cycle through themes">Next Theme ⇄</button>
+              </div>
             </div>
+            <div class="theme-select-grid">
+              <button type="button" class="theme-card-btn ${getAppMode() === 'basic' ? 'is-active' : ''}" data-set-theme="basic">
+                <span class="theme-btn-icon">⚡</span>
+                <div class="theme-btn-meta">
+                  <strong>Basic Mode</strong>
+                  <small>Clean Dark & Minimal Focus</small>
+                </div>
+                <span class="theme-badge-check">${getAppMode() === 'basic' ? 'ACTIVE ✓' : 'SELECT'}</span>
+              </button>
+              <button type="button" class="theme-card-btn ${getAppMode() === 'classic' ? 'is-active' : ''}" data-set-theme="classic">
+                <span class="theme-btn-icon">🏛️</span>
+                <div class="theme-btn-meta">
+                  <strong>Classic Mode</strong>
+                  <small>Sacred Aura & Ancient Wisdom</small>
+                </div>
+                <span class="theme-badge-check">${getAppMode() === 'classic' ? 'ACTIVE ✓' : 'SELECT'}</span>
+              </button>
+              <button type="button" class="theme-card-btn ${getAppMode() === 'anime' ? 'is-active' : ''}" data-set-theme="anime">
+                <span class="theme-btn-icon">⚔️</span>
+                <div class="theme-btn-meta">
+                  <strong>Anime Mode</strong>
+                  <small>Solo Leveling Aura & Neon Surge</small>
+                </div>
+                <span class="theme-badge-check">${getAppMode() === 'anime' ? 'ACTIVE ✓' : 'SELECT'}</span>
+              </button>
+            </div>
+          </article>
+
+          <article class="setting-list">
             <div>
               <div>
                 <span><b>⚡</b> Daily Pending Task Reminder</span>
@@ -3374,6 +3385,14 @@
       }
     }
 
+    const themeButtons = secondary.querySelectorAll("[data-set-theme]");
+    themeButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const mode = btn.dataset.setTheme;
+        applyMode(mode, true);
+      });
+    });
+
     const settingsModeBtn = secondary.querySelector("#settingsModeToggle");
     if (settingsModeBtn) {
       settingsModeBtn.addEventListener("click", () => {
@@ -3383,8 +3402,6 @@
         else if (cur === "classic") nextMode = "anime";
         else nextMode = "basic";
         applyMode(nextMode, true);
-        const lbl = secondary.querySelector("#settingsModeLabel");
-        if (lbl) lbl.textContent = getModeDisplayName(nextMode);
       });
     }
     const sendTestReminderBtn = secondary.querySelector("#sendTestReminderBtn");

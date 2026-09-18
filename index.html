@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=3.7" />
+    <link rel="stylesheet" href="styles.css?v=3.8" />
   </head>
   <body class="app-body">
     <div class="ambient ambient-one"></div>
@@ -65,16 +65,8 @@
               <span class="three-dots-icon">⋮</span>
               <span class="sidebar-toggle-text">Menu</span>
             </button>
-            <label class="search-box" for="taskSearch">
-              <span>⌕</span>
-              <input id="taskSearch" type="search" placeholder="Same Boy. Higher Goals." autocomplete="off" />
-            </label>
           </div>
           <div class="topbar-actions">
-            <button class="mode-toggle-chip" id="modeToggleBtn" type="button" title="Switch Theme (Basic / Classic / Anime)" aria-label="Switch Theme">
-              <span id="modeIcon">⚡</span>
-              <span id="modeLabel">Basic Mode</span>
-            </button>
             <button class="date-chip" id="dateButton" type="button" aria-label="Choose date"><span>▣</span><span id="dateLabel">Thu, 11 Sep 2026</span></button>
             <input id="datePicker" class="visually-hidden" type="date" />
             <button class="trophy-chip" id="userTrophyBadge" type="button" title="View Trophy Vault & Titles" aria-label="View Trophy Vault">
@@ -288,37 +280,6 @@
       </div>
     </dialog>
 
-    <!-- Dual-Mode Selector Modal -->
-    <dialog class="modal mode-modal" id="modeSelectorModal">
-      <div class="mode-modal-card">
-        <p class="eyebrow" style="color:#ffc107;">CHOOSE YOUR EXPERIENCE</p>
-        <h2>Select Your Grind Environment</h2>
-        <p>Choose the discipline vibe that fits you best. You can switch anytime with one click.</p>
-        <div class="mode-grid">
-          <div class="mode-option-card basic-card" id="selectBasicCard" data-choose-mode="basic">
-            <span class="mode-icon">⚡</span>
-            <h3>Basic Mode</h3>
-            <span class="mode-tagline">CLEAN & MINIMALIST</span>
-            <p>Distraction-free, modern dark dashboard designed for pure focus and raw execution speed.</p>
-            <button class="mode-select-btn" type="button">Start in Basic Mode →</button>
-          </div>
-          <div class="mode-option-card classic-card" id="selectClassicCard" data-choose-mode="classic">
-            <span class="mode-icon">🏛️</span>
-            <h3>Classic Mode</h3>
-            <span class="mode-tagline">SPIRITUAL & ANCIENT WISDOM</span>
-            <p>Golden discipline aura, student inner-fire accents, and elevated sacred quotes for deep perseverance.</p>
-            <button class="mode-select-btn" type="button">Enter Classic Mode →</button>
-          </div>
-          <div class="mode-option-card anime-card" id="selectAnimeCard" data-choose-mode="anime">
-            <span class="mode-icon">⚔️</span>
-            <h3>Anime Mode</h3>
-            <span class="mode-tagline">SHONEN LEVEL UP & BATTLE AURA</span>
-            <p>Solo Leveling shadow aura, neon cyan/magenta battle surge, and legendary anime warrior discipline quotes.</p>
-            <button class="mode-select-btn" type="button">Awaken Anime Mode →</button>
-          </div>
-        </div>
-      </div>
-    </dialog>
 
     <!-- Terms of Service Modal -->
     <dialog class="modal legal-modal" id="termsModal">
@@ -399,8 +360,8 @@
 
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    <script src="auth.js?v=3.7"></script>
-    <script src="quiz.js?v=3.7"></script>
-    <script src="app.js?v=3.7"></script>
+    <script src="auth.js?v=3.8"></script>
+    <script src="quiz.js?v=3.8"></script>
+    <script src="app.js?v=3.8"></script>
   </body>
 </html>
