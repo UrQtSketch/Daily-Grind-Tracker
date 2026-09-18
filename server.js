@@ -643,6 +643,31 @@ app.post("/api/admin/ban", adminAuth, async (req, res) => {
   }
 });
 
+// Admin Reset User Progress & Trophies endpoint (Wipes all tasks, trophies, and titles back to 0)
+app.post("/api/admin/reset-data", adminAuth, async (req, res) => {
+  try {
+    const { email } = req.body || {};
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+    const cleanEmail = email.trim().toLowerCase();
+    await db.resetUserData(cleanEmail);
+
+    await broadcastLeaderboardUpdate({
+      type: "reset_user_notice",
+      email: cleanEmail,
+      trophies: 0
+    });
+
+    res.json({
+      success: true,
+      message: `Successfully reset all progress, trophies, and titles to 0 for ${cleanEmail}`
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message || "Failed to reset user data" });
+  }
+});
+
 // Tracker state endpoints
 app.get("/api/tracker", authenticate, async (req, res) => {
   try {

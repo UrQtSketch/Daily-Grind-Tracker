@@ -119,47 +119,16 @@ const BannedEmailModel = mongoose.models.BannedEmail || mongoose.model("BannedEm
 let isMongoConnected = false;
 const localOtpStore = new Map();
 
-// Inactivity penalty calculation (5 days without activity = daily -1 trophy penalty)
+// Inactivity check (Trophies and titles are 100% permanent and NEVER deducted)
 function applyInactivityPenalty(state) {
   if (!state) return { state, penalty: null };
   const today = new Date();
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
-  let lastActiveStr = state.lastActiveDate;
-  if (!lastActiveStr) {
-    if (state.updatedAt) {
-      lastActiveStr = new Date(state.updatedAt).toISOString().slice(0, 10);
-    } else {
-      lastActiveStr = todayStr;
-    }
-  }
-
-  // Calculate day difference
-  const d1 = new Date(lastActiveStr + "T00:00:00Z");
-  const d2 = new Date(todayStr + "T00:00:00Z");
-  const diffDays = Math.round((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
-
-  if (diffDays > 5) {
-    const penaltyDays = diffDays - 5;
-    const currentTrophies = Math.max(0, Number(state.trophies || 0));
-    const trophiesLost = Math.min(currentTrophies, penaltyDays);
-    const newTrophies = Math.max(0, currentTrophies - penaltyDays);
-
-    state.trophies = newTrophies;
-    state.lastActiveDate = todayStr;
-    state.recentPenalty = {
-      daysInactive: diffDays,
-      penaltyDays,
-      trophiesLost,
-      date: todayStr,
-      shown: false
-    };
-    return { state, penalty: state.recentPenalty };
-  }
-
   if (!state.lastActiveDate) {
     state.lastActiveDate = todayStr;
   }
+  // User trophies and titles are strictly permanent and immutable across logins
   return { state, penalty: null };
 }
 
@@ -396,47 +365,68 @@ module.exports = {
 
     if (!state) return defaultState;
 
-    // Evaluate 5-day inactivity penalty rule
-    const { state: updatedState, penalty } = applyInactivityPenalty(state);
-    if (penalty && penalty.trophiesLost > 0) {
+    // Calculate earned trophies ledger (auto-heal if trophies were corrupted or zeroed by previous bugs)
+    const taskRewards = state.rewards || {};
+    let ledgerTrophies = 0;
+    for (const r of Object.values(taskRewards)) {
+      ledgerTrophies += (Number(r.trophiesEarned) || (r.day ? (r.day >= 301 ? 4 : r.day >= 201 ? 3 : r.day >= 101 ? 2 : 1) : 1));
+    }
+    const quizRewards = Array.isArray(state.quizRewards) ? state.quizRewards : [];
+    for (const q of quizRewards) {
+      ledgerTrophies += (Number(q.trophies) || 0);
+    }
+    const storedTrophies = Number(state.trophies) || 0;
+    const finalTrophies = Math.max(storedTrophies, ledgerTrophies);
+
+    if (storedTrophies < finalTrophies) {
+      state.trophies = finalTrophies;
       if (isMongoConnected) {
         await TrackerStateModel.findOneAndUpdate(
           { email: cleanEmail },
-          {
-            $set: {
-              trophies: updatedState.trophies,
-              lastActiveDate: updatedState.lastActiveDate,
-              recentPenalty: updatedState.recentPenalty,
-              updatedAt: new Date()
-            }
-          }
+          { $set: { trophies: finalTrophies, updatedAt: new Date() } }
         );
       } else {
         const db = readLocalDb();
-        db.trackerStates[cleanEmail] = updatedState;
-        writeLocalDb(db);
+        if (db.trackerStates && db.trackerStates[cleanEmail]) {
+          db.trackerStates[cleanEmail].trophies = finalTrophies;
+          writeLocalDb(db);
+        }
       }
     }
 
     return {
-      dailyTasks: updatedState.dailyTasks || {},
-      goals: updatedState.goals || [],
-      notes: updatedState.notes || [],
-      journal: updatedState.journal || [],
-      rewards: updatedState.rewards || {},
-      quizRewards: updatedState.quizRewards || [],
-      quizDailyUsage: updatedState.quizDailyUsage || null,
-      trophies: updatedState.trophies != null ? Number(updatedState.trophies) : 0,
-      lastActiveDate: updatedState.lastActiveDate,
-      lastReminderDate: updatedState.lastReminderDate || null,
-      recentPenalty: updatedState.recentPenalty || null,
-      updatedAt: updatedState.updatedAt ? (updatedState.updatedAt.toISOString ? updatedState.updatedAt.toISOString() : updatedState.updatedAt) : new Date().toISOString()
+      dailyTasks: state.dailyTasks || {},
+      goals: state.goals || [],
+      notes: state.notes || [],
+      journal: state.journal || [],
+      rewards: state.rewards || {},
+      quizRewards: state.quizRewards || [],
+      quizDailyUsage: state.quizDailyUsage || null,
+      trophies: finalTrophies,
+      lastActiveDate: state.lastActiveDate || todayStr,
+      lastReminderDate: state.lastReminderDate || null,
+      recentPenalty: null,
+      updatedAt: state.updatedAt ? (state.updatedAt.toISOString ? state.updatedAt.toISOString() : state.updatedAt) : new Date().toISOString()
     };
   },
 
   async saveTrackerState(email, state) {
     const cleanEmail = email.trim().toLowerCase();
     const todayStr = new Date().toISOString().slice(0, 10);
+
+    // Ensure trophies cannot be accidentally reduced below legitimate ledger rewards
+    const taskRewards = state.rewards || {};
+    let ledgerTrophies = 0;
+    for (const r of Object.values(taskRewards)) {
+      ledgerTrophies += (Number(r.trophiesEarned) || (r.day ? (r.day >= 301 ? 4 : r.day >= 201 ? 3 : r.day >= 101 ? 2 : 1) : 1));
+    }
+    const quizRewards = Array.isArray(state.quizRewards) ? state.quizRewards : [];
+    for (const q of quizRewards) {
+      ledgerTrophies += (Number(q.trophies) || 0);
+    }
+    const givenTrophies = Number(state.trophies) || 0;
+    const finalTrophies = Math.max(givenTrophies, ledgerTrophies);
+
     const payload = {
       dailyTasks: state.dailyTasks || {},
       goals: state.goals || [],
@@ -445,10 +435,10 @@ module.exports = {
       rewards: state.rewards || {},
       quizRewards: state.quizRewards || [],
       quizDailyUsage: state.quizDailyUsage !== undefined ? state.quizDailyUsage : null,
-      trophies: state.trophies != null ? Number(state.trophies) : 0,
+      trophies: finalTrophies,
       lastActiveDate: state.lastActiveDate || todayStr,
       lastReminderDate: state.lastReminderDate !== undefined ? state.lastReminderDate : null,
-      recentPenalty: state.recentPenalty || null,
+      recentPenalty: null,
       updatedAt: new Date()
     };
 
@@ -468,6 +458,43 @@ module.exports = {
     };
     writeLocalDb(db);
     return db.trackerStates[cleanEmail];
+  },
+
+  async resetUserData(email) {
+    if (!email) return false;
+    const cleanEmail = email.trim().toLowerCase();
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const freshState = {
+      dailyTasks: {},
+      goals: [],
+      notes: [],
+      journal: [],
+      rewards: {},
+      quizRewards: [],
+      quizDailyUsage: null,
+      trophies: 0,
+      lastActiveDate: todayStr,
+      lastReminderDate: null,
+      recentPenalty: null,
+      updatedAt: new Date()
+    };
+
+    if (isMongoConnected) {
+      await TrackerStateModel.findOneAndUpdate(
+        { email: cleanEmail },
+        { $set: freshState },
+        { upsert: true, new: true }
+      );
+      return true;
+    }
+
+    const db = readLocalDb();
+    db.trackerStates[cleanEmail] = {
+      ...freshState,
+      updatedAt: new Date().toISOString()
+    };
+    writeLocalDb(db);
+    return true;
   },
 
   async getLeaderboard(currentUserEmail = "") {
@@ -895,5 +922,11 @@ module.exports = {
     }
     writeLocalDb(db);
     return { id: user.id, name: user.name, email: user.email, avatarUrl: user.avatarUrl || "" };
+  },
+
+  applyInactivityPenalty(state) {
+    if (!state) return state;
+    state.recentPenalty = null;
+    return state;
   }
 };

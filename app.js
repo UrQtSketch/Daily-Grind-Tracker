@@ -799,14 +799,20 @@
   }
 
   function calculateTotalTrophies() {
-    if (typeof trackerState !== "undefined" && trackerState && trackerState.trophies != null && !isNaN(trackerState.trophies)) {
-      return Number(trackerState.trophies);
-    }
     const rewards = (typeof trackerState !== "undefined" && trackerState?.rewards) || {};
-    let total = Object.values(rewards).reduce((acc, r) => acc + (Number(r.trophiesEarned) || getTrophiesForDay(r.day || 1)), 0);
+    let ledgerTotal = Object.values(rewards).reduce((acc, r) => acc + (Number(r.trophiesEarned) || getTrophiesForDay(r.day || 1)), 0);
     const quizRewards = (typeof trackerState !== "undefined" && trackerState?.quizRewards) || [];
-    total += quizRewards.reduce((acc, q) => acc + (Number(q.trophies) || 1), 0);
-    return total;
+    ledgerTotal += quizRewards.reduce((acc, q) => acc + (Number(q.trophies) || 1), 0);
+
+    const direct = (typeof trackerState !== "undefined" && trackerState && trackerState.trophies != null && !isNaN(trackerState.trophies))
+      ? Number(trackerState.trophies)
+      : 0;
+
+    const finalTrophies = Math.max(direct, ledgerTotal);
+    if (typeof trackerState !== "undefined" && trackerState && trackerState.trophies !== finalTrophies) {
+      trackerState.trophies = finalTrophies;
+    }
+    return finalTrophies;
   }
 
   function updateTrophyDisplay() {
@@ -857,24 +863,9 @@
   }
 
   function checkLocalInactivity(state) {
-    if (!state || !state.lastActiveDate) return state;
-    const todayStr = localDateKey();
-    const d1 = new Date(state.lastActiveDate + "T00:00:00Z");
-    const d2 = new Date(todayStr + "T00:00:00Z");
-    const diffDays = Math.round((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
-    if (diffDays > 5) {
-      const penaltyDays = diffDays - 5;
-      const current = Math.max(0, Number(state.trophies || 0));
-      const lost = Math.min(current, penaltyDays);
-      state.trophies = Math.max(0, current - penaltyDays);
-      state.lastActiveDate = todayStr;
-      state.recentPenalty = {
-        daysInactive: diffDays,
-        penaltyDays,
-        trophiesLost: lost,
-        date: todayStr
-      };
-    }
+    if (!state) return state;
+    state.lastActiveDate = localDateKey();
+    state.recentPenalty = null;
     return state;
   }
 
@@ -883,18 +874,22 @@
     try {
       const saved = JSON.parse(localStorage.getItem(trackerStorageKey()));
       const rewards = saved?.rewards || {};
-      const computedTrophies = Object.values(rewards).reduce((acc, r) => acc + (Number(r.trophiesEarned) || getTrophiesForDay(r.day || 1)), 0);
+      let computedTrophies = Object.values(rewards).reduce((acc, r) => acc + (Number(r.trophiesEarned) || getTrophiesForDay(r.day || 1)), 0);
+      const quizRewards = saved?.quizRewards || [];
+      computedTrophies += quizRewards.reduce((acc, q) => acc + (Number(q.trophies) || 1), 0);
+      const stored = (saved?.trophies != null && !isNaN(saved.trophies)) ? Number(saved.trophies) : 0;
+      const finalTrophies = Math.max(stored, computedTrophies);
       const state = {
         dailyTasks: saved?.dailyTasks || {},
         goals: saved?.goals || [],
         notes: saved?.notes || [],
         journal: saved?.journal || [],
         rewards: rewards,
-        quizRewards: saved?.quizRewards || [],
+        quizRewards: quizRewards,
         quizDailyUsage: saved?.quizDailyUsage || null,
-        trophies: saved?.trophies != null && !isNaN(saved.trophies) ? Number(saved.trophies) : computedTrophies,
-        lastActiveDate: saved?.lastActiveDate || localDateKey(),
-        recentPenalty: saved?.recentPenalty || null
+        trophies: finalTrophies,
+        lastActiveDate: localDateKey(),
+        recentPenalty: null
       };
       return checkLocalInactivity(state);
     } catch { return freshTrackerState(); }
@@ -961,11 +956,9 @@
             const newRewards = data.state.quizRewards.filter((r) => !existingIds.has(r.id || r.completedAt));
             trackerState.quizRewards = [...(trackerState.quizRewards || []), ...newRewards];
           }
-          if (data.state.trophies != null && !isNaN(data.state.trophies)) {
-            trackerState.trophies = Number(data.state.trophies);
-          } else {
-            trackerState.trophies = calculateTotalTrophies();
-          }
+          const ledgerTotal = calculateTotalTrophies();
+          const backendTrophies = (data.state.trophies != null && !isNaN(data.state.trophies)) ? Number(data.state.trophies) : 0;
+          trackerState.trophies = Math.max(backendTrophies, ledgerTotal);
           if (data.state.quizDailyUsage) {
             const today = localDateKey();
             if (data.state.quizDailyUsage.date === today) {
@@ -973,7 +966,7 @@
             }
           }
           if (data.state.lastActiveDate) trackerState.lastActiveDate = data.state.lastActiveDate;
-          if (data.state.recentPenalty) trackerState.recentPenalty = data.state.recentPenalty;
+          trackerState.recentPenalty = null;
 
           saveTrackerState(false);
           tasks = tasksForDate(activeDate);
@@ -981,14 +974,6 @@
           renderChart();
           refreshMetrics();
           updateTrophyDisplay();
-
-          if (data.state.recentPenalty && data.state.recentPenalty.trophiesLost > 0) {
-            const key = `penalty_seen_${data.state.recentPenalty.date}_${data.state.recentPenalty.daysInactive}`;
-            if (!sessionStorage.getItem(key)) {
-              sessionStorage.setItem(key, "1");
-              showPenaltyModal(data.state.recentPenalty, trackerState.trophies);
-            }
-          }
         }
       }
     } catch {}
@@ -1528,6 +1513,43 @@
       }
     } catch (err) {
       showToast("Network error executing ban action.");
+    }
+  }
+
+  async function handleResetUserData(email) {
+    const token = auth.getToken();
+    const pin = localStorage.getItem("dgt_admin_pin") || "grind751";
+    const headers = {
+      "Content-Type": "application/json",
+      "x-admin-key": pin
+    };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    try {
+      const res = await fetch("/api/admin/reset-data", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(`🗑️ Reset all data & trophies to 0 for ${email}`);
+        if (user() && user().email && user().email.toLowerCase() === email.toLowerCase()) {
+          trackerState = freshTrackerState();
+          saveTrackerState(false);
+          tasks = tasksForDate(activeDate);
+          renderTasks();
+          renderChart();
+          refreshMetrics();
+          updateTrophyDisplay();
+        }
+        await fetchAdminUsers();
+        await fetchLeaderboardData();
+      } else {
+        showToast(data.error || "Failed to reset user data.");
+      }
+    } catch (err) {
+      showToast("Network error executing data reset.");
     }
   }
 
@@ -2910,7 +2932,12 @@
                   <td>${lastActive}</td>
                   <td>${statusBadge}</td>
                   <td><strong style="color:#ffc107;">${u.trophies || 0} 🏆</strong></td>
-                  <td>${actionBtn}</td>
+                  <td>
+                    <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+                      ${actionBtn}
+                      <button class="btn-reset-data-action" data-reset-email="${escapeHtml(u.email)}" data-user-name="${escapeHtml(u.name)}" type="button" style="background:rgba(239,68,68,0.18); color:#fca5a5; border:1px solid rgba(239,68,68,0.4); padding:6px 10px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:4px; transition:all 0.15s;" title="Delete all tasks, rewards, and reset trophies to 0">🗑️ Reset Data</button>
+                    </div>
+                  </td>
                 </tr>
               `;
             }).join("");
@@ -3838,6 +3865,15 @@
             const ok = confirm(`Unban ${email}?\n\nThis will restore access for this Gmail address.`);
             if (ok) handleBanUser(email, false);
           }
+        });
+      });
+
+      secondary.querySelectorAll(".btn-reset-data-action").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const email = btn.dataset.resetEmail;
+          const name = btn.dataset.userName || email;
+          const ok = confirm(`⚠️ DANGER: Reset all data & trophies for "${name}" (${email})?\n\nThis will permanently reset their trophies to 0, clear their completed tasks, journal, and rewards back to Day 0.\n\nAre you sure you want to proceed?`);
+          if (ok) handleResetUserData(email);
         });
       });
     }
