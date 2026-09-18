@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=3.8" />
+    <link rel="stylesheet" href="styles.css?v=3.9" />
   </head>
   <body class="app-body">
     <div class="ambient ambient-one"></div>
@@ -233,8 +233,8 @@
         <div class="reward-trophy-pill" id="rewardTrophyPill">
           <span class="trophy-sparkle">🏆</span>
           <div>
-            <strong id="rewardTrophiesEarned">+1 Trophy Added to Vault!</strong>
-            <small id="rewardTotalTrophies">You now have 1 Trophy</small>
+            <strong id="rewardTrophiesEarned">+2 Trophies Added to Vault!</strong>
+            <small id="rewardTotalTrophies">You now have 2 Trophies</small>
           </div>
         </div>
 
@@ -277,6 +277,60 @@
           <div><strong id="rewardTasksVal">9 / 9</strong><span>COMPLETED</span></div>
         </div>
         <button class="primary-button reward-claim-btn" id="claimRewardBtn" type="button">Claim Day Reward & Continue <span>→</span></button>
+      </div>
+    </dialog>
+
+    <!-- New User Grand Welcome Celebration Modal -->
+    <dialog class="modal welcome-modal" id="grandWelcomeModal">
+      <div class="welcome-card">
+        <div class="welcome-aura-glow"></div>
+        <canvas class="welcome-canvas" id="welcomeCanvas"></canvas>
+        <button class="modal-close" id="welcomeCloseBtn" type="button" aria-label="Close">✕</button>
+
+        <div class="welcome-crest">
+          <span class="welcome-flame-icon">🔥</span>
+          <span class="welcome-swords-icon">⚔️</span>
+        </div>
+
+        <div class="welcome-badge">QUEST DAY 0 · INITIATION CEREMONY</div>
+        <h2 class="welcome-title">Welcome to the Arena, <br /><em id="welcomeUserName">Warrior</em>!</h2>
+        <p class="welcome-subtitle">
+          Your old excuses stop at this doorway. You have officially committed to the <strong>751-Day Hard Discipline Challenge</strong>.
+        </p>
+
+        <div class="welcome-highlights">
+          <div class="welcome-highlight-item">
+            <span class="wh-icon">🏆</span>
+            <div>
+              <strong>2 Trophies Per Day Bounty</strong>
+              <small>Complete all daily tasks each day to deposit 2 trophies directly into your vault.</small>
+            </div>
+          </div>
+          <div class="welcome-highlight-item">
+            <span class="wh-icon">⚡</span>
+            <div>
+              <strong>Skill Arena Unlocked</strong>
+              <small>3 daily quizzes to test your tech mastery and level up from Initiate to Mythic GOAT.</small>
+            </div>
+          </div>
+          <div class="welcome-highlight-item">
+            <span class="wh-icon">🛡️</span>
+            <div>
+              <strong>Permanent Vault & Titles</strong>
+              <small>Your trophies, streaks, and titles remain permanently saved to your profile.</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="welcome-footer-action">
+          <div class="welcome-timer-wrap">
+            <div class="welcome-timer-bar"><span id="welcomeTimerFill"></span></div>
+            <span class="welcome-timer-text" id="welcomeTimerText">Auto-starting quest in 10s...</span>
+          </div>
+          <button class="primary-button welcome-start-btn" id="welcomeStartBtn" type="button">
+            I Am Ready. Enter Day 0 ⚡
+          </button>
+        </div>
       </div>
     </dialog>
 
@@ -360,8 +414,8 @@
 
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    <script src="auth.js?v=3.8"></script>
-    <script src="quiz.js?v=3.8"></script>
-    <script src="app.js?v=3.8"></script>
+    <script src="auth.js?v=3.9"></script>
+    <script src="quiz.js?v=3.9"></script>
+    <script src="app.js?v=3.9"></script>
   </body>
 </html>

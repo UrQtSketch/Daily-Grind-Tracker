@@ -553,6 +553,7 @@
 
         try {
           await auth.verifyRegistrationOtp(pendingEmail, code);
+          sessionStorage.setItem("just_registered", "true");
           window.location.assign("index.html");
         } catch (err) {
           if (otpError) otpError.textContent = err.message || "Verification failed.";
@@ -777,11 +778,11 @@
   function starterTasks(markComplete = false) { return seededTasks.map((task) => ({ ...task, done: markComplete ? task.done : false })); }
   function getTrophiesForDay(dayNum) {
     const d = Number(dayNum) || 1;
-    if (d >= 601) return 5;
-    if (d >= 401) return 4;
-    if (d >= 201) return 3;
-    if (d >= 101) return 2;
-    return 1;
+    if (d >= 601) return 6;
+    if (d >= 401) return 5;
+    if (d >= 201) return 4;
+    if (d >= 101) return 3;
+    return 2;
   }
 
   function getDailyQuizUsage() {
@@ -1307,6 +1308,224 @@
     modal.showModal();
     startConfetti();
     playMotivationalCelebration(dayNum, currentUser, date);
+  }
+
+  /* -------------------------------------------------------------
+     NEW USER GRAND WELCOME INITIATION CELEBRATION (10 SECONDS)
+     Orchestral Synth Fanfare via Web Audio API + Particle Eruptions
+  ------------------------------------------------------------- */
+  let welcomeAudioCtx = null;
+  let welcomeTimerInterval = null;
+  let welcomeSparklesAnimId = null;
+
+  function playGrandWelcomeMusic() {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      if (welcomeAudioCtx) {
+        try { welcomeAudioCtx.close(); } catch {}
+      }
+      const ctx = new AudioCtx();
+      welcomeAudioCtx = ctx;
+
+      const now = ctx.currentTime;
+
+      // Dynamics Compressor to prevent clipping and give orchestral fullness
+      const comp = ctx.createDynamicsCompressor();
+      comp.threshold.setValueAtTime(-12, now);
+      comp.knee.setValueAtTime(30, now);
+      comp.ratio.setValueAtTime(10, now);
+      comp.attack.setValueAtTime(0.003, now);
+      comp.release.setValueAtTime(0.25, now);
+
+      const masterGain = ctx.createGain();
+      masterGain.gain.setValueAtTime(0.22, now);
+      masterGain.connect(comp);
+      comp.connect(ctx.destination);
+
+      function playTone(freq, start, duration, type = "sawtooth", gainVal = 0.18) {
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, start);
+
+        const filter = ctx.createBiquadFilter();
+        filter.type = "lowpass";
+        filter.frequency.setValueAtTime(1200, start);
+        filter.frequency.exponentialRampToValueAtTime(3600, start + duration * 0.35);
+
+        g.gain.setValueAtTime(0.001, start);
+        g.gain.linearRampToValueAtTime(gainVal, start + 0.08);
+        g.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+
+        osc.connect(filter);
+        filter.connect(g);
+        g.connect(masterGain);
+
+        osc.start(start);
+        osc.stop(start + duration);
+      }
+
+      // 10-Second Heroic Epic Fanfare:
+      // Section 1: Grand Initiation Call (0.0s - 2.5s)
+      playTone(130.81, now + 0.0, 2.2, "triangle", 0.28); // C3 deep bass
+      playTone(261.63, now + 0.0, 2.0, "sawtooth", 0.15); // C4
+      playTone(329.63, now + 0.0, 2.0, "triangle", 0.14); // E4
+      playTone(392.00, now + 0.0, 2.0, "sawtooth", 0.16); // G4
+
+      playTone(392.00, now + 0.45, 0.45, "sawtooth", 0.20); // G4
+      playTone(523.25, now + 0.95, 0.60, "sawtooth", 0.22); // C5
+      playTone(659.25, now + 1.55, 1.10, "sawtooth", 0.26); // E5
+
+      // Section 2: Warrior Ascent (2.6s - 5.5s)
+      playTone(174.61, now + 2.6, 2.0, "triangle", 0.25); // F3 bass
+      playTone(440.00, now + 2.6, 0.45, "sawtooth", 0.20); // A4
+      playTone(493.88, now + 3.05, 0.45, "sawtooth", 0.20); // B4
+      playTone(523.25, now + 3.50, 0.65, "sawtooth", 0.25); // C5
+      playTone(587.33, now + 4.15, 0.60, "sawtooth", 0.25); // D5
+      playTone(659.25, now + 4.75, 1.30, "sawtooth", 0.28); // E5
+
+      // Section 3: Triumphant Grand Finale Chords (6.0s - 10.0s)
+      playTone(130.81, now + 6.0, 3.9, "triangle", 0.32); // C3 bass
+      playTone(196.00, now + 6.0, 3.9, "triangle", 0.25); // G3
+      playTone(261.63, now + 6.0, 3.9, "sawtooth", 0.22); // C4
+      playTone(392.00, now + 6.0, 3.9, "sawtooth", 0.25); // G4
+      playTone(523.25, now + 6.0, 3.9, "sawtooth", 0.28); // C5
+      playTone(659.25, now + 6.0, 3.9, "triangle", 0.24); // E5
+      playTone(783.99, now + 6.0, 3.9, "sawtooth", 0.26); // G5
+      playTone(1046.50, now + 6.2, 3.7, "sawtooth", 0.20); // High C6 crown
+    } catch {}
+  }
+
+  function stopGrandWelcomeMusic() {
+    if (welcomeAudioCtx) {
+      try { welcomeAudioCtx.close(); } catch {}
+      welcomeAudioCtx = null;
+    }
+  }
+
+  function startWelcomeSparkles() {
+    const canvas = document.getElementById("welcomeCanvas");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width || 560;
+    canvas.height = rect.height || 540;
+
+    const colors = ["#ffca42", "#ff405d", "#00f0ff", "#ffffff", "#ffd700", "#a855f7"];
+    const sparkles = Array.from({ length: 70 }, () => ({
+      x: canvas.width * 0.5 + (Math.random() - 0.5) * 80,
+      y: canvas.height * 0.45 + (Math.random() - 0.5) * 60,
+      vx: (Math.random() - 0.5) * 11,
+      vy: (Math.random() - 0.8) * 12,
+      size: Math.random() * 5 + 3,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      alpha: 1,
+      decay: Math.random() * 0.007 + 0.005,
+      rotation: Math.random() * 360,
+      vrot: (Math.random() - 0.5) * 10
+    }));
+
+    if (welcomeSparklesAnimId) cancelAnimationFrame(welcomeSparklesAnimId);
+
+    function frame() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      let alive = false;
+      sparkles.forEach((s) => {
+        s.x += s.vx;
+        s.y += s.vy;
+        s.vy += 0.2;
+        s.vx *= 0.985;
+        s.alpha -= s.decay;
+        s.rotation += s.vrot;
+        if (s.alpha > 0) {
+          alive = true;
+          ctx.save();
+          ctx.translate(s.x, s.y);
+          ctx.rotate((s.rotation * Math.PI) / 180);
+          ctx.globalAlpha = Math.max(0, s.alpha);
+          ctx.fillStyle = s.color;
+          ctx.fillRect(-s.size / 2, -s.size / 2, s.size, s.size);
+          ctx.restore();
+        }
+      });
+      if (alive) welcomeSparklesAnimId = requestAnimationFrame(frame);
+    }
+    frame();
+  }
+
+  function closeGrandWelcome() {
+    stopGrandWelcomeMusic();
+    if (welcomeTimerInterval) {
+      clearInterval(welcomeTimerInterval);
+      welcomeTimerInterval = null;
+    }
+    if (welcomeSparklesAnimId) {
+      cancelAnimationFrame(welcomeSparklesAnimId);
+      welcomeSparklesAnimId = null;
+    }
+    const modal = document.getElementById("grandWelcomeModal");
+    if (modal && modal.open) {
+      modal.close();
+      showToast("⚔️ Day 0 Commenced: 2 Trophies/Day bounty active in your daily task grind!");
+    }
+  }
+
+  function showGrandWelcome(userName) {
+    const modal = document.getElementById("grandWelcomeModal");
+    if (!modal) return;
+
+    const nameEl = document.getElementById("welcomeUserName");
+    if (nameEl) nameEl.textContent = userName || "Warrior";
+
+    modal.showModal();
+    startWelcomeSparkles();
+    playGrandWelcomeMusic();
+
+    let remainingSeconds = 10;
+    const timerFill = document.getElementById("welcomeTimerFill");
+    const timerText = document.getElementById("welcomeTimerText");
+
+    if (timerFill) timerFill.style.width = "100%";
+    if (timerText) timerText.textContent = `Auto-starting quest in ${remainingSeconds}s...`;
+
+    if (welcomeTimerInterval) clearInterval(welcomeTimerInterval);
+    const startTime = Date.now();
+    const durationMs = 10000;
+
+    welcomeTimerInterval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.max(0, 1 - (elapsed / durationMs));
+      const secsLeft = Math.max(0, Math.ceil((durationMs - elapsed) / 1000));
+
+      if (timerFill) timerFill.style.width = `${progress * 100}%`;
+      if (timerText) timerText.textContent = `Auto-starting quest in ${secsLeft}s...`;
+
+      if (elapsed >= durationMs) {
+        clearInterval(welcomeTimerInterval);
+        welcomeTimerInterval = null;
+        closeGrandWelcome();
+      }
+    }, 100);
+  }
+
+  function checkFirstTimeWelcome() {
+    const p = user();
+    if (!p || p.isDemo) return;
+    const email = (p.email || "").toLowerCase();
+    if (!email) return;
+
+    const welcomeKey = `welcome_celebrated_${email}`;
+    const justRegistered = sessionStorage.getItem("just_registered") === "true";
+
+    if (justRegistered || !localStorage.getItem(welcomeKey)) {
+      localStorage.setItem(welcomeKey, "true");
+      sessionStorage.removeItem("just_registered");
+      setTimeout(() => {
+        showGrandWelcome(p.name);
+      }, 500);
+    }
   }
 
   function toggleTask(id) {
@@ -2616,6 +2835,10 @@
               <button class="toggle is-on" type="button" aria-label="Week starts on Monday"><i></i></button>
             </div>
             <div>
+              <span><b>🎬</b> Grand Welcome Ceremony</span>
+              <button class="history-jump-btn" id="replayWelcomeBtn" type="button">Replay Celebration ⚡</button>
+            </div>
+            <div>
               <span><b>✉</b> Need Help or Have Feedback?</span>
               <button class="history-jump-btn" type="button" data-page-action="support">Open Support Center →</button>
             </div>
@@ -3404,6 +3627,13 @@
         applyMode(nextMode, true);
       });
     }
+
+    const replayWelcomeBtn = secondary.querySelector("#replayWelcomeBtn");
+    if (replayWelcomeBtn) {
+      replayWelcomeBtn.addEventListener("click", () => {
+        showGrandWelcome(user().name);
+      });
+    }
     const sendTestReminderBtn = secondary.querySelector("#sendTestReminderBtn");
     if (sendTestReminderBtn) {
       sendTestReminderBtn.addEventListener("click", async () => {
@@ -4084,10 +4314,17 @@
 
     if ($("#signOutButton")) $("#signOutButton").addEventListener("click", async () => { await auth.signOut(); window.location.assign("login.html"); });
 
+    if ($("#welcomeCloseBtn")) $("#welcomeCloseBtn").addEventListener("click", closeGrandWelcome);
+    if ($("#welcomeStartBtn")) $("#welcomeStartBtn").addEventListener("click", closeGrandWelcome);
+    if ($("#grandWelcomeModal")) $("#grandWelcomeModal").addEventListener("cancel", closeGrandWelcome);
+
     function toggleSidebar() {
-      if (window.innerWidth <= 768) {
+      const isMobile = window.innerWidth <= 900 || window.matchMedia("(max-width: 900px)").matches;
+      if (isMobile) {
+        page.classList.remove("sidebar-collapsed");
         page.classList.toggle("sidebar-open");
       } else {
+        page.classList.remove("sidebar-open");
         const isCollapsed = page.classList.toggle("sidebar-collapsed");
         const toggleBtn = $("#sidebarToggleBtn");
         if (toggleBtn) toggleBtn.classList.toggle("is-active", isCollapsed);
@@ -4098,6 +4335,7 @@
     if (toggleBtn) {
       toggleBtn.addEventListener("click", (e) => {
         e.preventDefault();
+        e.stopPropagation();
         toggleSidebar();
       });
     }
@@ -4106,14 +4344,29 @@
     if (collapseBtn) {
       collapseBtn.addEventListener("click", (e) => {
         e.preventDefault();
-        toggleSidebar();
+        e.stopPropagation();
+        const isMobile = window.innerWidth <= 900 || window.matchMedia("(max-width: 900px)").matches;
+        if (isMobile) {
+          page.classList.remove("sidebar-open");
+        } else {
+          toggleSidebar();
+        }
       });
     }
 
     const backdrop = $("#sidebarBackdrop");
     if (backdrop) {
-      backdrop.addEventListener("click", () => {
+      backdrop.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         page.classList.remove("sidebar-open");
+      });
+    }
+
+    const sidebar = $("#sidebar");
+    if (sidebar) {
+      sidebar.addEventListener("click", (e) => {
+        e.stopPropagation();
       });
     }
 
@@ -4140,10 +4393,15 @@
     page.classList.remove("sidebar-open");
   } catch (e) {}
 
-  applyProfile(); setDate(activeDate, true); bindInteractions(); initModeSelector(); bindLegalModals(); initLeaderboardSSE(); fetchLeaderboardData(); navigate(window.location.hash.slice(1) || "dashboard", false); syncFromBackend();
+  applyProfile(); setDate(activeDate, true); bindInteractions(); initModeSelector(); bindLegalModals(); initLeaderboardSSE(); fetchLeaderboardData(); navigate(window.location.hash.slice(1) || "dashboard", false); syncFromBackend(); checkFirstTimeWelcome();
   if (window.location.search.includes("testCelebration")) {
     setTimeout(() => {
       triggerDailyReward(activeDate);
+    }, 400);
+  }
+  if (window.location.search.includes("testWelcome")) {
+    setTimeout(() => {
+      showGrandWelcome(user().name);
     }, 400);
   }
 })();
