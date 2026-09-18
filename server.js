@@ -11,6 +11,9 @@ const reminderService = require("./reminderService");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Trust reverse proxy (Render, Vercel, Heroku, Cloudflare, etc.)
+app.set("trust proxy", 1);
+
 // ── Security Headers (Helmet) ────────────────────────────────────────────────
 app.use(helmet({
   contentSecurityPolicy: false, // disabled so our inline scripts/styles work
@@ -18,23 +21,24 @@ app.use(helmet({
   referrerPolicy: { policy: "strict-origin-when-cross-origin" }
 }));
 
-// ── Global Rate Limiter — DDoS / Brute-force protection ──────────────────────
-// 300 requests per 10 minutes per IP (enough for real users, blocks bots)
+// ── Global Rate Limiter — DDoS protection (only on /api routes, never static assets) ─────────
 const globalLimiter = rateLimit({
-  windowMs: 10 * 60 * 1000,
-  max: 300,
+  windowMs: 5 * 60 * 1000,
+  max: 2000, // 2000 requests per 5 min per real client IP
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: "Too many requests. Please slow down and try again later." },
-  skip: (req) => req.path === "/api/health", // health endpoint always accessible
+  skip: (req) => !req.path.startsWith("/api") || req.path === "/api/health",
 });
 app.use(globalLimiter);
 
-// ── Strict Auth Route Limiter — Prevent brute-force on login/register ─────────
+// ── Strict Auth Route Limiter — Prevent brute-force password guessing ─────────
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 20, // only 20 login attempts per 15 min per IP
-  message: { error: "Too many login attempts. Please wait 15 minutes and try again." },
+  windowMs: 10 * 60 * 1000,
+  max: 120, // generous 120 attempts per 10 min per real client IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many login attempts from this network. Please wait a moment and try again." },
 });
 app.use([
   "/api/login",
@@ -48,7 +52,7 @@ app.use([
 // ── Admin Route Limiter ───────────────────────────────────────────────────────
 const adminLimiter = rateLimit({
   windowMs: 5 * 60 * 1000,
-  max: 60,
+  max: 200,
   message: { error: "Admin rate limit exceeded." },
 });
 app.use("/api/admin", adminLimiter);
@@ -274,15 +278,12 @@ app.post("/api/auth/login", async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({ error: "Email and password are required" });
     }
-    if (!isGmail(email)) {
-      return res.status(400).json({ error: "Only @gmail.com email addresses are allowed." });
-    }
-
-    const user = await db.verifyUser(email, password);
+    const cleanEmail = email.trim().toLowerCase();
+    const user = await db.verifyUser(cleanEmail, password);
     const token = await db.createSession(user);
     res.json({ user, token });
   } catch (err) {
-    res.status(401).json({ error: err.message });
+    res.status(401).json({ error: err.message || "That email or password doesn't match." });
   }
 });
 

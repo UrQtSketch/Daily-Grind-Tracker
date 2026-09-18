@@ -224,18 +224,31 @@
       form.addEventListener("submit", async (event) => {
         event.preventDefault();
         const error = $("#loginError");
-        error.textContent = "";
-        const email = $("#loginEmail").value.trim();
-        const password = $("#loginPassword").value;
-        if (!isGmailAddress(email)) {
-          error.textContent = "Only @gmail.com email addresses are allowed.";
+        if (error) error.textContent = "";
+        const email = ($("#loginEmail")?.value || "").trim().toLowerCase();
+        const password = $("#loginPassword")?.value || "";
+        if (!email) {
+          if (error) error.textContent = "Please enter your email address.";
           return;
+        }
+        if (!password) {
+          if (error) error.textContent = "Please enter your password.";
+          return;
+        }
+        const submitBtn = form.querySelector(".auth-submit");
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = "Entering your grind...";
         }
         try {
           await auth.login(email, password);
           window.location.assign("index.html");
-        } catch (message) {
-          error.textContent = message.message;
+        } catch (err) {
+          if (error) error.textContent = (err && err.message) || String(err) || "That email or password doesn’t match.";
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = `Enter your grind <span>→</span>`;
+          }
         }
       });
       $("#demoLogin").addEventListener("click", () => { auth.demo(); window.location.assign("index.html"); });

@@ -160,22 +160,26 @@
     },
 
     async login(email, password) {
-      if (!validateGmail(email)) {
-        throw new Error("Only @gmail.com email addresses are allowed.");
+      if (!email || !email.trim()) {
+        throw new Error("Please enter your email address.");
       }
+      if (!password) {
+        throw new Error("Please enter your password.");
+      }
+      const cleanEmail = email.trim().toLowerCase();
       if (isHttp()) {
         try {
           const res = await fetch("/api/auth/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: email.trim().toLowerCase(), password })
+            body: JSON.stringify({ email: cleanEmail, password })
           });
           const data = await res.json();
           if (!res.ok) throw new Error(data.error || "That email or password doesn’t match.");
           setSession(data.user, data.token);
           return data.user;
         } catch (err) {
-          if (err.message.includes("failed to fetch") || err.message.includes("NetworkError")) {
+          if (err.message && (err.message.includes("failed to fetch") || err.message.includes("NetworkError"))) {
             console.warn("Backend server not reached, using local fallback");
           } else {
             throw err;
@@ -184,7 +188,7 @@
       }
 
       // Offline / file:/// fallback
-      const user = getUsers().find((item) => item.email.toLowerCase() === email.trim().toLowerCase() && item.password === password);
+      const user = getUsers().find((item) => item.email.toLowerCase() === cleanEmail && item.password === password);
       if (!user) throw new Error("That email or password doesn’t match.");
       setSession(user);
       return user;
