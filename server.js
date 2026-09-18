@@ -15,6 +15,7 @@ const PORT = process.env.PORT || 3000;
 app.use(helmet({
   contentSecurityPolicy: false, // disabled so our inline scripts/styles work
   crossOriginEmbedderPolicy: false,
+  referrerPolicy: { policy: "strict-origin-when-cross-origin" }
 }));
 
 // ── Global Rate Limiter — DDoS / Brute-force protection ──────────────────────

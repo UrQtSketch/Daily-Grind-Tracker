@@ -1021,7 +1021,10 @@
     }
 
     if (iframe) {
-      iframe.src = `https://www.youtube-nocookie.com/embed/${track.ytId}?autoplay=1&enablejsapi=1&rel=0&modestbranding=1`;
+      iframe.setAttribute("referrerpolicy", "strict-origin-when-cross-origin");
+      const origin = window.location.origin ? encodeURIComponent(window.location.origin) : "";
+      const originParam = origin ? `&origin=${origin}` : "";
+      iframe.src = `https://www.youtube.com/embed/${track.ytId}?autoplay=1&enablejsapi=1&rel=0&modestbranding=1${originParam}`;
     }
   }
 
