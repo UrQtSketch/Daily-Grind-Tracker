@@ -2483,20 +2483,16 @@
             <div class="share-journey-header">
               <div class="share-journey-icon">🚀</div>
               <div class="share-journey-title">
-                <h3>Share Your Journey With Others</h3>
-                <p>Inspire your friends, study buddies & peers to conquer procrastination and build unbreakable consistency with you.</p>
+                <h3>Share Your Journey</h3>
+                <p>Invite your friends & study circle to conquer procrastination and build unbreakable daily consistency with you.</p>
               </div>
-            </div>
-            <div class="share-preview-box">
-              <div class="share-preview-badge">✨ Custom Share Message (Live Preview)</div>
-              <p id="sharePreviewText" class="share-preview-content">${escapeHtml(generateShareJourneyMessage())}</p>
             </div>
             <div class="share-actions-row">
               <button type="button" class="share-whatsapp-btn" id="shareWhatsappBtn">
                 <span>💬</span> Share on WhatsApp
               </button>
               <button type="button" class="share-copy-btn" id="shareCopyBtn">
-                <span>📋</span> Copy Message & Link
+                <span>📋</span> Copy Invite Link & Message
               </button>
               <button type="button" class="share-native-btn" id="shareNativeBtn">
                 <span>📤</span> More Share Options
