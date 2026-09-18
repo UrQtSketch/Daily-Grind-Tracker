@@ -602,8 +602,9 @@
   ];
   let query = "";
   let currentView = "dashboard";
-  let quizSelectedDomain = "programming";
-  let quizSelectedTopic = "prog_python";
+  let quizSelectedDomain = "core";
+  let quizSelectedTopic = "datascience";
+  let quizSelectedLevel = "beginner";
   let activeQuizReport = null;
   let currentQuestionSelectedOption = null;
   const weekLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -1870,9 +1871,11 @@
 
     if (view === "quiz") {
       const sess = (typeof DailyGrindQuiz !== "undefined") ? DailyGrindQuiz.getSession() : { questions: [], completed: true };
+      const usage = getDailyQuizUsage();
+      const attemptsLeft = Math.max(0, 3 - (usage.count || 0));
 
       if (sess && sess.questions && sess.questions.length > 0 && !sess.completed) {
-        // ACTIVE ARENA VIEW (10 Questions · 5-Minute Master Timer)
+        // ACTIVE ARENA VIEW (10 Questions · 20m or 40m Timer)
         const q = sess.questions[sess.currentIndex];
         const progressPct = Math.round(((sess.currentIndex) / sess.questions.length) * 100);
         const optionsHtml = q.options.map((opt, optIdx) => {
@@ -1897,12 +1900,14 @@
                 <div class="arena-topic-badge">
                   <span>${sess.topicIcon || '⚡'}</span>
                   <span>${escapeHtml(sess.topicTitle)}</span>
+                  <span style="color:#94a3b8;">·</span>
+                  <span style="text-transform:uppercase; color:#ffc107; font-weight:800;">${escapeHtml(sess.level)} (${sess.totalDuration / 60} MINS)</span>
                 </div>
                 <div style="display:flex; align-items:center; gap:12px;">
                   <span class="arena-counter-pill">Question ${sess.currentIndex + 1} of ${sess.questions.length}</span>
                   <div class="arena-timer-wrap">
                     <span style="font-size:12px;">⏱️</span>
-                    <span id="arenaTimerDisplay" class="arena-timer-pill ${sess.timeRemaining <= 60 ? 'timer-warning' : ''} ${sess.timeRemaining <= 20 ? 'timer-danger' : ''}">${formattedTimer}</span>
+                    <span id="arenaTimerDisplay" class="arena-timer-pill ${sess.timeRemaining <= 120 ? 'timer-warning' : ''} ${sess.timeRemaining <= 30 ? 'timer-danger' : ''}">${formattedTimer}</span>
                   </div>
                 </div>
               </div>
@@ -1916,7 +1921,7 @@
                   ${optionsHtml}
                 </div>
                 <div class="arena-footer">
-                  <span class="arena-time-tip">⏳ 5:00 Mins Master Countdown · Auto-evaluates at 00:00</span>
+                  <span class="arena-time-tip">⏳ ${sess.totalDuration / 60}:00 Mins Countdown (${sess.level.toUpperCase()} Tier) · Auto-evaluates at 00:00</span>
                   <button class="arena-next-btn" id="arenaSubmitBtn" type="button" ${currentQuestionSelectedOption === null ? 'disabled' : ''}>
                     ${sess.currentIndex === sess.questions.length - 1 ? 'Finish & View Scorecard ➔' : 'Submit & Next Question ➔'}
                   </button>
@@ -2009,13 +2014,13 @@
                 </div>
                 <div class="showcase-stat-tile">
                   <span class="stat-tile-icon">⚡</span>
-                  <strong class="stat-tile-val">${avgSpeed}s</strong>
-                  <span class="stat-tile-lbl">Avg / Question</span>
+                  <strong class="stat-tile-val">${(rep.level || 'beginner').toUpperCase()}</strong>
+                  <span class="stat-tile-lbl">Tier (${avgSpeed}s / Q)</span>
                 </div>
                 <div class="showcase-stat-tile">
-                  <span class="stat-tile-icon">🏆</span>
-                  <strong class="stat-tile-val">${totalTrophies}</strong>
-                  <span class="stat-tile-lbl">Vault Balance</span>
+                  <span class="stat-tile-icon">🔋</span>
+                  <strong class="stat-tile-val">${usage.count} / 3</strong>
+                  <span class="stat-tile-lbl">Daily Plays Used</span>
                 </div>
               </div>
 
@@ -2048,11 +2053,18 @@
                 <button class="primary-button showcase-play-btn" id="closeQuizBtn" type="button" style="background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff; font-weight:800; border:none; padding:12px 26px; border-radius:24px; cursor:pointer;">
                   Close Quiz & Return to Dashboard ➔
                 </button>
-                <button class="primary-button" id="quizPlayAgainBtn" type="button" style="background:rgba(255,193,7,0.15); border:1px solid rgba(255,193,7,0.4); color:#ffc107; font-weight:700; padding:12px 24px; border-radius:24px; cursor:pointer;">
-                  Play Another Domain / Retry ⚡
-                </button>
+                ${attemptsLeft > 0 ? `
+                  <button class="primary-button" id="quizPlayAgainBtn" type="button" style="background:rgba(255,193,7,0.15); border:1px solid rgba(255,193,7,0.4); color:#ffc107; font-weight:700; padding:12px 24px; border-radius:24px; cursor:pointer;">
+                    Play Next Quiz (${attemptsLeft} Left Today) ⚡
+                  </button>
+                ` : `
+                  <div class="showcase-locked-chip">
+                    <span>🔒 All 3 Daily Quizzes Completed</span>
+                    <small>Next 3 quizzes unlock tomorrow at 00:00</small>
+                  </div>
+                `}
                 <button class="primary-button" id="quizViewVaultBtn" type="button" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:#cbd5e1; font-weight:700; padding:12px 24px; border-radius:24px; cursor:pointer;">
-                  View Trophy Vault (${totalTrophies} 🏆) →
+                  View in Trophy Vault (${totalTrophies} 🏆) →
                 </button>
               </div>
             </div>
@@ -2071,8 +2083,9 @@
         // DOMAIN & TOPIC SELECTION LOBBY VIEW
         const domains = (typeof DailyGrindQuiz !== "undefined") ? DailyGrindQuiz.getDomains() : {};
         const totalTrophies = calculateTotalTrophies();
-        const curDomain = domains[quizSelectedDomain] || domains.programming || { title: "Programming", topics: [] };
-        const curTopicObj = (curDomain.topics || []).find(t => t.id === quizSelectedTopic) || (curDomain.topics && curDomain.topics[0]) || { name: "Python", icon: "🐍" };
+        const curDomain = domains[quizSelectedDomain] || domains.core || domains.programming || { title: "Core Engineering", topics: [] };
+        const curTopicObj = (curDomain.topics || []).find(t => t.id === quizSelectedTopic) || (curDomain.topics && curDomain.topics[0]) || { name: "Data Science", icon: "📊" };
+        const durationDisplay = quizSelectedLevel === "advanced" ? "40 Mins" : "20 Mins";
 
         content = `
           <div class="quiz-layout">
@@ -2081,7 +2094,11 @@
                 <div class="quiz-hero-title">
                   <span class="eyebrow" style="color:#ffc107;">SKILL ARENA · MULTI-DOMAIN KNOWLEDGE COMBAT</span>
                   <h2>Test Your Mastery.<br /><em>Earn Vault Trophies.</em></h2>
-                  <p>Choose your domain, select your topic, and face 10 timed challenges drawn from LeetCode, GeeksforGeeks, textbooks & competitive exams.</p>
+                  <p>Choose your domain, select your topic, pick your difficulty tier, and conquer 10 timed technical challenges.</p>
+                  <div class="quiz-daily-energy-pill">
+                    <span>⚡ Daily Arena Energy:</span>
+                    <b>${attemptsLeft} of 3</b> Quizzes Left Today
+                  </div>
                 </div>
                 <div class="quiz-hero-vault-badge">
                   <span>🏆 Vault Balance:</span>
@@ -2090,65 +2107,120 @@
               </div>
               <div class="quiz-pills-row">
                 <span class="quiz-pill-item"><span>⚡</span> 10 Questions Per Session</span>
-                <span class="quiz-pill-item"><span>⏱️</span> 5-Minute Overall Timer</span>
+                <span class="quiz-pill-item"><span>⏱️</span> 20 Mins (Beginner / Intermediate) · 40 Mins (Advanced)</span>
                 <span class="quiz-pill-item"><span>🏆</span> 10/10 Score = +7 Trophies</span>
                 <span class="quiz-pill-item"><span>🏆</span> 5-9/10 Score = +3 Trophies</span>
-                <span class="quiz-pill-item"><span>💡</span> Daily Non-Repeating Questions</span>
+                <span class="quiz-pill-item"><span>🔒</span> 3 Daily Quizzes Max</span>
               </div>
             </div>
 
-            <!-- Domain Selection (4 Domains) -->
-            <div>
-              <div class="quiz-section-title">
-                <span>1️⃣</span>
-                <span>Choose Your Domain</span>
+            ${attemptsLeft === 0 ? `
+              <!-- Daily 3-Quiz Limit Reached Card -->
+              <div class="quiz-locked-card">
+                <div class="quiz-locked-icon">🔒</div>
+                <h3>Daily Limit Reached (3 of 3 Quizzes Completed)</h3>
+                <p>You have conquered all 3 skill challenges for today! To build consistent daily discipline without burnout, your next 3 quiz attempts will unlock tomorrow at midnight.</p>
+                <div class="quiz-unlock-timer-wrap">
+                  <span>⏱️ Next 3 Quizzes Unlock In:</span>
+                  <strong id="quizMidnightCountdown" class="quiz-unlock-clock">--:--:--</strong>
+                </div>
+                ${usage.sessions && usage.sessions.length > 0 ? `
+                  <div class="quiz-today-history-wrap">
+                    <h4>Today's Conquered Challenges (Click to Review)</h4>
+                    <div class="quiz-today-history-list">
+                      ${usage.sessions.map((s, sIdx) => `
+                        <div class="quiz-history-item">
+                          <span>Attempt #${sIdx + 1} · <b>${escapeHtml(s.topicTitle)}</b> (${(s.level || '').toUpperCase()})</span>
+                          <strong>Score: ${s.score}/10 (${s.percentage}%) · +${s.trophies || 0} 🏆</strong>
+                          <button type="button" class="view-session-btn" data-session-idx="${sIdx}">Review Scorecard 📋</button>
+                        </div>
+                      `).join('')}
+                    </div>
+                  </div>
+                ` : ''}
               </div>
-              <div class="quiz-domains-grid">
-                ${Object.keys(domains).map(domKey => {
-                  const d = domains[domKey];
-                  const isSelected = quizSelectedDomain === domKey;
-                  return `
-                    <article class="quiz-domain-card ${isSelected ? 'is-selected' : ''}" data-domain="${domKey}">
-                      <div class="quiz-topic-icon">${d.icon}</div>
-                      <h3>${escapeHtml(d.title)}</h3>
-                      <p>${escapeHtml(d.desc)}</p>
-                      <span class="quiz-domain-count">${d.topics ? d.topics.length : 0} Topics Available</span>
-                    </article>
-                  `;
-                }).join('')}
+            ` : `
+              <!-- Section 1: Domain Selection (All Domains) -->
+              <div>
+                <div class="quiz-section-title">
+                  <span>1️⃣</span>
+                  <span>Choose Your Technical Domain</span>
+                </div>
+                <div class="quiz-domains-grid">
+                  ${Object.keys(domains).map(domKey => {
+                    const d = domains[domKey];
+                    const isSelected = quizSelectedDomain === domKey;
+                    return `
+                      <article class="quiz-domain-card ${isSelected ? 'is-selected' : ''}" data-domain="${domKey}">
+                        <div class="quiz-topic-icon">${d.icon}</div>
+                        <h3>${escapeHtml(d.title)}</h3>
+                        <p>${escapeHtml(d.desc)}</p>
+                        <span class="quiz-domain-count">${d.topics ? d.topics.length : 0} Topics Available</span>
+                      </article>
+                    `;
+                  }).join('')}
+                </div>
               </div>
-            </div>
 
-            <!-- Topic Selection for Selected Domain -->
-            <div>
-              <div class="quiz-section-title">
-                <span>2️⃣</span>
-                <span>Select Topic in ${escapeHtml(curDomain.title)}</span>
+              <!-- Section 2: Topic Selection for Selected Domain -->
+              <div>
+                <div class="quiz-section-title">
+                  <span>2️⃣</span>
+                  <span>Select Topic in ${escapeHtml(curDomain.title)}</span>
+                </div>
+                <div class="quiz-topics-grid">
+                  ${(curDomain.topics || []).map(t => {
+                    const isSelected = quizSelectedTopic === t.id;
+                    return `
+                      <article class="quiz-topic-card ${isSelected ? 'is-selected' : ''}" data-topic="${t.id}">
+                        <div class="quiz-topic-icon">${t.icon}</div>
+                        <h3>${escapeHtml(t.name)}</h3>
+                        <span class="quiz-topic-tag">${escapeHtml(t.tag || '')}</span>
+                      </article>
+                    `;
+                  }).join('')}
+                </div>
               </div>
-              <div class="quiz-topics-grid">
-                ${(curDomain.topics || []).map(t => {
-                  const isSelected = quizSelectedTopic === t.id;
-                  return `
-                    <article class="quiz-topic-card ${isSelected ? 'is-selected' : ''}" data-topic="${t.id}">
-                      <div class="quiz-topic-icon">${t.icon}</div>
-                      <h3>${escapeHtml(t.name)}</h3>
-                      <span class="quiz-topic-tag">${escapeHtml(t.tag || '')}</span>
-                    </article>
-                  `;
-                }).join('')}
-              </div>
-            </div>
 
-            <!-- Launch Bar -->
-            <div class="quiz-launch-bar">
-              <div class="quiz-launch-meta">
-                <strong id="quizSelectedSummary">${curTopicObj.icon} ${escapeHtml(curTopicObj.name)} (${escapeHtml(curDomain.title)})</strong>
-                <span>10 Questions · 5-Minute Overall Timer · +7 🏆 for 10/10 · +3 🏆 for 5-9/10</span>
+              <!-- Section 3: Difficulty Tier Selection -->
+              <div>
+                <div class="quiz-section-title">
+                  <span>3️⃣</span>
+                  <span>Select Difficulty Tier & Timer</span>
+                </div>
+                <div class="quiz-levels-row">
+                  <div class="quiz-level-card ${quizSelectedLevel === 'beginner' ? 'is-selected' : ''}" data-level="beginner">
+                    <div class="quiz-level-badge">🟢</div>
+                    <strong>Beginner</strong>
+                    <small>Core concepts, syntax, and foundational mental models.</small>
+                    <span class="quiz-tier-timer-chip">⏱️ 20 Minutes (10 Qs)</span>
+                  </div>
+                  <div class="quiz-level-card ${quizSelectedLevel === 'intermediate' ? 'is-selected' : ''}" data-level="intermediate">
+                    <div class="quiz-level-badge">🟡</div>
+                    <strong>Intermediate</strong>
+                    <small>Real-world coding snippets, edge cases & problem solving.</small>
+                    <span class="quiz-tier-timer-chip">⏱️ 20 Minutes (10 Qs)</span>
+                  </div>
+                  <div class="quiz-level-card ${quizSelectedLevel === 'advanced' ? 'is-selected' : ''}" data-level="advanced">
+                    <div class="quiz-level-badge">🔴</div>
+                    <strong>Advanced</strong>
+                    <small>Deep system internals, algorithmic complexity & architectural rigor.</small>
+                    <span class="quiz-tier-timer-chip">⏱️ 40 Minutes (10 Qs)</span>
+                  </div>
+                </div>
               </div>
-              <button class="quiz-start-action-btn" id="startQuizBtn" type="button">
-                Enter Combat Arena (10 Questions · 5 Mins) ⚡
-              </button>
-            </div>
+
+              <!-- Launch Bar -->
+              <div class="quiz-launch-bar">
+                <div class="quiz-launch-meta">
+                  <strong id="quizSelectedSummary">${curTopicObj.icon} ${escapeHtml(curTopicObj.name)} · ${quizSelectedLevel.toUpperCase()} (${durationDisplay} Timer)</strong>
+                  <span>10 Questions · +7 🏆 for 10/10 · +3 🏆 for 5-9/10 · Daily Non-Repeating</span>
+                </div>
+                <button class="quiz-start-action-btn" id="startQuizBtn" type="button">
+                  Enter The Arena (${attemptsLeft} of 3 Left Today) ⚡
+                </button>
+              </div>
+            `}
           </div>
         `;
       }
@@ -3173,7 +3245,7 @@
         requestAnimationFrame(renderConfetti);
       }
 
-      // 1. Lobby Domain & Topic Selectors
+      // 1. Lobby Domain, Topic & Level Selectors
       secondary.querySelectorAll(".quiz-domain-card").forEach((card) => {
         card.addEventListener("click", () => {
           const domKey = card.dataset.domain;
@@ -3198,24 +3270,75 @@
         });
       });
 
+      secondary.querySelectorAll(".quiz-level-card").forEach((card) => {
+        card.addEventListener("click", () => {
+          quizSelectedLevel = card.dataset.level || "beginner";
+          secondary.querySelectorAll(".quiz-level-card").forEach(c => c.classList.toggle("is-selected", c.dataset.level === quizSelectedLevel));
+          updateLobbySummary();
+        });
+      });
+
       function updateLobbySummary() {
         const sumEl = secondary.querySelector("#quizSelectedSummary");
         if (sumEl && typeof DailyGrindQuiz !== "undefined") {
           const domains = DailyGrindQuiz.getDomains();
-          const curDomain = domains[quizSelectedDomain] || domains.programming;
+          const curDomain = domains[quizSelectedDomain] || domains.core || domains.programming;
           const curTopic = (curDomain.topics || []).find(t => t.id === quizSelectedTopic) || (curDomain.topics && curDomain.topics[0]);
+          const durationDisplay = quizSelectedLevel === "advanced" ? "40 Mins" : "20 Mins";
           if (curTopic) {
-            sumEl.textContent = `${curTopic.icon} ${curTopic.name} (${curDomain.title})`;
+            sumEl.textContent = `${curTopic.icon} ${curTopic.name} · ${quizSelectedLevel.toUpperCase()} (${durationDisplay} Timer)`;
           }
         }
       }
 
+      // Midnight countdown timer (when 3/3 daily limit reached)
+      const countdownEl = secondary.querySelector("#quizMidnightCountdown");
+      if (countdownEl) {
+        function updateMidnightCountdown() {
+          const now = new Date();
+          const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
+          const diff = Math.max(0, midnight.getTime() - now.getTime());
+          const hrs = Math.floor(diff / (1000 * 60 * 60));
+          const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+          const secs = Math.floor((diff % (1000 * 60)) / 1000);
+          if (countdownEl) {
+            countdownEl.textContent = `${String(hrs).padStart(2, "0")}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+          }
+        }
+        updateMidnightCountdown();
+        const midTimer = setInterval(() => {
+          if (!document.body.contains(countdownEl)) {
+            clearInterval(midTimer);
+            return;
+          }
+          updateMidnightCountdown();
+        }, 1000);
+      }
+
+      // Review past session scorecard
+      secondary.querySelectorAll(".view-session-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const sIdx = Number(btn.dataset.sessionIdx);
+          const usage = getDailyQuizUsage();
+          if (usage && usage.sessions && usage.sessions[sIdx]) {
+            activeQuizReport = usage.sessions[sIdx].report;
+            renderSecondaryView("quiz");
+          }
+        });
+      });
+
       const startBtn = secondary.querySelector("#startQuizBtn");
       if (startBtn) {
         startBtn.addEventListener("click", () => {
+          const usage = getDailyQuizUsage();
+          if ((usage.count || 0) >= 3) {
+            showToast("🔒 Daily limit reached! Next 3 quizzes unlock tomorrow at midnight.");
+            renderSecondaryView("quiz");
+            return;
+          }
           if (typeof DailyGrindQuiz !== "undefined") {
             trackerState.quizAnsweredIds = trackerState.quizAnsweredIds || [];
-            DailyGrindQuiz.startSession(quizSelectedTopic, user().email, localDateKey(), trackerState.quizAnsweredIds);
+            DailyGrindQuiz.startSession(quizSelectedTopic, quizSelectedLevel, user().email, localDateKey(), trackerState.quizAnsweredIds, usage.count || 0);
             currentQuestionSelectedOption = null;
             activeQuizReport = null;
             renderSecondaryView("quiz");
@@ -3228,10 +3351,24 @@
         activeQuizReport = DailyGrindQuiz.generateFinalReport();
         const earnedTrophies = activeQuizReport.trophies || 0;
 
-        // Auto-deposit trophies to Vault if score >= 5
+        // Auto-deposit trophies to Vault if score >= 5 (+7 for 10/10, +3 for 5-9/10)
         if (earnedTrophies > 0) {
           trackerState.trophies = (Number(trackerState.trophies) || 0) + earnedTrophies;
         }
+
+        // Record daily usage count and session history
+        const u = getDailyQuizUsage();
+        u.count = (u.count || 0) + 1;
+        u.sessions = u.sessions || [];
+        u.sessions.push({
+          topic: activeQuizReport.topic,
+          topicTitle: activeQuizReport.topicTitle,
+          level: activeQuizReport.level,
+          score: activeQuizReport.score,
+          percentage: activeQuizReport.percentage,
+          trophies: earnedTrophies,
+          report: activeQuizReport
+        });
 
         trackerState.quizRewards = trackerState.quizRewards || [];
         trackerState.quizRewards.unshift({
@@ -3239,6 +3376,7 @@
           date: localDateKey(),
           topic: activeQuizReport.topic,
           topicTitle: activeQuizReport.topicTitle,
+          level: activeQuizReport.level,
           score: activeQuizReport.score,
           total: activeQuizReport.total,
           trophies: earnedTrophies,
@@ -3266,7 +3404,7 @@
         }
       }
 
-      // 2. Active Arena bindings (5-Minute Overall Timer)
+      // 2. Active Arena bindings (20-Minute or 40-Minute Overall Timer)
       const sess = (typeof DailyGrindQuiz !== "undefined") ? DailyGrindQuiz.getSession() : null;
       if (sess && sess.questions && sess.questions.length > 0 && !sess.completed) {
         DailyGrindQuiz.startOverallTimer(
@@ -3276,13 +3414,13 @@
             const mins = Math.floor(secondsLeft / 60);
             const secs = secondsLeft % 60;
             timerEl.textContent = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
-            timerEl.classList.toggle("timer-warning", secondsLeft <= 60 && secondsLeft > 20);
-            timerEl.classList.toggle("timer-danger", secondsLeft <= 20);
+            timerEl.classList.toggle("timer-warning", secondsLeft <= 120 && secondsLeft > 30);
+            timerEl.classList.toggle("timer-danger", secondsLeft <= 30);
           },
           () => {
-            // 5 minutes expired! Auto-record current answer and finish quiz
+            // Timer expired! Auto-record current answer and finish quiz
             DailyGrindQuiz.recordAnswer(sess.currentIndex, currentQuestionSelectedOption);
-            showToast("⏱️ 5-minute combat timer expired! Submitting final results.");
+            showToast("⏱️ Arena combat timer expired! Submitting final results.");
             finishAndAwardQuiz();
           }
         );
