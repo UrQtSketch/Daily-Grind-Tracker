@@ -784,12 +784,18 @@ module.exports = {
       return true;
     }
     const db = readLocalDb();
-    if (db.bannedEmails && db.bannedEmails[cleanEmail]) {
-      delete db.bannedEmails[cleanEmail];
-      writeLocalDb(db);
+    if (db.bannedEmails) {
+      let found = false;
+      for (const k of Object.keys(db.bannedEmails)) {
+        if (k.toLowerCase() === cleanEmail) {
+          delete db.bannedEmails[k];
+          found = true;
+        }
+      }
+      if (found) writeLocalDb(db);
       return true;
     }
-    return false;
+    return true;
   },
 
   async getAdminUsersList() {

@@ -643,6 +643,25 @@ app.post("/api/admin/ban", adminAuth, async (req, res) => {
   }
 });
 
+// Dedicated Admin Unban endpoint
+app.post("/api/admin/unban", adminAuth, async (req, res) => {
+  try {
+    const { email } = req.body || {};
+    if (!email) {
+      return res.status(400).json({ error: "Email is required to unban." });
+    }
+    const cleanEmail = email.trim().toLowerCase();
+    await db.unbanUser(cleanEmail);
+    await broadcastLeaderboardUpdate({
+      type: "unban_notice",
+      email: cleanEmail
+    });
+    res.json({ success: true, message: `Successfully unbanned ${cleanEmail}` });
+  } catch (err) {
+    res.status(500).json({ error: err.message || "Failed to unban user." });
+  }
+});
+
 // Admin Reset User Progress & Trophies endpoint (Wipes all tasks, trophies, and titles back to 0)
 app.post("/api/admin/reset-data", adminAuth, async (req, res) => {
   try {

@@ -1489,6 +1489,8 @@
   }
 
   async function handleBanUser(email, ban = true) {
+    if (!email || !email.trim()) return;
+    const cleanEmail = email.trim().toLowerCase();
     const token = auth.getToken();
     const pin = localStorage.getItem("dgt_admin_pin") || "grind751";
     const headers = {
@@ -1498,21 +1500,22 @@
     if (token) headers["Authorization"] = `Bearer ${token}`;
 
     try {
-      const res = await fetch("/api/admin/ban", {
+      const endpoint = ban ? "/api/admin/ban" : "/api/admin/unban";
+      const res = await fetch(endpoint, {
         method: "POST",
         headers,
-        body: JSON.stringify({ email, ban, reason: ban ? "Permanent ban by Owner Admin" : "" })
+        body: JSON.stringify({ email: cleanEmail, ban, reason: ban ? "Permanent ban by Owner Admin" : "" })
       });
       const data = await res.json();
       if (res.ok) {
-        showToast(ban ? `🚫 Permanently banned ${email}` : `✅ Unbanned ${email}`);
+        showToast(ban ? `🚫 Permanently banned ${cleanEmail}` : `✅ Successfully unbanned ${cleanEmail}`);
         await fetchAdminUsers();
         await fetchLeaderboardData();
       } else {
         showToast(data.error || "Failed to update ban status.");
       }
     } catch (err) {
-      showToast("Network error executing ban action.");
+      showToast("Network error executing ban/unban action.");
     }
   }
 
@@ -2895,12 +2898,17 @@
         const users = adminState.users || [];
         const messages = adminState.messages || [];
         const q = (adminState.searchQuery || "").trim().toLowerCase();
-        const filtered = q
-          ? users.filter(u => (u.name || "").toLowerCase().includes(q) || (u.email || "").toLowerCase().includes(q))
+
+        const baseUsers = adminState.activeTab === "banned"
+          ? users.filter(u => u.isBanned)
           : users;
 
+        const filtered = q
+          ? baseUsers.filter(u => (u.name || "").toLowerCase().includes(q) || (u.email || "").toLowerCase().includes(q))
+          : baseUsers;
+
         const rowsHtml = filtered.length === 0
-          ? `<tr><td colspan="7" style="text-align:center; padding:32px; color:#64748b;">No registered users match your search.</td></tr>`
+          ? `<tr><td colspan="7" style="text-align:center; padding:32px; color:#64748b;">${adminState.activeTab === 'banned' ? '🎉 No accounts are currently banned.' : 'No registered users match your search.'}</td></tr>`
           : filtered.map(u => {
               const initial = (u.name || "G").charAt(0).toUpperCase();
               const joinDate = u.createdAt ? new Date(u.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "N/A";
@@ -2909,8 +2917,8 @@
               let actionBtn = "";
 
               if (u.isBanned) {
-                statusBadge = `<span class="badge-banned">🔴 BANNED</span>`;
-                actionBtn = `<button class="btn-unban-action" data-ban-email="${escapeHtml(u.email)}" data-ban-action="unban" type="button">✅ Unban</button>`;
+                statusBadge = `<span class="badge-banned" style="background:rgba(239,68,68,0.2); color:#f87171; border:1px solid rgba(239,68,68,0.4);">🔴 BANNED</span>`;
+                actionBtn = `<button class="btn-unban-action" data-ban-email="${escapeHtml(u.email)}" data-ban-action="unban" type="button" style="background:#22c55e; color:#040810; font-weight:700; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:0 0 10px rgba(34,197,94,0.35);" title="Restore access and unban this user">✅ Unban User</button>`;
               } else if (u.isActiveToday) {
                 statusBadge = `<span class="badge-active-today">🟢 Active Today</span>`;
                 actionBtn = `<button class="btn-ban-action" data-ban-email="${escapeHtml(u.email)}" data-ban-action="ban" type="button">🚫 Ban User</button>`;
@@ -2920,10 +2928,10 @@
               }
 
               return `
-                <tr>
+                <tr style="${u.isBanned ? 'background:rgba(239,68,68,0.06);' : ''}">
                   <td>
                     <div class="admin-user-cell">
-                      <div class="admin-avatar">${initial}</div>
+                      <div class="admin-avatar" style="${u.isBanned ? 'border:1px solid #ef4444;' : ''}">${initial}</div>
                       <strong>${escapeHtml(u.name)}</strong>
                     </div>
                   </td>
@@ -2983,10 +2991,11 @@
                 <div class="admin-banner-shield">🛡️</div>
                 <div>
                   <h2 class="admin-banner-title">OWNER COMMAND CENTER</h2>
-                  <p class="admin-banner-subtitle">Real-time user directory, live user messages inbox, and permanent ban management.</p>
+                  <p class="admin-banner-subtitle">Real-time user directory, live user messages inbox, and ban/unban management.</p>
                 </div>
               </div>
               <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                <button class="arena-refresh-btn" id="adminQuickUnbanBtn" type="button" style="background:rgba(34,197,94,0.18); color:#4ade80; border:1px solid rgba(34,197,94,0.4); font-weight:700; cursor:pointer;" title="Unban any user immediately by their Gmail address">🔓 Quick Unban by Email</button>
                 <button class="arena-refresh-btn" id="adminRefreshBtn" type="button">↻ Refresh Directory</button>
                 <button class="btn-admin-logout" id="adminLogoutBtn" type="button">🚪 Logout Admin</button>
               </div>
@@ -3007,11 +3016,11 @@
                   <div class="admin-stat-lbl">Active Today</div>
                 </div>
               </div>
-              <div class="admin-stat-card">
+              <div class="admin-stat-card" id="adminStatBannedCard" style="cursor:pointer;" title="Click to filter banned users">
                 <div class="admin-stat-icon stat-icon-banned">🚫</div>
                 <div>
                   <div class="admin-stat-val">${adminState.bannedCount}</div>
-                  <div class="admin-stat-lbl">Banned Users</div>
+                  <div class="admin-stat-lbl">Banned Users ↗</div>
                 </div>
               </div>
               <div class="admin-stat-card">
@@ -3024,16 +3033,47 @@
             </div>
 
             <!-- Admin Nav Tabs -->
-            <div style="display:flex; gap:10px; margin-bottom:16px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:12px;">
+            <div style="display:flex; gap:10px; margin-bottom:16px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:12px; flex-wrap:wrap;">
               <button class="leaderboard-tab-btn ${adminState.activeTab === 'users' ? 'is-active' : ''}" id="adminTabUsers" type="button">
-                👥 Registered Accounts (${users.length})
+                👥 All Accounts (${users.length})
+              </button>
+              <button class="leaderboard-tab-btn ${adminState.activeTab === 'banned' ? 'is-active' : ''}" id="adminTabBanned" type="button" style="color:${adminState.bannedCount > 0 ? '#f87171' : 'inherit'};">
+                🚫 Banned Accounts (${adminState.bannedCount})
               </button>
               <button class="leaderboard-tab-btn ${adminState.activeTab === 'messages' ? 'is-active' : ''}" id="adminTabMessages" type="button">
                 📬 User Support Messages (${messages.length})
               </button>
             </div>
 
-            ${adminState.activeTab === 'users' ? `
+            ${(adminState.activeTab === 'users' || adminState.activeTab === 'banned') ? `
+              <div class="admin-table-panel">
+                <div class="admin-table-header">
+                  <div class="admin-table-title">
+                    <span>${adminState.activeTab === 'banned' ? '🚫' : '📋'}</span>
+                    <strong>${adminState.activeTab === 'banned' ? `Banned Accounts Directory (${filtered.length} Banned)` : `Registered Accounts Directory (${filtered.length} Users)`}</strong>
+                  </div>
+                  <input type="search" class="admin-search-input" id="adminSearchInput" placeholder="Search by name or email..." value="${escapeHtml(adminState.searchQuery || '')}" />
+                </div>
+                <div class="admin-table-wrapper">
+                  <table class="admin-users-table">
+                    <thead>
+                      <tr>
+                        <th>Grinder Name</th>
+                        <th>Gmail Address</th>
+                        <th>Joined Date</th>
+                        <th>Last Active</th>
+                        <th>Live Status</th>
+                        <th>Trophies</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${rowsHtml}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ` : `
               <div class="admin-table-panel">
                 <div class="admin-table-header">
                   <div class="admin-table-title">
@@ -3823,11 +3863,37 @@
         });
       }
 
+      const tabBanned = secondary.querySelector("#adminTabBanned");
+      if (tabBanned) {
+        tabBanned.addEventListener("click", () => {
+          adminState.activeTab = "banned";
+          renderSecondaryView("admin");
+        });
+      }
+
       const tabMessages = secondary.querySelector("#adminTabMessages");
       if (tabMessages) {
         tabMessages.addEventListener("click", () => {
           adminState.activeTab = "messages";
           renderSecondaryView("admin");
+        });
+      }
+
+      const statBannedCard = secondary.querySelector("#adminStatBannedCard");
+      if (statBannedCard) {
+        statBannedCard.addEventListener("click", () => {
+          adminState.activeTab = "banned";
+          renderSecondaryView("admin");
+        });
+      }
+
+      const quickUnbanBtn = secondary.querySelector("#adminQuickUnbanBtn");
+      if (quickUnbanBtn) {
+        quickUnbanBtn.addEventListener("click", () => {
+          const emailToUnban = prompt("🔓 Enter the Gmail address of the user you want to UNBAN:\n\nThis will immediately remove their ban and restore full login access for this Gmail.");
+          if (emailToUnban && emailToUnban.trim()) {
+            handleBanUser(emailToUnban.trim(), false);
+          }
         });
       }
 
