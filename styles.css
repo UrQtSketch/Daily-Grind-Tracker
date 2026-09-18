@@ -682,10 +682,68 @@ body.classic-mode .mode-chip b {
   margin: 8px 0 14px;
 }
 
+.quiz-domains-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.quiz-domain-card {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+}
+
+.quiz-domain-card:hover {
+  border-color: rgba(255, 193, 7, 0.5);
+  transform: translateY(-3px);
+  background: rgba(22, 33, 60, 0.85);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.quiz-domain-card.is-selected {
+  border-color: #ffc107;
+  background: linear-gradient(145deg, rgba(255, 193, 7, 0.14), rgba(15, 23, 42, 0.95));
+  box-shadow: 0 0 24px rgba(255, 193, 7, 0.25);
+}
+
+.quiz-domain-card h3 {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.quiz-domain-card p {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.4;
+  flex: 1;
+}
+
+.quiz-domain-count {
+  font-size: 11px;
+  font-family: 'DM Mono', monospace;
+  color: #ffc107;
+  font-weight: 700;
+  background: rgba(255, 193, 7, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
+  width: fit-content;
+}
+
 .quiz-topics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
 }
 
 .quiz-topic-card {
@@ -1097,6 +1155,90 @@ body.classic-mode .mode-chip b {
   font-size: 14px;
   margin: 0 auto 24px;
   max-width: 500px;
+}
+
+.trophy-award-banner {
+  position: relative;
+  border-radius: 16px;
+  padding: 24px 28px;
+  margin: 22px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  overflow: hidden;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+}
+
+.trophy-award-banner.award-gold {
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.18), rgba(245, 158, 11, 0.08));
+  border: 2px solid #ffc107;
+  box-shadow: 0 0 30px rgba(255, 193, 7, 0.25);
+}
+
+.trophy-award-banner.award-silver {
+  background: linear-gradient(135deg, rgba(96, 165, 250, 0.16), rgba(15, 23, 42, 0.8));
+  border: 2px solid #60a5fa;
+  box-shadow: 0 0 25px rgba(96, 165, 250, 0.2);
+}
+
+.trophy-award-banner.award-none {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.trophy-award-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  text-align: left;
+  flex: 1;
+}
+
+.trophy-award-icon {
+  font-size: 40px;
+  flex-shrink: 0;
+}
+
+.trophy-award-header h3 {
+  margin: 0 0 4px;
+  font-size: 17px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.trophy-award-banner.award-gold .trophy-award-header h3 {
+  color: #ffc107;
+}
+
+.trophy-award-banner.award-silver .trophy-award-header h3 {
+  color: #60a5fa;
+}
+
+.trophy-award-header p {
+  margin: 0;
+  font-size: 13px;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+.trophy-award-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 10px 18px;
+  border-radius: 25px;
+  font-size: 13px;
+  color: #cbd5e1;
+}
+
+.trophy-award-pill strong {
+  color: #ffc107;
+  font-size: 16px;
+  font-weight: 900;
 }
 
 .trophy-chest-card {
