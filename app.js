@@ -761,12 +761,41 @@
     const today = localDateKey();
     if (!trackerState || !trackerState.quizDailyUsage || trackerState.quizDailyUsage.date !== today) {
       if (trackerState) {
-        trackerState.quizDailyUsage = { date: today, count: 0, sessions: [] };
+        trackerState.quizDailyUsage = { date: today, count: 0, sessions: [], playedDomainModes: {} };
       } else {
-        return { date: today, count: 0, sessions: [] };
+        return { date: today, count: 0, sessions: [], playedDomainModes: {} };
       }
     }
+    if (!trackerState.quizDailyUsage.playedDomainModes) {
+      trackerState.quizDailyUsage.playedDomainModes = {};
+    }
     return trackerState.quizDailyUsage;
+  }
+
+  function getDomainForTopic(topicId) {
+    if (typeof DailyGrindQuiz !== "undefined") {
+      const domains = DailyGrindQuiz.getDomains();
+      for (const [dKey, dVal] of Object.entries(domains)) {
+        if (dVal.topics && dVal.topics.some(t => t.id === topicId)) {
+          return dKey;
+        }
+      }
+    }
+    return quizSelectedDomain || "core";
+  }
+
+  function isDomainModeLockedToday(domKey, levelKey) {
+    const usage = getDailyQuizUsage();
+    if (usage.playedDomainModes && usage.playedDomainModes[domKey] && usage.playedDomainModes[domKey].includes(levelKey)) {
+      return true;
+    }
+    if (usage.sessions && Array.isArray(usage.sessions)) {
+      return usage.sessions.some(s => {
+        const sDom = s.domain || getDomainForTopic(s.topic);
+        return sDom === domKey && s.level === levelKey;
+      });
+    }
+    return false;
   }
 
   function calculateTotalTrophies() {
@@ -1329,6 +1358,28 @@
       questPercent,
       goals: trackerState.goals.length
     };
+  }
+
+  function generateShareJourneyMessage() {
+    const profile = user();
+    const pName = (profile && profile.name) ? profile.name : "A fellow Grinder";
+    const m = trackerMetrics();
+    const currentDay = Math.max(1, m.questDays || 1);
+    const streak = m.streak || 0;
+    const trophies = calculateTotalTrophies();
+    const origin = window.location.origin || "";
+    const pathname = (window.location.pathname || "").replace(/index\.html$/, "").replace(/\/$/, "");
+    const joinUrl = `${origin}${pathname}/register.html`;
+
+    return `🔥 *Level Up With Me On Daily Grind Tracker!* 🚀\n\n` +
+      `Hey! I'm building unshakeable daily discipline and mastering tech skills on *Daily Grind Tracker*:\n` +
+      `👤 *Grinder:* ${pName}\n` +
+      `📅 *Quest Progress:* Day ${currentDay} of the 751-Day Hard Grind Challenge\n` +
+      `🏆 *Vault Trophies:* ${trophies} 🏆 earned in the Skill Quiz Arena\n` +
+      `⚡ *Daily Streak:* ${streak} Days Unbroken\n\n` +
+      `Stop waiting for motivation. Step up, conquer procrastination, and level up with me!\n` +
+      `👉 *Join me now and start your Day 0:* ${joinUrl}\n\n` +
+      `#DailyGrind #Discipline #LevelUp #Consistency`;
   }
 
   function refreshMetrics() {
@@ -2085,6 +2136,24 @@
         const totalTrophies = calculateTotalTrophies();
         const curDomain = domains[quizSelectedDomain] || domains.core || domains.programming || { title: "Core Engineering", topics: [] };
         const curTopicObj = (curDomain.topics || []).find(t => t.id === quizSelectedTopic) || (curDomain.topics && curDomain.topics[0]) || { name: "Data Science", icon: "📊" };
+
+        const isBegLocked = isDomainModeLockedToday(quizSelectedDomain, "beginner");
+        const isIntLocked = isDomainModeLockedToday(quizSelectedDomain, "intermediate");
+        const isAdvLocked = isDomainModeLockedToday(quizSelectedDomain, "advanced");
+        const allModesLockedInDomain = isBegLocked && isIntLocked && isAdvLocked;
+
+        // Auto-select an available unlocked level if currently selected level is locked in this domain
+        if (quizSelectedLevel === "beginner" && isBegLocked) {
+          if (!isIntLocked) quizSelectedLevel = "intermediate";
+          else if (!isAdvLocked) quizSelectedLevel = "advanced";
+        } else if (quizSelectedLevel === "intermediate" && isIntLocked) {
+          if (!isAdvLocked) quizSelectedLevel = "advanced";
+          else if (!isBegLocked) quizSelectedLevel = "beginner";
+        } else if (quizSelectedLevel === "advanced" && isAdvLocked) {
+          if (!isIntLocked) quizSelectedLevel = "intermediate";
+          else if (!isBegLocked) quizSelectedLevel = "beginner";
+        }
+
         const durationDisplay = quizSelectedLevel === "advanced" ? "40 Mins" : "20 Mins";
 
         content = `
@@ -2110,7 +2179,7 @@
                 <span class="quiz-pill-item"><span>⏱️</span> 20 Mins (Beginner / Intermediate) · 40 Mins (Advanced)</span>
                 <span class="quiz-pill-item"><span>🏆</span> 10/10 Score = +7 Trophies</span>
                 <span class="quiz-pill-item"><span>🏆</span> 5-9/10 Score = +3 Trophies</span>
-                <span class="quiz-pill-item"><span>🔒</span> 3 Daily Quizzes Max</span>
+                <span class="quiz-pill-item"><span>🔒</span> 3 Daily Quizzes Max · 1 Play Per Mode/Domain</span>
               </div>
             </div>
 
@@ -2189,25 +2258,43 @@
                   <span>Select Difficulty Tier & Timer</span>
                 </div>
                 <div class="quiz-levels-row">
-                  <div class="quiz-level-card ${quizSelectedLevel === 'beginner' ? 'is-selected' : ''}" data-level="beginner">
-                    <div class="quiz-level-badge">🟢</div>
+                  <div class="quiz-level-card ${quizSelectedLevel === 'beginner' && !isBegLocked ? 'is-selected' : ''} ${isBegLocked ? 'is-locked' : ''}" data-level="beginner" ${isBegLocked ? 'title="Beginner mode already played in this domain today. Unlocks tomorrow."' : ''}>
+                    <div class="quiz-level-badge">${isBegLocked ? '🔒' : '🟢'}</div>
                     <strong>Beginner</strong>
                     <small>Core concepts, syntax, and foundational mental models.</small>
-                    <span class="quiz-tier-timer-chip">⏱️ 20 Minutes (10 Qs)</span>
+                    ${isBegLocked ? `
+                      <span class="quiz-tier-timer-chip chip-locked">🔒 Played Today · Locked</span>
+                    ` : `
+                      <span class="quiz-tier-timer-chip">⏱️ 20 Minutes (10 Qs)</span>
+                    `}
                   </div>
-                  <div class="quiz-level-card ${quizSelectedLevel === 'intermediate' ? 'is-selected' : ''}" data-level="intermediate">
-                    <div class="quiz-level-badge">🟡</div>
+                  <div class="quiz-level-card ${quizSelectedLevel === 'intermediate' && !isIntLocked ? 'is-selected' : ''} ${isIntLocked ? 'is-locked' : ''}" data-level="intermediate" ${isIntLocked ? 'title="Intermediate mode already played in this domain today. Unlocks tomorrow."' : ''}>
+                    <div class="quiz-level-badge">${isIntLocked ? '🔒' : '🟡'}</div>
                     <strong>Intermediate</strong>
                     <small>Real-world coding snippets, edge cases & problem solving.</small>
-                    <span class="quiz-tier-timer-chip">⏱️ 20 Minutes (10 Qs)</span>
+                    ${isIntLocked ? `
+                      <span class="quiz-tier-timer-chip chip-locked">🔒 Played Today · Locked</span>
+                    ` : `
+                      <span class="quiz-tier-timer-chip">⏱️ 20 Minutes (10 Qs)</span>
+                    `}
                   </div>
-                  <div class="quiz-level-card ${quizSelectedLevel === 'advanced' ? 'is-selected' : ''}" data-level="advanced">
-                    <div class="quiz-level-badge">🔴</div>
+                  <div class="quiz-level-card ${quizSelectedLevel === 'advanced' && !isAdvLocked ? 'is-selected' : ''} ${isAdvLocked ? 'is-locked' : ''}" data-level="advanced" ${isAdvLocked ? 'title="Advanced mode already played in this domain today. Unlocks tomorrow."' : ''}>
+                    <div class="quiz-level-badge">${isAdvLocked ? '🔒' : '🔴'}</div>
                     <strong>Advanced</strong>
                     <small>Deep system internals, algorithmic complexity & architectural rigor.</small>
-                    <span class="quiz-tier-timer-chip">⏱️ 40 Minutes (10 Qs)</span>
+                    ${isAdvLocked ? `
+                      <span class="quiz-tier-timer-chip chip-locked">🔒 Played Today · Locked</span>
+                    ` : `
+                      <span class="quiz-tier-timer-chip">⏱️ 40 Minutes (10 Qs)</span>
+                    `}
                   </div>
                 </div>
+                ${allModesLockedInDomain ? `
+                  <div class="quiz-domain-exhausted-alert">
+                    <span style="font-size:18px;">🔒</span>
+                    <span>All difficulty tiers for <b>${escapeHtml(curDomain.title)}</b> have been conquered today! Please select another technical domain above for your remaining daily challenges.</span>
+                  </div>
+                ` : ''}
               </div>
 
               <!-- Launch Bar -->
@@ -2216,9 +2303,15 @@
                   <strong id="quizSelectedSummary">${curTopicObj.icon} ${escapeHtml(curTopicObj.name)} · ${quizSelectedLevel.toUpperCase()} (${durationDisplay} Timer)</strong>
                   <span>10 Questions · +7 🏆 for 10/10 · +3 🏆 for 5-9/10 · Daily Non-Repeating</span>
                 </div>
-                <button class="quiz-start-action-btn" id="startQuizBtn" type="button">
-                  Enter The Arena (${attemptsLeft} of 3 Left Today) ⚡
-                </button>
+                ${allModesLockedInDomain ? `
+                  <button class="quiz-start-action-btn is-disabled" id="startQuizBtn" type="button" disabled>
+                    Choose Another Domain (This Domain Completed Today) 🔒
+                  </button>
+                ` : `
+                  <button class="quiz-start-action-btn" id="startQuizBtn" type="button">
+                    Enter The Arena (${attemptsLeft} of 3 Left Today) ⚡
+                  </button>
+                `}
               </div>
             `}
           </div>
@@ -2383,6 +2476,32 @@
                 <button type="button" class="history-jump-btn" id="cancelEditProfileBtn">Cancel</button>
               </div>
             </form>
+          </article>
+
+          <!-- Share Your Journey Card -->
+          <article class="share-journey-card">
+            <div class="share-journey-header">
+              <div class="share-journey-icon">🚀</div>
+              <div class="share-journey-title">
+                <h3>Share Your Journey With Others</h3>
+                <p>Inspire your friends, study buddies & peers to conquer procrastination and build unbreakable consistency with you.</p>
+              </div>
+            </div>
+            <div class="share-preview-box">
+              <div class="share-preview-badge">✨ Custom Share Message (Live Preview)</div>
+              <p id="sharePreviewText" class="share-preview-content">${escapeHtml(generateShareJourneyMessage())}</p>
+            </div>
+            <div class="share-actions-row">
+              <button type="button" class="share-whatsapp-btn" id="shareWhatsappBtn">
+                <span>💬</span> Share on WhatsApp
+              </button>
+              <button type="button" class="share-copy-btn" id="shareCopyBtn">
+                <span>📋</span> Copy Message & Link
+              </button>
+              <button type="button" class="share-native-btn" id="shareNativeBtn">
+                <span>📤</span> More Share Options
+              </button>
+            </div>
           </article>
 
           <article class="setting-list">
@@ -3109,6 +3228,58 @@
       });
     }
 
+    // Share Your Journey Handlers
+    const shareWhatsappBtn = secondary.querySelector("#shareWhatsappBtn");
+    if (shareWhatsappBtn) {
+      shareWhatsappBtn.addEventListener("click", () => {
+        const msg = generateShareJourneyMessage();
+        const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+        window.open(url, "_blank");
+      });
+    }
+
+    const shareCopyBtn = secondary.querySelector("#shareCopyBtn");
+    if (shareCopyBtn) {
+      shareCopyBtn.addEventListener("click", async () => {
+        const msg = generateShareJourneyMessage();
+        try {
+          await navigator.clipboard.writeText(msg);
+          showToast("📋 Invite message & link copied to clipboard! Share it with friends.");
+        } catch {
+          const ta = document.createElement("textarea");
+          ta.value = msg;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand("copy");
+          document.body.removeChild(ta);
+          showToast("📋 Invite message & link copied to clipboard!");
+        }
+      });
+    }
+
+    const shareNativeBtn = secondary.querySelector("#shareNativeBtn");
+    if (shareNativeBtn) {
+      if (typeof navigator !== "undefined" && navigator.share) {
+        shareNativeBtn.addEventListener("click", async () => {
+          const msg = generateShareJourneyMessage();
+          const origin = window.location.origin || "";
+          const pathname = (window.location.pathname || "").replace(/index\.html$/, "").replace(/\/$/, "");
+          const joinUrl = `${origin}${pathname}/register.html`;
+          try {
+            await navigator.share({
+              title: "Join me on Daily Grind Tracker",
+              text: msg,
+              url: joinUrl
+            });
+          } catch {
+            // ignore user cancel/dismiss
+          }
+        });
+      } else {
+        shareNativeBtn.style.display = "none";
+      }
+    }
+
     const settingsModeBtn = secondary.querySelector("#settingsModeToggle");
     if (settingsModeBtn) {
       settingsModeBtn.addEventListener("click", () => {
@@ -3272,8 +3443,13 @@
 
       secondary.querySelectorAll(".quiz-level-card").forEach((card) => {
         card.addEventListener("click", () => {
-          quizSelectedLevel = card.dataset.level || "beginner";
-          secondary.querySelectorAll(".quiz-level-card").forEach(c => c.classList.toggle("is-selected", c.dataset.level === quizSelectedLevel));
+          const lvl = card.dataset.level || "beginner";
+          if (isDomainModeLockedToday(quizSelectedDomain, lvl)) {
+            showToast(`🔒 You already conquered ${lvl.toUpperCase()} mode in this domain today! Unlocks tomorrow at midnight.`);
+            return;
+          }
+          quizSelectedLevel = lvl;
+          secondary.querySelectorAll(".quiz-level-card").forEach(c => c.classList.toggle("is-selected", c.dataset.level === quizSelectedLevel && !isDomainModeLockedToday(quizSelectedDomain, c.dataset.level)));
           updateLobbySummary();
         });
       });
@@ -3336,6 +3512,11 @@
             renderSecondaryView("quiz");
             return;
           }
+          if (isDomainModeLockedToday(quizSelectedDomain, quizSelectedLevel)) {
+            showToast(`🔒 ${quizSelectedLevel.toUpperCase()} mode in this domain was already played today! Please select an available mode.`);
+            renderSecondaryView("quiz");
+            return;
+          }
           if (typeof DailyGrindQuiz !== "undefined") {
             trackerState.quizAnsweredIds = trackerState.quizAnsweredIds || [];
             DailyGrindQuiz.startSession(quizSelectedTopic, quizSelectedLevel, user().email, localDateKey(), trackerState.quizAnsweredIds, usage.count || 0);
@@ -3356,11 +3537,20 @@
           trackerState.trophies = (Number(trackerState.trophies) || 0) + earnedTrophies;
         }
 
-        // Record daily usage count and session history
+        // Record daily usage count, played domain modes, and session history
         const u = getDailyQuizUsage();
         u.count = (u.count || 0) + 1;
         u.sessions = u.sessions || [];
+        u.playedDomainModes = u.playedDomainModes || {};
+        const domKey = quizSelectedDomain || getDomainForTopic(activeQuizReport.topic);
+        if (!u.playedDomainModes[domKey]) {
+          u.playedDomainModes[domKey] = [];
+        }
+        if (!u.playedDomainModes[domKey].includes(activeQuizReport.level)) {
+          u.playedDomainModes[domKey].push(activeQuizReport.level);
+        }
         u.sessions.push({
+          domain: domKey,
           topic: activeQuizReport.topic,
           topicTitle: activeQuizReport.topicTitle,
           level: activeQuizReport.level,
