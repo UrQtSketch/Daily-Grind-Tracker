@@ -14,6 +14,17 @@
     { quote: "The mind is everything. What you think you become. Guard your thoughts with unbroken discipline.", author: "BUDDHA" }
   ];
 
+  const animeQuotes = [
+    { quote: "I will never go back on my word. That is my nindo, my ninja way!", author: "NARUTO UZUMAKI" },
+    { quote: "Power comes in response to a need, not a desire. You have to create that need.", author: "GOKU · DRAGON BALL Z" },
+    { quote: "I alone level up. Stop hesitating. Slay the weakness inside you right now.", author: "SUNG JIN-WOO · SOLO LEVELING" },
+    { quote: "Set your heart ablaze. Go beyond your limits. Grit your teeth and push forward.", author: "KYOJURO RENGOKU · DEMON SLAYER" },
+    { quote: "Push past your limits. Right here, right now. That's the only way to grow.", author: "YAMI SUKEHIRO · BLACK CLOVER" },
+    { quote: "Throughout heaven and earth, I alone am the honored one. Master your domain.", author: "SATORU GOJO · JUJUTSU KAISEN" },
+    { quote: "You don't have enemies. No one has enemies. Conquer yourself first.", author: "THORFINN · VINLAND SAGA" },
+    { quote: "The future belongs to those who build it today with their own hands.", author: "SHOYO HINATA · HAIKYUU!!" }
+  ];
+
   function startSpiritualCanvas() {
     const canvas = document.getElementById("spiritualCanvas");
     if (!canvas) return;
@@ -58,7 +69,7 @@
 
       for (const p of particles) {
         p.y -= p.speedY;
-        p.x += p.speedX;
+        p.x -= p.speedX;
         p.pulsePhase += p.pulseSpeed;
 
         if (p.y < -10) {
@@ -91,14 +102,16 @@
 
     let index = 0;
     setInterval(() => {
-      index = (index + 1) % spiritualQuotes.length;
+      const mode = getAppMode();
+      const activeList = mode === "anime" ? animeQuotes : spiritualQuotes;
+      index = (index + 1) % activeList.length;
       quoteEl.style.transition = "opacity 0.4s ease";
       authorEl.style.transition = "opacity 0.4s ease";
       quoteEl.style.opacity = "0";
       authorEl.style.opacity = "0";
       setTimeout(() => {
-        quoteEl.textContent = `“${spiritualQuotes[index].quote}”`;
-        authorEl.textContent = `— ${spiritualQuotes[index].author}`;
+        quoteEl.textContent = `“${activeList[index].quote}”`;
+        authorEl.textContent = `— ${activeList[index].author}`;
         quoteEl.style.opacity = "1";
         authorEl.style.opacity = "1";
       }, 400);
@@ -126,28 +139,47 @@
   }
 
   function getAppMode() {
-    return localStorage.getItem("daily-grind-mode") || null;
+    return localStorage.getItem("daily-grind-mode") || "basic";
+  }
+
+  function getModeDisplayName(mode) {
+    if (mode === "classic") return "Classic Mode";
+    if (mode === "anime") return "Anime Mode";
+    return "Basic Mode";
+  }
+
+  function getModeIcon(mode) {
+    if (mode === "classic") return "🏛️";
+    if (mode === "anime") return "⚔️";
+    return "⚡";
   }
 
   function applyMode(mode, showNotification = false) {
-    const isClassic = mode === "classic";
-    document.body.classList.toggle("classic-mode", isClassic);
-    localStorage.setItem("daily-grind-mode", isClassic ? "classic" : "basic");
+    const validMode = (mode === "classic" || mode === "anime") ? mode : "basic";
+    document.body.classList.toggle("classic-mode", validMode === "classic");
+    document.body.classList.toggle("anime-mode", validMode === "anime");
+    localStorage.setItem("daily-grind-mode", validMode);
 
     const modeIcon = document.getElementById("modeIcon");
     const modeLabel = document.getElementById("modeLabel");
     if (modeIcon && modeLabel) {
-      modeIcon.textContent = isClassic ? "🏛️" : "⚡";
-      modeLabel.textContent = isClassic ? "Classic Mode" : "Basic Mode";
+      modeIcon.textContent = getModeIcon(validMode);
+      modeLabel.textContent = getModeDisplayName(validMode);
     }
 
     const settingsLabel = document.getElementById("settingsModeLabel");
     if (settingsLabel) {
-      settingsLabel.textContent = isClassic ? "Classic Mode" : "Basic Mode";
+      settingsLabel.textContent = getModeDisplayName(validMode);
     }
 
     if (showNotification && typeof showToast === "function") {
-      showToast(isClassic ? "Classic Mode activated: Sacred aura & ancient discipline wisdom." : "Basic Mode activated: Distraction-free clean focus.");
+      if (validMode === "anime") {
+        showToast("⚔️ Anime Mode awakened: Solo Leveling shadow aura, neon surges & battle warrior quotes!");
+      } else if (validMode === "classic") {
+        showToast("🏛️ Classic Mode activated: Sacred aura & ancient discipline wisdom.");
+      } else {
+        showToast("⚡ Basic Mode activated: Distraction-free clean focus.");
+      }
     }
   }
 
@@ -155,7 +187,7 @@
     const savedMode = getAppMode();
     const modeModal = document.getElementById("modeSelectorModal");
 
-    if (!savedMode && modeModal) {
+    if (!localStorage.getItem("daily-grind-mode") && modeModal) {
       modeModal.showModal();
     } else {
       applyMode(savedMode || "basic", false);
@@ -177,11 +209,22 @@
       });
     }
 
+    const animeCard = document.getElementById("selectAnimeCard");
+    if (animeCard) {
+      animeCard.addEventListener("click", () => {
+        applyMode("anime", true);
+        if (modeModal && modeModal.open) modeModal.close();
+      });
+    }
+
     const toggleBtn = document.getElementById("modeToggleBtn");
     if (toggleBtn) {
       toggleBtn.addEventListener("click", () => {
-        const current = getAppMode() === "classic" ? "classic" : "basic";
-        const next = current === "classic" ? "basic" : "classic";
+        const current = getAppMode();
+        let next = "classic";
+        if (current === "basic") next = "classic";
+        else if (current === "classic") next = "anime";
+        else next = "basic";
         applyMode(next, true);
       });
     }
@@ -2468,7 +2511,7 @@
     }
     if (view === "settings") {
       const profile = user();
-      const currentMode = getAppMode() === "classic" ? "Classic Mode" : "Basic Mode";
+      const currentMode = getModeDisplayName(getAppMode());
       const avatarHtml = (profile && profile.avatarUrl)
         ? `<img src="${escapeHtml(profile.avatarUrl)}" alt="${escapeHtml(profile.name)}" class="avatar-img" />`
         : initials(profile ? profile.name : "Grinder");
@@ -3334,10 +3377,14 @@
     const settingsModeBtn = secondary.querySelector("#settingsModeToggle");
     if (settingsModeBtn) {
       settingsModeBtn.addEventListener("click", () => {
-        const nextMode = getAppMode() === "classic" ? "basic" : "classic";
+        const cur = getAppMode();
+        let nextMode = "classic";
+        if (cur === "basic") nextMode = "classic";
+        else if (cur === "classic") nextMode = "anime";
+        else nextMode = "basic";
         applyMode(nextMode, true);
         const lbl = secondary.querySelector("#settingsModeLabel");
-        if (lbl) lbl.textContent = nextMode === "classic" ? "Classic Mode" : "Basic Mode";
+        if (lbl) lbl.textContent = getModeDisplayName(nextMode);
       });
     }
     const sendTestReminderBtn = secondary.querySelector("#sendTestReminderBtn");
@@ -3580,6 +3627,8 @@
 
       function finishAndAwardQuiz() {
         if (typeof DailyGrindQuiz === "undefined") return;
+        const sess = DailyGrindQuiz.getSession();
+        if (!sess || sess.completed) return;
         activeQuizReport = DailyGrindQuiz.generateFinalReport();
         const earnedTrophies = activeQuizReport.trophies || 0;
 
@@ -3681,12 +3730,15 @@
         const submitBtn = secondary.querySelector("#arenaSubmitBtn");
         if (submitBtn) {
           submitBtn.addEventListener("click", () => {
+            if (submitBtn.disabled) return;
+            submitBtn.disabled = true;
             DailyGrindQuiz.recordAnswer(sess.currentIndex, currentQuestionSelectedOption);
             if (sess.currentIndex < sess.questions.length - 1) {
               sess.currentIndex++;
               currentQuestionSelectedOption = null;
               renderSecondaryView("quiz");
             } else {
+              submitBtn.textContent = "Finalizing...";
               finishAndAwardQuiz();
             }
           });

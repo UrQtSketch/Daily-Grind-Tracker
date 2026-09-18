@@ -558,6 +558,218 @@ body.classic-mode .mode-chip b {
   color: #ffd54f;
 }
 
+/* ANIME BATTLE MODE (Theme Overrides) */
+body.anime-mode {
+  background: radial-gradient(circle at 50% 0%, #1a0833 0%, #0c0418 55%, #040108 100%);
+  --accent: #00f0ff;
+  --violet: #c084fc;
+}
+body.anime-mode .ambient-one {
+  background: #a855f7;
+  opacity: .25;
+}
+body.anime-mode .ambient-two {
+  background: #00f0ff;
+  opacity: .22;
+}
+body.anime-mode .sidebar {
+  border-right-color: rgba(0, 240, 255, .2);
+  background: linear-gradient(150deg, rgba(8, 2, 18, .99), rgba(13, 5, 28, .97) 58%, rgba(28, 5, 45, .96));
+}
+body.anime-mode .brand-mark {
+  background: linear-gradient(135deg, #00f0ff, #a855f7);
+  box-shadow: 0 0 16px rgba(0, 240, 255, 0.45);
+}
+body.anime-mode .brand-copy strong em {
+  color: #00f0ff;
+  text-shadow: 0 0 14px rgba(0, 240, 255, 0.7);
+}
+body.anime-mode .hero-panel {
+  border-color: rgba(0, 240, 255, .3);
+  box-shadow: 0 15px 45px rgba(168, 85, 247, .15);
+}
+body.anime-mode .hero-content h1 em {
+  color: #00f0ff;
+  text-shadow: 0 0 12px rgba(0, 240, 255, 0.5);
+}
+body.anime-mode .quest-panel {
+  border-color: rgba(168, 85, 247, .35);
+  background: linear-gradient(135deg, rgba(20, 6, 42, .75), rgba(8, 3, 18, .92));
+  box-shadow: 0 12px 36px rgba(168, 85, 247, .1);
+}
+body.anime-mode .task-row.is-done {
+  border-color: rgba(0, 240, 255, .35);
+  background: rgba(15, 23, 42, .45);
+}
+body.anime-mode .task-row.is-done .check-button {
+  background: linear-gradient(135deg, #00f0ff, #a855f7);
+  border-color: #00f0ff;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+}
+body.anime-mode .mode-chip,
+body.anime-mode .mode-toggle-chip {
+  border-color: rgba(0, 240, 255, .4);
+  background: rgba(0, 240, 255, .1);
+  color: #00f0ff;
+}
+body.anime-mode .mode-chip b,
+body.anime-mode .mode-toggle-chip strong {
+  color: #00f0ff;
+}
+body.anime-mode .primary-button {
+  background: linear-gradient(135deg, #00f0ff 0%, #a855f7 100%);
+  color: #040810;
+  font-weight: 800;
+  box-shadow: 0 0 18px rgba(0, 240, 255, 0.35);
+}
+
+/* Mode Selector Modal Styles */
+.mode-modal {
+  width: min(780px, calc(100% - 32px));
+  max-height: 90vh;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: #090d16;
+  color: #e5f0fc;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.85);
+}
+.mode-modal-card {
+  padding: 32px 26px;
+  text-align: center;
+}
+.mode-modal-card h2 {
+  font-size: 24px;
+  margin: 6px 0 10px;
+  color: #fff;
+}
+.mode-modal-card > p {
+  color: #8ba2bd;
+  font-size: 13.5px;
+  margin-bottom: 22px;
+}
+.mode-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  text-align: left;
+}
+.mode-option-card {
+  display: flex;
+  flex-direction: column;
+  padding: 22px 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(14, 21, 35, 0.65);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+.mode-option-card:hover {
+  transform: translateY(-3px);
+}
+.mode-option-card .mode-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+.mode-option-card h3 {
+  margin: 0 0 4px;
+  font-size: 17px;
+  color: #fff;
+}
+.mode-option-card .mode-tagline {
+  font-family: "DM Mono", monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  margin-bottom: 10px;
+  display: block;
+}
+.mode-option-card p {
+  font-size: 11.5px;
+  color: #8ba2bd;
+  line-height: 1.5;
+  margin-bottom: 16px;
+  flex: 1;
+}
+.mode-option-card .mode-select-btn {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: filter 0.18s ease;
+}
+
+/* Card variants */
+.mode-option-card.basic-card {
+  border-color: rgba(50, 185, 255, 0.25);
+}
+.mode-option-card.basic-card .mode-tagline {
+  color: #32b9ff;
+}
+.mode-option-card.basic-card .mode-select-btn {
+  background: rgba(50, 185, 255, 0.18);
+  color: #32b9ff;
+  border: 1px solid rgba(50, 185, 255, 0.35);
+}
+.mode-option-card.basic-card:hover {
+  border-color: #32b9ff;
+  box-shadow: 0 10px 25px rgba(50, 185, 255, 0.15);
+}
+
+.mode-option-card.classic-card {
+  border-color: rgba(255, 193, 7, 0.25);
+}
+.mode-option-card.classic-card .mode-tagline {
+  color: #ffc107;
+}
+.mode-option-card.classic-card .mode-select-btn {
+  background: rgba(255, 193, 7, 0.18);
+  color: #ffc107;
+  border: 1px solid rgba(255, 193, 7, 0.35);
+}
+.mode-option-card.classic-card:hover {
+  border-color: #ffc107;
+  box-shadow: 0 10px 25px rgba(255, 193, 7, 0.15);
+}
+
+.mode-option-card.anime-card {
+  border-color: rgba(0, 240, 255, 0.25);
+}
+.mode-option-card.anime-card .mode-tagline {
+  color: #00f0ff;
+}
+.mode-option-card.anime-card .mode-select-btn {
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(168, 85, 247, 0.2));
+  color: #00f0ff;
+  border: 1px solid rgba(0, 240, 255, 0.4);
+}
+.mode-option-card.anime-card:hover {
+  border-color: #00f0ff;
+  box-shadow: 0 10px 25px rgba(0, 240, 255, 0.2);
+}
+
+/* Topbar Mode Toggle Chip */
+.mode-toggle-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #cbd7e7;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.mode-toggle-chip:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
 @media (max-width: 1100px) { .app-shell { grid-template-columns: 220px minmax(0,1fr); }.sidebar { padding-inline: 12px; }.brand { margin-left: 9px; }.brand-copy strong { font-size: 19px; }.sidebar-quote { margin-left: 28px; }.main-content { padding-inline: 16px; }.hero-quote { width: 150px; }.hero-note { right: 21%; }.content-grid { grid-template-columns: minmax(0,1.65fr) minmax(285px,1fr); }.task-panel-tools { gap: 8px; }.small-date { display: none; }.bar-chart { gap: 8px; }.mood-card { padding-inline: 18px; } }
 @media (max-width: 768px) {
   .app-shell { display: block; }
