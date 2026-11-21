@@ -265,7 +265,6 @@
           }
         }
       });
-      $("#demoLogin").addEventListener("click", () => { auth.demo(); window.location.assign("index.html"); });
 
       // Forgot Password Modal Wiring
       const openForgotBtn = $("#openForgotPassBtn");
@@ -601,6 +600,12 @@
 
   if (!$("#taskList")) { showAuthPage(); return; }
 
+  // Require active authentication: if not logged in, redirect to login page
+  if (!auth.current()) {
+    window.location.assign("login.html");
+    return;
+  }
+
   const seededTasks = [
     { id: 1, label: "Gym / Workout", icon: "⌁", type: "fitness", done: true },
     { id: 2, label: "Coding Practice", icon: "‹/›", type: "learning", done: true },
@@ -611,22 +616,6 @@
     { id: 7, label: "Mock Test / Revision", icon: "▥", type: "learning", done: true },
     { id: 8, label: "Water Intake", icon: "◈", type: "fitness", done: true },
     { id: 9, label: "Sleep (Hours)", icon: "☾", type: "mindset", done: false }
-  ];
-  const demoDate = "2026-09-11";
-  const demoWeekly = [50, 65, 52, 93, 0, 0, 0];
-  const demoGoals = [
-    { icon: "⌁", title: "Build a disciplined body", detail: "4 workouts planned this week", progress: 75, tone: "goal-blue" },
-    { icon: "‹/›", title: "Become sharper at coding", detail: "28 of 40 study sessions done", progress: 70, tone: "goal-violet" },
-    { icon: "◆", title: "Launch GrindNation", detail: "Weekly focus blocks completed", progress: 45, tone: "goal-coral" }
-  ];
-  const demoNotes = [
-    { tone: "blue", tag: "CODING", text: "Build one small feature before watching another tutorial.", date: "Just now" },
-    { tone: "violet", tag: "IDEA", text: "Make the dashboard feel like a quest log—not a spreadsheet.", date: "Today" },
-    { tone: "coral", tag: "REMINDER", text: "Discipline is choosing what you want most over what you want now.", date: "Yesterday" }
-  ];
-  const demoJournal = [
-    { date: "THU · SEP 11", title: "Showing up counts.", text: "Finished the mock test and made space for a quieter evening." },
-    { date: "WED · SEP 10", title: "Momentum over mood.", text: "A short practice session still moved the needle." }
   ];
   let query = "";
   let currentView = "dashboard";
@@ -790,9 +779,8 @@
     return records;
   }
 
-  function user() { return auth.current() || { name: "Sketch", email: "guest@dailygrind.local", isDemo: true }; }
-  function initials(name) { return name.split(/\s+/).map((part) => part[0]).slice(0, 2).join("").toUpperCase(); }
-  function isDemo() { return !!user().isDemo; }
+  function user() { return auth.current() || { name: "Grinder", email: "user@dailygrind.local" }; }
+  function initials(name) { return (name || "G").split(/\s+/).map((part) => part[0]).slice(0, 2).join("").toUpperCase(); }
   function localDateKey(date = new Date()) { const local = new Date(date); return `${local.getFullYear()}-${String(local.getMonth() + 1).padStart(2, "0")}-${String(local.getDate()).padStart(2, "0")}`; }
   function dateKeyAtOffset(days) { const date = new Date(); date.setDate(date.getDate() + days); return localDateKey(date); }
   function getPreviousDateKey(dateStr) {
@@ -853,7 +841,7 @@
   }
 
   function calculateTotalTrophies() {
-    if (!isDemo() && trackerState && trackerState.trophies != null && !isNaN(trackerState.trophies)) {
+    if (trackerState && trackerState.trophies != null && !isNaN(trackerState.trophies)) {
       return Number(trackerState.trophies);
     }
 
@@ -899,46 +887,6 @@
 
   function trackerStorageKey() { return `daily-grind-tracker:${user().email.toLowerCase()}`; }
   function freshTrackerState() { return { dailyTasks: {}, goals: [], notes: [], journal: [], rewards: {}, quizRewards: [], quizDailyUsage: null, trophies: 0, trophyTransfers: [], lastActiveDate: localDateKey(), recentPenalty: null, songBaseOffset: null }; }
-  function freshDemoState() {
-    return {
-      dailyTasks: {
-        "2026-09-12": seededTasks.map((t, idx) => ({ ...t, done: idx % 2 === 0 || idx === 1 })), // 6 of 9
-        "2026-09-13": seededTasks.map((t) => ({ ...t, done: true })), // 9 of 9 (100%)
-        "2026-09-14": seededTasks.map((t, idx) => ({ ...t, done: idx < 7 })), // 7 of 9
-        "2026-09-15": seededTasks.map((t, idx) => ({ ...t, done: idx !== 2 && idx !== 5 })), // 7 of 9
-        [demoDate]: starterTasks(true), // 5 of 9
-        "2026-09-16": seededTasks.map((t, idx) => ({ ...t, done: idx < 4 })) // 4 of 9
-      },
-      goals: demoGoals.map((goal) => ({ ...goal })),
-      notes: demoNotes.map((note) => ({ ...note })),
-      quizRewards: [],
-      quizDailyUsage: null,
-      trophies: 20,
-      trophyTransfers: [
-        {
-          id: "demo_tx_1",
-          type: "received",
-          counterpartyName: "Siya",
-          counterpartyEmail: "siya@gmail.com",
-          amount: 5,
-          note: "Keep grinding! Here are 5 trophies for your consistency.",
-          timestamp: new Date().toISOString(),
-          isRead: false
-        }
-      ],
-      lastActiveDate: localDateKey(),
-      recentPenalty: null,
-      rewards: {
-        "2026-09-13": { day: 8, quote: "Victory is not an event—it is a daily collection of small, disciplined wins.", author: "DAY 8 · MASTERY", trophiesEarned: 5, isConsistent: true }
-      },
-      journal: [
-        { date: "WED · SEP 16", title: "Discipline compounds.", text: "Kept momentum high today with zero excuses." },
-        ...demoJournal.map((entry) => ({ ...entry })),
-        { date: "SAT · SEP 13", title: "Flawless execution.", text: "Hit all 9 tasks and felt complete control of the day." },
-        { date: "FRI · SEP 12", title: "Pushed through resistance.", text: "Started slow but finished 6 core blocks." }
-      ]
-    };
-  }
 
   function checkLocalInactivity(state) {
     if (!state) return state;
@@ -948,7 +896,6 @@
   }
 
   function loadTrackerState() {
-    if (isDemo()) return freshDemoState();
     try {
       const saved = JSON.parse(localStorage.getItem(trackerStorageKey()));
       const rewards = saved?.rewards || {};
@@ -985,9 +932,8 @@
 
   let syncDebounceTimer = null;
   function saveTrackerState(syncToBackend = true) {
-    if (!isDemo()) {
-      trackerState.lastActiveDate = localDateKey();
-      localStorage.setItem(trackerStorageKey(), JSON.stringify(trackerState));
+    trackerState.lastActiveDate = localDateKey();
+    localStorage.setItem(trackerStorageKey(), JSON.stringify(trackerState));
       const token = auth.getToken();
       if (syncToBackend && token && (window.location.protocol === "http:" || window.location.protocol === "https:")) {
         clearTimeout(syncDebounceTimer);
@@ -1002,7 +948,6 @@
           }).catch(() => {});
         }, 120);
       }
-    }
   }
 
   function showPenaltyModal(penalty, currentTrophies) {
@@ -1024,7 +969,6 @@
   }
 
   async function syncFromBackend() {
-    if (isDemo()) return;
     const token = auth.getToken();
     if (!token || !(window.location.protocol === "http:" || window.location.protocol === "https:")) return;
     try {
@@ -1074,13 +1018,13 @@
 
   function tasksForDate(date) {
     if (!trackerState.dailyTasks[date]) {
-      trackerState.dailyTasks[date] = starterTasks(isDemo());
+      trackerState.dailyTasks[date] = starterTasks(false);
       saveTrackerState();
     }
     return trackerState.dailyTasks[date];
   }
   let trackerState = loadTrackerState();
-  let activeDate = isDemo() ? demoDate : localDateKey();
+  let activeDate = localDateKey();
   let tasks = tasksForDate(activeDate);
 
   function applyProfile() {
@@ -1604,7 +1548,7 @@
 
   function checkFirstTimeWelcome() {
     const p = user();
-    if (!p || p.isDemo) return;
+    if (!p) return;
     const email = (p.email || "").toLowerCase();
     if (!email) return;
 
@@ -1631,14 +1575,14 @@
       triggerDailyReward(activeDate);
     } else {
       const task = tasks.find((t) => t.id === id);
-      showToast(task.done ? (isDemo() ? "Demo task complete — create an account to save your own progress." : "Task complete. Keep the streak alive.") : "Task reopened. You’ve got this.");
+      showToast(task.done ? "Task complete. Keep the streak alive." : "Task reopened. You’ve got this.");
     }
   }
 
   function removeTask(id) {
     const task = tasks.find((item) => item.id === id);
     if (!task || !window.confirm(`Remove “${task.label}” from today?`)) return;
-    tasks = tasks.filter((item) => item.id !== id); trackerState.dailyTasks[activeDate] = tasks; saveTrackerState(); renderTasks(); renderChart(); showToast(isDemo() ? "Demo task removed for this preview only." : "Task removed from today.");
+    tasks = tasks.filter((item) => item.id !== id); trackerState.dailyTasks[activeDate] = tasks; saveTrackerState(); renderTasks(); renderChart(); showToast("Task removed from today.");
   }
 
   function taskCompletion(taskList) { return taskList.length ? Math.round((taskList.filter((task) => task.done).length / taskList.length) * 100) : 0; }
@@ -1646,7 +1590,6 @@
     return (trackerState.dailyTasks[date] || []).some((task) => task.done) || !!(trackerState.rewards && trackerState.rewards[date]);
   }
   function getWeekProgress() {
-    if (isDemo()) return demoWeekly;
     const today = new Date();
     const mondayOffset = (today.getDay() + 6) % 7;
     return Array.from({ length: 7 }, (_, index) => {
@@ -1655,7 +1598,6 @@
     });
   }
   function calculateStreak() {
-    if (isDemo()) return 9;
     let offset = 0;
     if (!hasCompletedTasks(dateKeyAtOffset(0))) {
       if (!hasCompletedTasks(dateKeyAtOffset(-1))) return 0;
@@ -1673,13 +1615,13 @@
     ]);
     const totalDone = Object.values(trackerState.dailyTasks || {}).flat().filter((task) => task.done).length;
     const weeklyValues = getWeekProgress().filter((value) => value > 0);
-    const questDays = isDemo() ? 9 : activeDates.size;
+    const questDays = activeDates.size;
     const questPercent = Math.min(100, Math.round((questDays / 751) * 1000) / 10);
     return {
       complete,
       progress: taskCompletion(tasks),
       weekly: weeklyValues.length ? Math.round(weeklyValues.reduce((sum, value) => sum + value, 0) / weeklyValues.length) : 0,
-      total: isDemo() ? 23 + totalDone : totalDone,
+      total: totalDone,
       streak: calculateStreak(),
       day: questDays,
       questDays,
@@ -1746,7 +1688,7 @@
     const chart = $("#barChart");
     if (!chart) return;
     const values = getWeekProgress();
-    const todayIndex = isDemo() ? 3 : (new Date().getDay() + 6) % 7;
+    const todayIndex = (new Date().getDay() + 6) % 7;
     chart.innerHTML = values.map((value, index) => `<div class="bar-slot ${index === todayIndex ? "today" : ""}"><div class="bar" style="height:${Math.max(value, 2)}%"></div><span>${weekLabels[index]}</span></div>`).join("");
   }
 
@@ -2802,7 +2744,7 @@
     if (view === "history") {
       const dates = Object.keys(trackerState.dailyTasks).sort().reverse();
       const allActiveDates = dates.filter((d) => hasCompletedTasks(d));
-      const totalDaysCount = isDemo() ? 9 : allActiveDates.length;
+      const totalDaysCount = allActiveDates.length;
 
       const cardsHtml = dates.length ? dates.map((d) => {
         const dayTasks = trackerState.dailyTasks[d] || [];
@@ -3052,8 +2994,8 @@
 
           <article class="danger-zone">
             <div>
-              <h3>${isDemo() ? "Demo mode" : "Your tracker data"}</h3>
-              <p>${isDemo() ? "Demo changes are not saved. Create an account to begin your own Day 0." : "Your progress is stored privately in this browser for this account."}</p>
+              <h3>Your tracker data</h3>
+              <p>Your progress is stored privately in this browser for this account.</p>
             </div>
             <button type="button" data-page-action="dashboard">Back to dashboard</button>
           </article>
@@ -3140,7 +3082,7 @@
       const userRank = liveLeaderboardData.userRank;
       const totalUsers = liveLeaderboardData.totalUsers || allRanks.length || top10.length;
       const currentUser = auth.current();
-      const isUserAuthed = !!currentUser && !isDemo();
+      const isUserAuthed = !!currentUser;
 
       const rank1 = top10[0] || null;
       const rank2 = top10[1] || null;
@@ -3213,19 +3155,7 @@
             </div>`;
         }
       } else {
-        userBannerHtml = `
-          <div class="user-live-rank-card rank-pill-guest">
-            <div class="user-rank-left">
-              <span class="user-rank-badge-icon">🔒</span>
-              <div>
-                <span class="user-rank-number">GUEST / PREVIEW MODE</span>
-                <p class="user-rank-desc">Create an account or log in to track your trophies and claim your permanent rank on the live global board!</p>
-              </div>
-            </div>
-            <div class="user-rank-right">
-              <a href="register.html" class="primary-button user-rank-grind-btn">Join Arena <span>→</span></a>
-            </div>
-          </div>`;
+        userBannerHtml = "";
       }
 
       function renderPodiumSlot(user, rankNum, modifier) {
@@ -3858,10 +3788,6 @@
     const sendTestReminderBtn = secondary.querySelector("#sendTestReminderBtn");
     if (sendTestReminderBtn) {
       sendTestReminderBtn.addEventListener("click", async () => {
-        if (isDemo()) {
-          showToast("Create or log in to an account to test email reminders.");
-          return;
-        }
         const token = auth.getToken();
         sendTestReminderBtn.disabled = true;
         sendTestReminderBtn.textContent = "Sending...";
@@ -4476,7 +4402,7 @@
       const name = $("#newTaskName")?.value.trim(); if (!name) return;
       const type = $("#newTaskCategory")?.value || "focus";
       const icon = { focus: "◆", fitness: "⌁", learning: "‹/›", mindset: "◒" }[type] || "◆";
-      tasks.unshift({ id: Date.now(), label: name, icon, type, done: false }); trackerState.dailyTasks[activeDate] = tasks; saveTrackerState(); renderTasks(); renderChart(); if ($("#taskModal")) $("#taskModal").close(); event.target.reset(); showToast(isDemo() ? "Demo task added for this preview only." : "Task added. Make it count.");
+      tasks.unshift({ id: Date.now(), label: name, icon, type, done: false }); trackerState.dailyTasks[activeDate] = tasks; saveTrackerState(); renderTasks(); renderChart(); if ($("#taskModal")) $("#taskModal").close(); event.target.reset(); showToast("Task added. Make it count.");
     });
     $$(".quick-action").forEach((button) => button.addEventListener("click", () => {
       const action = button.dataset.action;
@@ -4489,7 +4415,6 @@
       const text = $("#captureInput")?.value.trim();
       if (!text) return;
       if ($("#captureModal")) $("#captureModal").close(); event.target.reset();
-      if (isDemo()) { showToast("Demo mode: this is only a preview. Create an account to save your own data."); return; }
       if (kind === "goal") trackerState.goals.unshift({ title: text, detail: "New goal — add your first action today.", progress: 0 });
       if (kind === "note") trackerState.notes.unshift({ tag: "NOTE", text, date: "Today" });
       if (kind === "journal") trackerState.journal.unshift({ date: formatDate(activeDate).toUpperCase(), title: text.length > 42 ? `${text.slice(0, 42)}…` : text, text });
@@ -4674,7 +4599,7 @@
     refreshMailboxBadges();
     if (unreadExists) {
       saveTrackerState(false);
-      if (!isDemo() && auth.getToken()) {
+      if (auth.getToken()) {
         try {
           await auth.markMailboxRead();
         } catch (e) {}
@@ -4745,7 +4670,7 @@
         tab.classList.toggle("is-active", tab.dataset.mbFilter === "all");
       });
 
-      if (!isDemo() && auth.getToken()) {
+      if (auth.getToken()) {
         try {
           const res = await auth.getMailboxMessages();
           if (res && res.success && Array.isArray(res.messages)) {
@@ -5047,59 +4972,24 @@
       }
 
       try {
-        if (isDemo() || !auth.getToken()) {
-          // Demo mode duplicate name check
-          if (!recipient.includes("@") && Array.isArray(cachedRecipients)) {
-            const matches = cachedRecipients.filter(r => (r.name || "").toLowerCase() === recipient.toLowerCase());
-            if (matches.length > 1) {
-              showError(`Multiple users found with name "${recipient}" (${matches.map(m => m.email).join(", ")}). Please enter their specific Gmail address.`);
-              return;
-            }
-          }
-
-          // Demo mode transfer
-          trackerState.trophies = Math.max(0, currentVault - amt);
-          const targetName = recipient.includes("@") ? recipient.split("@")[0] : recipient;
-          const tx = {
-            id: `tx_${Date.now()}`,
-            type: "sent",
-            counterpartyName: targetName,
-            counterpartyEmail: recipient.includes("@") ? recipient : `${recipient.toLowerCase()}@grind.local`,
-            amount: amt,
-            note: note,
-            timestamp: new Date().toISOString(),
-            isRead: true
-          };
+        // Live API transfer
+        const res = await auth.transferTrophies(recipient, amt, note);
+        if (res && res.success) {
+          trackerState.trophies = res.newSenderTrophies;
           trackerState.trophyTransfers = trackerState.trophyTransfers || [];
-          trackerState.trophyTransfers.unshift(tx);
+          if (res.transaction) {
+            trackerState.trophyTransfers.unshift(res.transaction);
+          }
           saveTrackerState(false);
           updateTrophyDisplay();
           refreshMailboxBadges();
           if (currentView === "vault") renderSecondaryView("vault");
           if (currentView === "mailbox") renderSecondaryView("mailbox");
-          showToast(`🎁 Gift sent! Transferred ${amt} trophies to ${targetName}.`);
+          showToast(`🎁 Transferred ${amt} trophies to ${res.recipientName}!`);
           modal.close();
           startConfetti();
         } else {
-          // Live API transfer
-          const res = await auth.transferTrophies(recipient, amt, note);
-          if (res && res.success) {
-            trackerState.trophies = res.newSenderTrophies;
-            trackerState.trophyTransfers = trackerState.trophyTransfers || [];
-            if (res.transaction) {
-              trackerState.trophyTransfers.unshift(res.transaction);
-            }
-            saveTrackerState(false);
-            updateTrophyDisplay();
-            refreshMailboxBadges();
-            if (currentView === "vault") renderSecondaryView("vault");
-            if (currentView === "mailbox") renderSecondaryView("mailbox");
-            showToast(`🎁 Transferred ${amt} trophies to ${res.recipientName}!`);
-            modal.close();
-            startConfetti();
-          } else {
-            showError((res && res.error) || "Transfer failed. Please check recipient details.");
-          }
+          showError((res && res.error) || "Transfer failed. Please check recipient details.");
         }
       } catch (err) {
         showError(err.message || "Failed to transfer trophies.");

@@ -194,8 +194,6 @@ body.sidebar-collapsed .main-content { max-width: 1440px; }
 .form-error { min-height: 12px; margin: -2px 0 0; color: #ff8293; font-size: 11px; }
 .auth-submit { height: 44px; margin-top: 2px; font-size: 13px; }
 .auth-submit span, .modal-submit span { float: right; margin: 0; }
-.demo-login { width: 100%; margin-top: 8px; padding: 7px; color: #9ccff0; border: 0; background: transparent; font-size: 12px; font-weight: 700; cursor: pointer; }
-.demo-login:hover { color: #fff; }
 .auth-switch { margin: 12px 0 0; color: #aab5c6; font-size: 12px; text-align: center; }
 .auth-switch a { color: #ff8091; font-weight: 700; }
 .auth-switch a:hover { color: #fff; }

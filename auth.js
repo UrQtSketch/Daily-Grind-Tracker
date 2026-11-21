@@ -3,7 +3,6 @@
   const USERS_KEY = "daily-grind-users";
   const SESSION_KEY = "daily-grind-session";
   const TOKEN_KEY = "daily-grind-token";
-  const demoUser = { name: "Sketch", email: "guest@dailygrind.local", isDemo: true };
 
   function getUsers() {
     try { return JSON.parse(localStorage.getItem(USERS_KEY)) || []; } catch { return []; }
@@ -16,8 +15,7 @@
       id: user.id || "",
       name: user.name,
       email: user.email,
-      avatarUrl: user.avatarUrl || "",
-      isDemo: !!user.isDemo
+      avatarUrl: user.avatarUrl || ""
     }));
     if (token) localStorage.setItem(TOKEN_KEY, token);
     else if (token === false) localStorage.removeItem(TOKEN_KEY);
@@ -36,7 +34,14 @@
 
   window.DailyGrindAuth = {
     current() {
-      try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch { return null; }
+      try {
+        const sess = JSON.parse(localStorage.getItem(SESSION_KEY));
+        if (sess && (sess.isDemo || sess.email === "guest@dailygrind.local")) {
+          localStorage.removeItem(SESSION_KEY);
+          return null;
+        }
+        return sess;
+      } catch { return null; }
     },
     getUser() {
       return this.current();
@@ -72,7 +77,7 @@
         }
       }
       // Offline fallback
-      return { success: true, message: "Verification code sent (offline demo: 123456)", devOtp: "123456" };
+      return { success: true, message: "Verification code sent: 123456", devOtp: "123456" };
     },
 
     async verifyRegistrationOtp(email, otp) {
@@ -114,7 +119,7 @@
         if (!res.ok) throw new Error(data.error || "Failed to resend verification code.");
         return data;
       }
-      return { success: true, message: "Code resent (demo: 123456)" };
+      return { success: true, message: "Code resent: 123456" };
     },
     async register(name, email, password) {
       if (!validateGmail(email)) {
@@ -194,11 +199,6 @@
       return user;
     },
 
-    demo() {
-      setSession(demoUser);
-      return demoUser;
-    },
-
     updateSession(fields) {
       const cur = this.current() || {};
       const updated = { ...cur, ...fields };
@@ -220,7 +220,7 @@
         if (!res.ok) throw new Error(data.error || "Failed to send reset code.");
         return data;
       }
-      return { success: true, message: "Reset code sent (offline demo: 123456)" };
+      return { success: true, message: "Reset code sent: 123456" };
     },
 
     async verifyForgotPasswordOtp(email, otp, newPassword) {
