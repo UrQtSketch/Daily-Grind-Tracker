@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=4.0" />
+    <link rel="stylesheet" href="styles.css?v=5.0" />
   </head>
   <body class="app-body">
     <div class="ambient ambient-one"></div>
@@ -29,6 +29,7 @@
         <nav class="side-nav" aria-label="Main navigation">
           <a class="nav-link is-active" href="#dashboard" data-view="dashboard"><span>⌂</span>Dashboard</a>
           <a class="nav-link" href="#vault" data-view="vault"><span>🏆</span>Trophy Vault</a>
+          <a class="nav-link" href="#mailbox" data-view="mailbox"><span>📬</span><span class="nav-link-text">Mailbox</span><span class="nav-live-chip mailbox-nav-badge" id="sidebarMailboxBadge" style="display:none;">0</span></a>
           <a class="nav-link" href="#quiz" data-view="quiz"><span>⚡</span>Skill Arena</a>
           <a class="nav-link" href="#leaderboard" data-view="leaderboard"><span>🏅</span><span class="nav-link-text">Leaderboard</span><span class="nav-live-chip">LIVE</span></a>
           <a class="nav-link" href="#habits" data-view="habits"><span>◌</span>Habits</a>
@@ -78,6 +79,11 @@
               <span>🎁</span>
               <small>Send</small>
             </button>
+            <button class="topbar-mailbox-btn" id="topbarMailboxBtn" type="button" title="Open Trophy Mailbox" aria-label="Trophy Mailbox">
+              <span>📬</span>
+              <small>Mailbox</small>
+              <span class="mailbox-badge-count" id="topbarMailboxBadge" style="display:none;">0</span>
+            </button>
             <div class="profile-wrap">
               <button class="profile-button" id="profileButton" type="button" aria-expanded="false">
                 <span class="avatar" data-avatar>S</span><strong data-profile-name>Sketch</strong><span class="chevron">⌄</span>
@@ -87,8 +93,12 @@
                 <a href="#vault" id="profileVaultLink" style="display:flex; align-items:center; gap:8px; font-size:12px; color:#ffca42; margin:8px 0 6px; text-decoration:none; padding:6px 10px; background:rgba(255,193,7,.12); border-radius:6px; border:1px solid rgba(255,193,7,.3);">
                   <span>🏆</span><span><b><strong id="profileTrophyCount">0</strong> Trophies</b> · Open Vault →</span>
                 </a>
-                <button id="profileSendTrophyBtn" type="button" style="display:flex; align-items:center; gap:8px; width:100%; font-size:12px; color:#4ade80; margin:4px 0 6px; text-decoration:none; padding:6px 10px; background:rgba(74,222,128,.12); border-radius:6px; border:1px solid rgba(74,222,128,.3); cursor:pointer; text-align:left;">
+                <button id="profileSendTrophyBtn" type="button" style="display:flex; align-items:center; gap:8px; width:100%; font-size:12px; color:#4ade80; margin:4px 0; text-decoration:none; padding:6px 10px; background:rgba(74,222,128,.12); border-radius:6px; border:1px solid rgba(74,222,128,.3); cursor:pointer; text-align:left;">
                   <span>🎁</span><span><b>Send Trophies</b> · Gift a Friend</span>
+                </button>
+                <button id="profileMailboxBtn" type="button" style="display:flex; align-items:center; justify-content:space-between; width:100%; font-size:12px; color:#38bdf8; margin:4px 0 6px; text-decoration:none; padding:6px 10px; background:rgba(56,189,248,.12); border-radius:6px; border:1px solid rgba(56,189,248,.3); cursor:pointer; text-align:left;">
+                  <span style="display:flex; align-items:center; gap:8px;"><span>📬</span><span><b>Trophy Mailbox</b> · View Logs</span></span>
+                  <span id="profileMailboxBadge" style="display:none; background:#ff405d; color:#fff; font-size:10px; padding:1px 6px; border-radius:10px; font-weight:800;">0</span>
                 </button>
                 <a href="#admin" id="profileAdminLink" style="display:flex; align-items:center; gap:8px; font-size:12px; color:#60a5fa; margin:6px 0; text-decoration:none; padding:6px 10px; background:rgba(96,165,250,.12); border-radius:6px; border:1px solid rgba(96,165,250,.3);">
                   <span>🛡️</span><span><b>Admin Command Center</b></span>
@@ -439,15 +449,8 @@
 
         <form id="sendTrophyForm" class="transfer-form" onsubmit="return false;">
           <div class="transfer-field-group">
-            <label for="transferRecipientSelect">Select Fellow Grinder</label>
-            <select id="transferRecipientSelect" class="transfer-select">
-              <option value="">— Choose a fellow grinder —</option>
-            </select>
-          </div>
-
-          <div class="transfer-field-group">
-            <label for="transferRecipientInput">Or enter friend's name or Gmail</label>
-            <input type="text" id="transferRecipientInput" placeholder="e.g. Siya or siya@gmail.com" autocomplete="off" />
+            <label for="transferRecipientInput">Enter your friend's name or Gmail</label>
+            <input type="text" id="transferRecipientInput" placeholder="Enter friend's name or Gmail (e.g. Siya or siya@gmail.com)" required autocomplete="off" />
           </div>
 
           <div class="transfer-field-group">
@@ -481,10 +484,40 @@
       </div>
     </dialog>
 
+    <!-- Trophy Mailbox Modal -->
+    <dialog class="modal mailbox-modal" id="mailboxModal">
+      <div class="modal-card mailbox-modal-card">
+        <button class="modal-close" type="button" id="closeMailboxModalBtn" aria-label="Close" onclick="document.getElementById('mailboxModal').close()">×</button>
+        <div class="mailbox-header">
+          <div class="mailbox-icon-wrap">📬</div>
+          <div class="mailbox-title-wrap">
+            <span class="eyebrow" style="color:#38bdf8;">TROPHY NETWORK & LOGS</span>
+            <h2>Trophy Mailbox</h2>
+            <p>Real-time notifications and logs of trophies received and sent.</p>
+          </div>
+        </div>
+
+        <div class="mailbox-tabs">
+          <button type="button" class="mailbox-tab is-active" data-mb-filter="all">All Logs (<span id="mbCountAll">0</span>)</button>
+          <button type="button" class="mailbox-tab" data-mb-filter="received">🎁 Received (<span id="mbCountReceived">0</span>)</button>
+          <button type="button" class="mailbox-tab" data-mb-filter="sent">📤 Sent (<span id="mbCountSent">0</span>)</button>
+        </div>
+
+        <div class="mailbox-list-wrap" id="mailboxListContainer">
+          <!-- Dynamically populated -->
+        </div>
+
+        <div class="mailbox-actions">
+          <button type="button" class="button button-ghost" onclick="document.getElementById('mailboxModal').close()">Close</button>
+          <button type="button" class="button button-accent" id="mbOpenSendBtn"><span>🎁 Gift Trophies to Friend</span></button>
+        </div>
+      </div>
+    </dialog>
+
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    <script src="auth.js?v=4.0"></script>
-    <script src="quiz.js?v=4.0"></script>
-    <script src="app.js?v=4.0"></script>
+    <script src="auth.js?v=5.0"></script>
+    <script src="quiz.js?v=5.0"></script>
+    <script src="app.js?v=5.0"></script>
   </body>
 </html>

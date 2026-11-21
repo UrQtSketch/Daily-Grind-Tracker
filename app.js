@@ -636,7 +636,7 @@
   let activeQuizReport = null;
   let currentQuestionSelectedOption = null;
   const weekLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  const validViews = ["dashboard", "vault", "quiz", "leaderboard", "habits", "goals", "analytics", "history", "journal", "notes", "settings", "support", "admin"];
+  const validViews = ["dashboard", "vault", "mailbox", "quiz", "leaderboard", "habits", "goals", "analytics", "history", "journal", "notes", "settings", "support", "admin"];
 
   /* -------------------------------------------------------------
      30-TIER DISCIPLINED TITLES PROGRESSION ROSTER
@@ -910,7 +910,18 @@
       quizRewards: [],
       quizDailyUsage: null,
       trophies: 20,
-      trophyTransfers: [],
+      trophyTransfers: [
+        {
+          id: "demo_tx_1",
+          type: "received",
+          counterpartyName: "Siya",
+          counterpartyEmail: "siya@gmail.com",
+          amount: 5,
+          note: "Keep grinding! Here are 5 trophies for your consistency.",
+          timestamp: new Date().toISOString(),
+          isRead: false
+        }
+      ],
       lastActiveDate: localDateKey(),
       recentPenalty: null,
       rewards: {
@@ -2049,6 +2060,7 @@
     const metrics = trackerMetrics();
     const pageMeta = {
       vault: ["Trophy Vault & Titles", "Your disciplined achievements, hard-earned titles, and daily trophy ledger.", "🏆"],
+      mailbox: ["Trophy Mailbox & Transfer Logs", "Real-time records of all trophies you received from friends and gifted to others.", "📬"],
       quiz: ["Skill Quiz Arena", "Test your knowledge in Data Science, Web Dev, and AI/ML with 2-minute timed questions & earn vault trophies.", "⚡"],
       leaderboard: ["Global Live Leaderboard", "Real-time rankings of disciplined grinders worldwide. Compete, complete daily tasks, earn trophies, and climb to #1.", "🏅"],
       habits: ["Daily habits", "Small actions repeated become your system.", "◌"],
@@ -2312,6 +2324,65 @@
           </div>
         </div>
       `;
+    }
+
+    if (view === "mailbox") {
+      const transfers = Array.isArray(trackerState?.trophyTransfers) ? trackerState.trophyTransfers : [];
+      const received = transfers.filter(t => t.type === "received");
+      const sent = transfers.filter(t => t.type === "sent");
+      const unreadCount = received.filter(t => !t.isRead).length;
+
+      content = `
+        <div class="mailbox-view-layout" style="display:flex; flex-direction:column; gap:20px;">
+          <div class="mailbox-hero-card" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; padding:22px 24px; border-radius:14px; background:linear-gradient(135deg, rgba(14, 165, 233, 0.12), rgba(15, 23, 42, 0.8)); border:1px solid rgba(56, 189, 248, 0.3);">
+            <div style="display:flex; align-items:center; gap:16px;">
+              <div style="font-size:36px; width:56px; height:56px; display:grid; place-items:center; border-radius:14px; background:rgba(56, 189, 248, 0.15); border:1px solid rgba(56, 189, 248, 0.35);">📬</div>
+              <div>
+                <span class="eyebrow" style="color:#38bdf8;">TROPHY NETWORK & SOCIAL LOGS</span>
+                <h2 style="margin:4px 0 6px; font-size:22px;">Trophy Mailbox</h2>
+                <p style="margin:0; font-size:13px; color:#94a3b8;">Real-time notifications and logs of trophies received from friends and sent transfers.</p>
+              </div>
+            </div>
+            <button type="button" class="button button-accent" data-action="send-trophies" style="padding:10px 18px; font-weight:800;">
+              <span>🎁 Gift Trophies to Friend</span>
+            </button>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px;">
+            <div style="padding:16px; border-radius:10px; background:rgba(15, 23, 42, 0.6); border:1px solid rgba(255, 255, 255, 0.08); text-align:center;">
+              <strong style="display:block; font-size:22px; color:#f8fafc;">${transfers.length}</strong>
+              <span style="font-size:11px; color:#8fa1b8; font-weight:700;">TOTAL TRANSFERS</span>
+            </div>
+            <div style="padding:16px; border-radius:10px; background:rgba(15, 23, 42, 0.6); border:1px solid rgba(255, 255, 255, 0.08); text-align:center;">
+              <strong style="display:block; font-size:22px; color:#4ade80;">+${received.reduce((acc, t) => acc + (t.amount || 0), 0)} 🏆</strong>
+              <span style="font-size:11px; color:#8fa1b8; font-weight:700;">TROPHIES RECEIVED</span>
+            </div>
+            <div style="padding:16px; border-radius:10px; background:rgba(15, 23, 42, 0.6); border:1px solid rgba(255, 255, 255, 0.08); text-align:center;">
+              <strong style="display:block; font-size:22px; color:#fbbf24;">-${sent.reduce((acc, t) => acc + (t.amount || 0), 0)} 🏆</strong>
+              <span style="font-size:11px; color:#8fa1b8; font-weight:700;">TROPHIES SENT</span>
+            </div>
+            <div style="padding:16px; border-radius:10px; background:rgba(15, 23, 42, 0.6); border:1px solid rgba(255, 255, 255, 0.08); text-align:center;">
+              <strong style="display:block; font-size:22px; color:${unreadCount > 0 ? '#38bdf8' : '#8fa1b8'};">${unreadCount}</strong>
+              <span style="font-size:11px; color:#8fa1b8; font-weight:700;">UNREAD MESSAGES</span>
+            </div>
+          </div>
+
+          <div style="background:rgba(15, 23, 42, 0.7); border:1px solid rgba(255, 255, 255, 0.08); border-radius:14px; padding:20px;">
+            <div class="mailbox-tabs" id="pageMailboxTabs" style="margin-bottom:14px;">
+              <button type="button" class="mailbox-tab is-active" data-page-mb-filter="all">All Logs (${transfers.length})</button>
+              <button type="button" class="mailbox-tab" data-page-mb-filter="received">🎁 Received (${received.length})</button>
+              <button type="button" class="mailbox-tab" data-page-mb-filter="sent">📤 Sent (${sent.length})</button>
+            </div>
+            <div class="mailbox-list-wrap" id="pageMailboxListContainer" style="max-height:550px;">
+              ${renderMailboxItemsHtml(transfers, "all")}
+            </div>
+          </div>
+        </div>
+      `;
+
+      setTimeout(() => {
+        markMailboxAsRead();
+      }, 500);
     }
 
     if (view === "quiz") {
@@ -4506,13 +4577,227 @@
     });
 
     initSendTrophySystem();
+    initMailboxSystem();
+  }
+
+  function renderMailboxItemsHtml(transfers, filter = "all") {
+    let list = Array.isArray(transfers) ? transfers : [];
+    if (filter === "received") list = list.filter(t => t.type === "received");
+    else if (filter === "sent") list = list.filter(t => t.type === "sent");
+
+    if (!list.length) {
+      return `
+        <div class="mailbox-empty-state">
+          <div class="mailbox-empty-icon">📭</div>
+          <h3>No Trophy Logs Found</h3>
+          <p>${filter === "received" ? "You haven't received any trophies yet. Stay consistent and friends can gift you trophies!" : (filter === "sent" ? "You haven't sent any trophies yet. Gift trophies to friends to keep their fire burning!" : "No trophy gifts or transfers logged yet. Send or receive trophies to see records here.")}</p>
+        </div>
+      `;
+    }
+
+    return list.map(item => {
+      const isReceived = item.type === "received";
+      const isUnread = isReceived && item.isRead === false;
+      const counterName = item.counterpartyName || (item.counterpartyEmail ? item.counterpartyEmail.split("@")[0] : "Fellow Grinder");
+      const dateStr = item.timestamp ? new Date(item.timestamp).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "Recently";
+
+      return `
+        <div class="mailbox-item ${isReceived ? 'is-received' : 'is-sent'} ${isUnread ? 'is-unread' : ''}">
+          <div class="mb-item-top">
+            <div class="mb-item-user-info">
+              <div class="mb-item-avatar ${isReceived ? '' : 'sent-avatar'}">
+                ${isReceived ? '🎁' : '📤'}
+              </div>
+              <div class="mb-item-title-text">
+                <strong>${isReceived ? `${escapeHtml(counterName)} sent you ${item.amount} 🏆 Trophies!` : `You gifted ${item.amount} 🏆 Trophies to ${escapeHtml(counterName)}`}</strong>
+                <small>${escapeHtml(item.counterpartyEmail || counterName)} ${isUnread ? '<span style="color:#4ade80; font-weight:800; margin-left:4px;">● NEW</span>' : ''}</small>
+              </div>
+            </div>
+            <div class="mb-amount-chip ${isReceived ? 'plus' : 'minus'}">
+              ${isReceived ? `+${item.amount} 🏆` : `-${item.amount} 🏆`}
+            </div>
+          </div>
+          ${item.note ? `<p class="mb-item-note">“${escapeHtml(item.note)}”</p>` : ''}
+          <div class="mb-item-footer">
+            <span class="mb-item-date">⏱ ${dateStr}</span>
+            ${isReceived ? `
+              <button type="button" class="mb-reply-btn" data-action="send-trophies" data-recipient="${escapeHtml(item.counterpartyEmail || counterName)}">
+                <span>Gift Back 🏆</span>
+              </button>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  async function markMailboxAsRead() {
+    let unreadExists = false;
+    if (Array.isArray(trackerState?.trophyTransfers)) {
+      trackerState.trophyTransfers.forEach(t => {
+        if (t.type === "received" && t.isRead === false) {
+          t.isRead = true;
+          unreadExists = true;
+        }
+      });
+    }
+    refreshMailboxBadges();
+    if (unreadExists) {
+      saveTrackerState(false);
+      if (!isDemo() && auth.getToken()) {
+        try {
+          await auth.markMailboxRead();
+        } catch (e) {}
+      }
+    }
+  }
+
+  function refreshMailboxBadges() {
+    const transfers = Array.isArray(trackerState?.trophyTransfers) ? trackerState.trophyTransfers : [];
+    const received = transfers.filter(t => t.type === "received");
+    const sent = transfers.filter(t => t.type === "sent");
+    const unreadCount = received.filter(t => t.isRead === false).length;
+
+    const sidebarBadge = $("#sidebarMailboxBadge");
+    const topbarBadge = $("#topbarMailboxBadge");
+    const profileBadge = $("#profileMailboxBadge");
+
+    if (sidebarBadge) {
+      if (unreadCount > 0) {
+        sidebarBadge.textContent = unreadCount;
+        sidebarBadge.style.display = "inline-flex";
+      } else {
+        sidebarBadge.style.display = "none";
+      }
+    }
+
+    if (topbarBadge) {
+      if (unreadCount > 0) {
+        topbarBadge.textContent = unreadCount;
+        topbarBadge.style.display = "inline-flex";
+      } else {
+        topbarBadge.style.display = "none";
+      }
+    }
+
+    if (profileBadge) {
+      if (unreadCount > 0) {
+        profileBadge.textContent = unreadCount;
+        profileBadge.style.display = "inline-flex";
+      } else {
+        profileBadge.style.display = "none";
+      }
+    }
+
+    const countAll = $("#mbCountAll");
+    const countRec = $("#mbCountReceived");
+    const countSent = $("#mbCountSent");
+    if (countAll) countAll.textContent = transfers.length;
+    if (countRec) countRec.textContent = received.length;
+    if (countSent) countSent.textContent = sent.length;
+  }
+
+  function initMailboxSystem() {
+    const modal = $("#mailboxModal");
+    let activeFilter = "all";
+
+    function renderModalList() {
+      const container = $("#mailboxListContainer");
+      if (!container) return;
+      const transfers = Array.isArray(trackerState?.trophyTransfers) ? trackerState.trophyTransfers : [];
+      container.innerHTML = renderMailboxItemsHtml(transfers, activeFilter);
+    }
+
+    async function openModal() {
+      if (!modal) return;
+      activeFilter = "all";
+      modal.querySelectorAll(".mailbox-tab").forEach(tab => {
+        tab.classList.toggle("is-active", tab.dataset.mbFilter === "all");
+      });
+
+      if (!isDemo() && auth.getToken()) {
+        try {
+          const res = await auth.getMailboxMessages();
+          if (res && res.success && Array.isArray(res.messages)) {
+            trackerState.trophyTransfers = res.messages;
+          }
+        } catch (e) {}
+      }
+
+      refreshMailboxBadges();
+      renderModalList();
+
+      try {
+        modal.showModal();
+      } catch {
+        modal.setAttribute("open", "true");
+      }
+
+      // Automatically mark as read when opened
+      markMailboxAsRead();
+    }
+
+    if (modal) {
+      modal.querySelectorAll(".mailbox-tab[data-mb-filter]").forEach(tab => {
+        tab.addEventListener("click", () => {
+          modal.querySelectorAll(".mailbox-tab").forEach(t => t.classList.remove("is-active"));
+          tab.classList.add("is-active");
+          activeFilter = tab.dataset.mbFilter || "all";
+          renderModalList();
+        });
+      });
+    }
+
+    const topbarBtn = $("#topbarMailboxBtn");
+    if (topbarBtn) {
+      topbarBtn.addEventListener("click", () => openModal());
+    }
+
+    const profileBtn = $("#profileMailboxBtn");
+    if (profileBtn) {
+      profileBtn.addEventListener("click", () => {
+        if ($("#profileMenu")) $("#profileMenu").hidden = true;
+        openModal();
+      });
+    }
+
+    const mbSendBtn = $("#mbOpenSendBtn");
+    if (mbSendBtn) {
+      mbSendBtn.addEventListener("click", () => {
+        if (modal && modal.open) modal.close();
+        if (typeof window.openSendTrophyModal === "function") {
+          window.openSendTrophyModal();
+        }
+      });
+    }
+
+    // Page view tabs delegation
+    document.addEventListener("click", (e) => {
+      const tab = e.target.closest("[data-page-mb-filter]");
+      if (tab) {
+        const parent = tab.closest(".mailbox-tabs");
+        if (parent) {
+          parent.querySelectorAll(".mailbox-tab").forEach(t => t.classList.remove("is-active"));
+          tab.classList.add("is-active");
+        }
+        const filter = tab.dataset.pageMbFilter || "all";
+        const container = $("#pageMailboxListContainer");
+        if (container) {
+          const transfers = Array.isArray(trackerState?.trophyTransfers) ? trackerState.trophyTransfers : [];
+          container.innerHTML = renderMailboxItemsHtml(transfers, filter);
+        }
+      }
+    });
+
+    refreshMailboxBadges();
+    window.openMailboxModal = openModal;
+    window.refreshMailboxBadges = refreshMailboxBadges;
   }
 
   function initSendTrophySystem() {
     const modal = $("#sendTrophyModal");
     if (!modal) return;
 
-    const selectEl = $("#transferRecipientSelect");
     const inputEl = $("#transferRecipientInput");
     const amountEl = $("#transferAmountInput");
     const noteEl = $("#transferNoteInput");
@@ -4547,34 +4832,11 @@
       if (noteEl) noteEl.value = "";
       updateRemainingHint();
 
-      // Populate recipients
-      if (selectEl) {
-        selectEl.innerHTML = `<option value="">— Loading fellow grinders... —</option>`;
-        try {
-          const recipients = await auth.getTransferRecipients();
-          selectEl.innerHTML = `<option value="">— Choose a fellow grinder —</option>`;
-          (recipients || []).forEach(r => {
-            const opt = document.createElement("option");
-            opt.value = r.email;
-            opt.dataset.name = r.name;
-            opt.textContent = `${r.name} (${r.email}) · ${r.trophies || 0} 🏆`;
-            if (preselected && (r.name.toLowerCase() === preselected.toLowerCase() || r.email.toLowerCase() === preselected.toLowerCase())) {
-              opt.selected = true;
-            }
-            selectEl.appendChild(opt);
-          });
-        } catch (e) {
-          selectEl.innerHTML = `
-            <option value="">— Choose a fellow grinder —</option>
-            <option value="siya@gmail.com" data-name="Siya">Siya (siya@gmail.com) · 2 🏆</option>
-            <option value="kabir@test.com" data-name="Kabir Verma">Kabir Verma (kabir@test.com) · 3 🏆</option>
-            <option value="sneha@test.com" data-name="Sneha Roy">Sneha Roy (sneha@test.com) · 4 🏆</option>
-          `;
-        }
-      }
-
-      if (preselected && inputEl) {
-        inputEl.value = preselected;
+      if (inputEl) {
+        inputEl.value = preselected || "";
+        setTimeout(() => {
+          try { inputEl.focus(); } catch (e) {}
+        }, 100);
       }
 
       try {
@@ -4582,15 +4844,6 @@
       } catch {
         modal.setAttribute("open", "true");
       }
-    }
-
-    if (selectEl && inputEl) {
-      selectEl.addEventListener("change", () => {
-        const selected = selectEl.options[selectEl.selectedIndex];
-        if (selected && selected.value) {
-          inputEl.value = selected.dataset.name || selected.value;
-        }
-      });
     }
 
     if (amountEl) {
@@ -4620,12 +4873,12 @@
 
     async function handleTransfer() {
       const currentVault = calculateTotalTrophies();
-      const recipient = (inputEl.value || selectEl.value || "").trim();
-      const amt = parseInt(amountEl.value, 10);
+      const recipient = (inputEl ? inputEl.value : "").trim();
+      const amt = parseInt(amountEl ? amountEl.value : 0, 10);
       const note = (noteEl ? noteEl.value : "").trim();
 
       if (!recipient) {
-        showError("Please select or enter a recipient (e.g. Siya or siya@gmail.com).");
+        showError("Please enter your friend's name or Gmail (e.g. Siya or siya@gmail.com).");
         return;
       }
       if (isNaN(amt) || amt < 1) {
@@ -4660,13 +4913,16 @@
             counterpartyEmail: recipient.includes("@") ? recipient : `${recipient.toLowerCase()}@grind.local`,
             amount: amt,
             note: note,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            isRead: true
           };
           trackerState.trophyTransfers = trackerState.trophyTransfers || [];
           trackerState.trophyTransfers.unshift(tx);
           saveTrackerState(false);
           updateTrophyDisplay();
+          refreshMailboxBadges();
           if (currentView === "vault") renderSecondaryView("vault");
+          if (currentView === "mailbox") renderSecondaryView("mailbox");
           showToast(`🎁 Gift sent! Transferred ${amt} trophies to ${targetName}.`);
           modal.close();
           startConfetti();
@@ -4681,7 +4937,9 @@
             }
             saveTrackerState(false);
             updateTrophyDisplay();
+            refreshMailboxBadges();
             if (currentView === "vault") renderSecondaryView("vault");
+            if (currentView === "mailbox") renderSecondaryView("mailbox");
             showToast(`🎁 Transferred ${amt} trophies to ${res.recipientName}!`);
             modal.close();
             startConfetti();

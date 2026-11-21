@@ -309,8 +309,19 @@
       },
       "quizRewards": [],
       "quizDailyUsage": null,
-      "trophies": 20,
-      "trophyTransfers": [],
+      "trophies": 25,
+      "trophyTransfers": [
+        {
+          "id": "tx_siya_gift_1",
+          "type": "received",
+          "counterpartyEmail": "siya@gmail.com",
+          "counterpartyName": "Siya",
+          "amount": 5,
+          "note": "Keep grinding Deepak! Here are 5 trophies for your consistency.",
+          "timestamp": "2026-11-21T12:10:00.000Z",
+          "isRead": false
+        }
+      ],
       "lastActiveDate": "2026-11-21",
       "lastReminderDate": null,
       "recentPenalty": null,
@@ -332,8 +343,19 @@
       },
       "quizRewards": [],
       "quizDailyUsage": null,
-      "trophies": 2,
-      "trophyTransfers": [],
+      "trophies": 7,
+      "trophyTransfers": [
+        {
+          "id": "tx_1795263220697_8977c",
+          "type": "received",
+          "counterpartyEmail": "deepak222@gmail.com",
+          "counterpartyName": "deepak",
+          "amount": 5,
+          "note": "Here are 5 trophies for you!",
+          "timestamp": "2026-11-21T12:13:40.698Z",
+          "isRead": true
+        }
+      ],
       "lastActiveDate": "2026-09-16",
       "lastReminderDate": null,
       "recentPenalty": null,

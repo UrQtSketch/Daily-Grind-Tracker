@@ -1066,7 +1066,8 @@ module.exports = {
       counterpartyName: recipientName,
       amount: numAmount,
       note: cleanNote,
-      timestamp: nowIso
+      timestamp: nowIso,
+      isRead: true
     };
 
     const recipientTx = {
@@ -1076,7 +1077,8 @@ module.exports = {
       counterpartyName: senderName,
       amount: numAmount,
       note: cleanNote,
-      timestamp: nowIso
+      timestamp: nowIso,
+      isRead: false
     };
 
     const newSenderTrophies = Math.max(0, senderTrophies - numAmount);
@@ -1136,5 +1138,44 @@ module.exports = {
       amount: numAmount,
       transaction: senderTx
     };
+  },
+
+  async getMailboxMessages(email) {
+    const cleanEmail = (email || "").trim().toLowerCase();
+    const state = await this.getTrackerState(cleanEmail);
+    const transfers = Array.isArray(state.trophyTransfers) ? state.trophyTransfers : [];
+    const unreadCount = transfers.filter(t => t.type === "received" && t.isRead === false).length;
+    return {
+      messages: transfers,
+      unreadCount
+    };
+  },
+
+  async markMailboxRead(email) {
+    const cleanEmail = (email || "").trim().toLowerCase();
+    const state = await this.getTrackerState(cleanEmail);
+    const transfers = Array.isArray(state.trophyTransfers) ? state.trophyTransfers : [];
+    let updatedAny = false;
+    for (const t of transfers) {
+      if (t.type === "received" && t.isRead === false) {
+        t.isRead = true;
+        updatedAny = true;
+      }
+    }
+    if (updatedAny) {
+      if (isMongoConnected) {
+        await TrackerStateModel.findOneAndUpdate(
+          { email: cleanEmail },
+          { $set: { trophyTransfers: transfers } }
+        );
+      } else {
+        const db = readLocalDb();
+        if (db.trackerStates && db.trackerStates[cleanEmail]) {
+          db.trackerStates[cleanEmail].trophyTransfers = transfers;
+          writeLocalDb(db);
+        }
+      }
+    }
+    return { success: true };
   }
 };

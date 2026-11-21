@@ -760,6 +760,25 @@ app.post("/api/trophies/transfer", authenticate, async (req, res) => {
   }
 });
 
+// Mailbox endpoints
+app.get("/api/trophies/mailbox", authenticate, async (req, res) => {
+  try {
+    const data = await db.getMailboxMessages(req.user.email);
+    res.json({ success: true, ...data });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to load mailbox messages" });
+  }
+});
+
+app.post("/api/trophies/mailbox/read", authenticate, async (req, res) => {
+  try {
+    await db.markMailboxRead(req.user.email);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to mark messages as read" });
+  }
+});
+
 // Support / Feedback endpoint
 app.post("/api/support/feedback", async (req, res) => {
   try {

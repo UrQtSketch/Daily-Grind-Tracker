@@ -320,6 +320,38 @@
         }
       }
       return null;
+    },
+
+    async getMailboxMessages() {
+      if (isHttp()) {
+        const token = this.getToken();
+        if (token) {
+          try {
+            const res = await fetch("/api/trophies/mailbox", {
+              headers: { "Authorization": `Bearer ${token}` }
+            });
+            if (res.ok) {
+              const data = await res.json();
+              return data;
+            }
+          } catch {}
+        }
+      }
+      return null;
+    },
+
+    async markMailboxRead() {
+      if (isHttp()) {
+        const token = this.getToken();
+        if (token) {
+          try {
+            await fetch("/api/trophies/mailbox/read", {
+              method: "POST",
+              headers: { "Authorization": `Bearer ${token}` }
+            });
+          } catch {}
+        }
+      }
     }
   };
 })();
