@@ -1032,8 +1032,14 @@ module.exports = {
       if (recipient) recipientEmail = recipient.email.toLowerCase();
     } else {
       const allUsers = await this.getAllUsers();
-      recipient = allUsers.find(u => u.name && u.name.trim().toLowerCase() === cleanRecipientId.toLowerCase());
-      if (recipient) recipientEmail = recipient.email.toLowerCase();
+      const matches = allUsers.filter(u => u.name && u.name.trim().toLowerCase() === cleanRecipientId.toLowerCase());
+      if (matches.length > 1) {
+        const emailList = matches.map(m => m.email).join(", ");
+        throw new Error(`Multiple grinders found with name "${cleanRecipientId}" (${emailList}). Please enter their specific Gmail address to ensure your trophies reach the right friend.`);
+      } else if (matches.length === 1) {
+        recipient = matches[0];
+        recipientEmail = recipient.email.toLowerCase();
+      }
     }
 
     if (!recipient) {

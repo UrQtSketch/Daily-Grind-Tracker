@@ -309,8 +309,18 @@
       },
       "quizRewards": [],
       "quizDailyUsage": null,
-      "trophies": 25,
+      "trophies": 24,
       "trophyTransfers": [
+        {
+          "id": "tx_1795263608070_kya09",
+          "type": "sent",
+          "counterpartyEmail": "warrior.1789539743536@gmail.com",
+          "counterpartyName": "Warrior Student",
+          "amount": 1,
+          "note": "Test specific Gmail",
+          "timestamp": "2026-11-21T12:20:08.070Z",
+          "isRead": true
+        },
         {
           "id": "tx_siya_gift_1",
           "type": "received",
@@ -367,7 +377,20 @@
       "notes": [],
       "journal": [],
       "rewards": {},
-      "updatedAt": "2026-09-16T06:22:23.538Z"
+      "updatedAt": "2026-09-16T06:22:23.538Z",
+      "trophies": 1,
+      "trophyTransfers": [
+        {
+          "id": "tx_1795263608070_kya09",
+          "type": "received",
+          "counterpartyEmail": "deepak222@gmail.com",
+          "counterpartyName": "deepak",
+          "amount": 1,
+          "note": "Test specific Gmail",
+          "timestamp": "2026-11-21T12:20:08.070Z",
+          "isRead": false
+        }
+      ]
     },
     "warrior.1789539773512@gmail.com": {
       "dailyTasks": {},

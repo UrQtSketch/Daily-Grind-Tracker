@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=5.0" />
+    <link rel="stylesheet" href="styles.css?v=5.1" />
   </head>
   <body class="app-body">
     <div class="ambient ambient-one"></div>
@@ -448,9 +448,13 @@
         </div>
 
         <form id="sendTrophyForm" class="transfer-form" onsubmit="return false;">
-          <div class="transfer-field-group">
+          <div class="transfer-field-group recipient-group-wrapper">
             <label for="transferRecipientInput">Enter your friend's name or Gmail</label>
-            <input type="text" id="transferRecipientInput" placeholder="Enter friend's name or Gmail (e.g. Siya or siya@gmail.com)" required autocomplete="off" />
+            <div class="recipient-input-wrapper">
+              <input type="text" id="transferRecipientInput" placeholder="Type name or Gmail (e.g. Siya or siya@gmail.com)" required autocomplete="off" />
+              <div id="transferRecipientSuggestions" class="transfer-suggestions-dropdown" style="display:none;"></div>
+            </div>
+            <div id="recipientSelectedHint" class="recipient-selected-hint" style="display:none;"></div>
           </div>
 
           <div class="transfer-field-group">
@@ -516,8 +520,8 @@
 
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    <script src="auth.js?v=5.0"></script>
-    <script src="quiz.js?v=5.0"></script>
-    <script src="app.js?v=5.0"></script>
+    <script src="auth.js?v=5.1"></script>
+    <script src="quiz.js?v=5.1"></script>
+    <script src="app.js?v=5.1"></script>
   </body>
 </html>

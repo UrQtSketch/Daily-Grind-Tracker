@@ -4799,12 +4799,16 @@
     if (!modal) return;
 
     const inputEl = $("#transferRecipientInput");
+    const suggestionsEl = $("#transferRecipientSuggestions");
+    const selectedHintEl = $("#recipientSelectedHint");
     const amountEl = $("#transferAmountInput");
     const noteEl = $("#transferNoteInput");
     const balanceEl = $("#transferSenderBalance");
     const remainingCountEl = $("#transferRemainingCount");
     const feedbackEl = $("#transferFeedback");
     const submitBtn = $("#confirmSendTrophyBtn");
+
+    let cachedRecipients = [];
 
     function updateRemainingHint() {
       const currentVault = calculateTotalTrophies();
@@ -4814,6 +4818,51 @@
       if (balanceEl) balanceEl.textContent = `${currentVault} 🏆`;
     }
 
+    function renderSuggestions(q) {
+      if (!suggestionsEl) return;
+      const query = (q || "").trim().toLowerCase();
+      if (!query) {
+        suggestionsEl.style.display = "none";
+        return;
+      }
+
+      const matches = cachedRecipients.filter(r => {
+        const n = (r.name || "").toLowerCase();
+        const em = (r.email || "").toLowerCase();
+        return n.includes(query) || em.includes(query);
+      });
+
+      if (matches.length > 0) {
+        suggestionsEl.innerHTML = matches.slice(0, 6).map(r => `
+          <div class="suggestion-item" data-email="${escapeHtml(r.email)}" data-name="${escapeHtml(r.name || r.email)}">
+            <div class="suggestion-avatar">${escapeHtml((r.name || r.email).slice(0, 1).toUpperCase())}</div>
+            <div class="suggestion-info">
+              <span class="suggestion-name">${escapeHtml(r.name || r.email.split("@")[0])}</span>
+              <span class="suggestion-email">${escapeHtml(r.email)}</span>
+            </div>
+            <div class="suggestion-trophy">${r.trophies || 0} 🏆</div>
+          </div>
+        `).join("");
+        suggestionsEl.style.display = "flex";
+      } else {
+        if (query.includes("@")) {
+          suggestionsEl.innerHTML = `
+            <div class="suggestion-custom">
+              Sending directly to Gmail: <strong>${escapeHtml(query)}</strong>
+            </div>
+          `;
+          suggestionsEl.style.display = "flex";
+        } else {
+          suggestionsEl.innerHTML = `
+            <div class="suggestion-empty">
+              No grinder found with name "${escapeHtml(query)}". Try typing their Gmail address.
+            </div>
+          `;
+          suggestionsEl.style.display = "flex";
+        }
+      }
+    }
+
     async function openModal(preselected = "") {
       const currentVault = calculateTotalTrophies();
       if (balanceEl) balanceEl.textContent = `${currentVault} 🏆`;
@@ -4821,6 +4870,11 @@
         feedbackEl.style.display = "none";
         feedbackEl.textContent = "";
         feedbackEl.className = "transfer-feedback";
+      }
+      if (suggestionsEl) suggestionsEl.style.display = "none";
+      if (selectedHintEl) {
+        selectedHintEl.style.display = "none";
+        selectedHintEl.textContent = "";
       }
 
       // Default amount: 5 trophies (or current vault if less)
@@ -4832,8 +4886,35 @@
       if (noteEl) noteEl.value = "";
       updateRemainingHint();
 
+      // Fetch recipients for live autocomplete
+      try {
+        const fetched = await auth.getTransferRecipients();
+        if (Array.isArray(fetched) && fetched.length) {
+          cachedRecipients = fetched;
+        } else {
+          cachedRecipients = [
+            { name: "Siya", email: "siya@gmail.com", trophies: 2 },
+            { name: "Kabir Verma", email: "kabir@test.com", trophies: 3 },
+            { name: "Sneha Roy", email: "sneha@test.com", trophies: 4 }
+          ];
+        }
+      } catch {
+        cachedRecipients = [
+          { name: "Siya", email: "siya@gmail.com", trophies: 2 },
+          { name: "Kabir Verma", email: "kabir@test.com", trophies: 3 },
+          { name: "Sneha Roy", email: "sneha@test.com", trophies: 4 }
+        ];
+      }
+
       if (inputEl) {
         inputEl.value = preselected || "";
+        if (preselected && selectedHintEl) {
+          const found = cachedRecipients.find(r => r.email.toLowerCase() === preselected.toLowerCase() || (r.name && r.name.toLowerCase() === preselected.toLowerCase()));
+          if (found) {
+            selectedHintEl.innerHTML = `✓ Selected: <b>${escapeHtml(found.name)}</b> (<code>${escapeHtml(found.email)}</code>)`;
+            selectedHintEl.style.display = "block";
+          }
+        }
         setTimeout(() => {
           try { inputEl.focus(); } catch (e) {}
         }, 100);
@@ -4845,6 +4926,40 @@
         modal.setAttribute("open", "true");
       }
     }
+
+    if (inputEl) {
+      inputEl.addEventListener("input", (e) => {
+        if (selectedHintEl) selectedHintEl.style.display = "none";
+        if (feedbackEl) feedbackEl.style.display = "none";
+        renderSuggestions(e.target.value);
+      });
+
+      inputEl.addEventListener("focus", (e) => {
+        if (e.target.value.trim()) renderSuggestions(e.target.value);
+      });
+    }
+
+    if (suggestionsEl) {
+      suggestionsEl.addEventListener("click", (e) => {
+        const item = e.target.closest(".suggestion-item");
+        if (item) {
+          const email = item.dataset.email;
+          const name = item.dataset.name;
+          if (inputEl) inputEl.value = email;
+          suggestionsEl.style.display = "none";
+          if (selectedHintEl) {
+            selectedHintEl.innerHTML = `✓ Selected: <b>${escapeHtml(name)}</b> (<code>${escapeHtml(email)}</code>)`;
+            selectedHintEl.style.display = "block";
+          }
+        }
+      });
+    }
+
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest(".recipient-input-wrapper") && suggestionsEl) {
+        suggestionsEl.style.display = "none";
+      }
+    });
 
     if (amountEl) {
       amountEl.addEventListener("input", updateRemainingHint);
@@ -4903,6 +5018,15 @@
 
       try {
         if (isDemo() || !auth.getToken()) {
+          // Demo mode duplicate name check
+          if (!recipient.includes("@") && Array.isArray(cachedRecipients)) {
+            const matches = cachedRecipients.filter(r => (r.name || "").toLowerCase() === recipient.toLowerCase());
+            if (matches.length > 1) {
+              showError(`Multiple users found with name "${recipient}" (${matches.map(m => m.email).join(", ")}). Please enter their specific Gmail address.`);
+              return;
+            }
+          }
+
           // Demo mode transfer
           trackerState.trophies = Math.max(0, currentVault - amt);
           const targetName = recipient.includes("@") ? recipient.split("@")[0] : recipient;
