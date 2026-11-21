@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=5.4" />
+    <link rel="stylesheet" href="styles.css?v=5.5" />
   </head>
   <body class="app-body">
     <div class="ambient ambient-one"></div>
@@ -84,28 +84,28 @@
               <small>Mailbox</small>
               <span class="mailbox-badge-count" id="topbarMailboxBadge" style="display:none;">0</span>
             </button>
-            <div class="profile-wrap">
-              <button class="profile-button" id="profileButton" type="button" aria-expanded="false">
-                <span class="avatar" data-avatar>S</span><strong data-profile-name>Sketch</strong><span class="chevron">⌄</span>
+          </div>
+          <div class="profile-wrap">
+            <button class="profile-button" id="profileButton" type="button" aria-expanded="false">
+              <span class="avatar" data-avatar>S</span><strong data-profile-name>Sketch</strong><span class="chevron">⌄</span>
+            </button>
+            <div class="profile-menu" id="profileMenu" hidden>
+              <p>Signed in as <strong data-profile-email>guest@dailygrind.local</strong></p>
+              <a href="#vault" id="profileVaultLink" style="display:flex; align-items:center; gap:8px; font-size:12px; color:#ffca42; margin:8px 0 6px; text-decoration:none; padding:6px 10px; background:rgba(255,193,7,.12); border-radius:6px; border:1px solid rgba(255,193,7,.3);">
+                <span>🏆</span><span><b><strong id="profileTrophyCount">0</strong> Trophies</b> · Open Vault →</span>
+              </a>
+              <button id="profileSendTrophyBtn" type="button" style="display:flex; align-items:center; gap:8px; width:100%; font-size:12px; color:#4ade80; margin:4px 0; text-decoration:none; padding:6px 10px; background:rgba(74,222,128,.12); border-radius:6px; border:1px solid rgba(74,222,128,.3); cursor:pointer; text-align:left;">
+                <span>🎁</span><span><b>Send Trophies</b> · Gift a Friend</span>
               </button>
-              <div class="profile-menu" id="profileMenu" hidden>
-                <p>Signed in as <strong data-profile-email>guest@dailygrind.local</strong></p>
-                <a href="#vault" id="profileVaultLink" style="display:flex; align-items:center; gap:8px; font-size:12px; color:#ffca42; margin:8px 0 6px; text-decoration:none; padding:6px 10px; background:rgba(255,193,7,.12); border-radius:6px; border:1px solid rgba(255,193,7,.3);">
-                  <span>🏆</span><span><b><strong id="profileTrophyCount">0</strong> Trophies</b> · Open Vault →</span>
-                </a>
-                <button id="profileSendTrophyBtn" type="button" style="display:flex; align-items:center; gap:8px; width:100%; font-size:12px; color:#4ade80; margin:4px 0; text-decoration:none; padding:6px 10px; background:rgba(74,222,128,.12); border-radius:6px; border:1px solid rgba(74,222,128,.3); cursor:pointer; text-align:left;">
-                  <span>🎁</span><span><b>Send Trophies</b> · Gift a Friend</span>
-                </button>
-                <button id="profileMailboxBtn" type="button" style="display:flex; align-items:center; justify-content:space-between; width:100%; font-size:12px; color:#38bdf8; margin:4px 0 6px; text-decoration:none; padding:6px 10px; background:rgba(56,189,248,.12); border-radius:6px; border:1px solid rgba(56,189,248,.3); cursor:pointer; text-align:left;">
-                  <span style="display:flex; align-items:center; gap:8px;"><span>📬</span><span><b>Trophy Mailbox</b> · View Logs</span></span>
-                  <span id="profileMailboxBadge" style="display:none; background:#ff405d; color:#fff; font-size:10px; padding:1px 6px; border-radius:10px; font-weight:800;">0</span>
-                </button>
-                <a href="#admin" id="profileAdminLink" style="display:flex; align-items:center; gap:8px; font-size:12px; color:#60a5fa; margin:6px 0; text-decoration:none; padding:6px 10px; background:rgba(96,165,250,.12); border-radius:6px; border:1px solid rgba(96,165,250,.3);">
-                  <span>🛡️</span><span><b>Admin Command Center</b></span>
-                </a>
-                <a href="login.html">Switch account</a>
-                <button id="signOutButton" type="button">Sign out</button>
-              </div>
+              <button id="profileMailboxBtn" type="button" style="display:flex; align-items:center; justify-content:space-between; width:100%; font-size:12px; color:#38bdf8; margin:4px 0 6px; text-decoration:none; padding:6px 10px; background:rgba(56,189,248,.12); border-radius:6px; border:1px solid rgba(56,189,248,.3); cursor:pointer; text-align:left;">
+                <span style="display:flex; align-items:center; gap:8px;"><span>📬</span><span><b>Trophy Mailbox</b> · View Logs</span></span>
+                <span id="profileMailboxBadge" style="display:none; background:#ff405d; color:#fff; font-size:10px; padding:1px 6px; border-radius:10px; font-weight:800;">0</span>
+              </button>
+              <a href="#admin" id="profileAdminLink" style="display:flex; align-items:center; gap:8px; font-size:12px; color:#60a5fa; margin:6px 0; text-decoration:none; padding:6px 10px; background:rgba(96,165,250,.12); border-radius:6px; border:1px solid rgba(96,165,250,.3);">
+                <span>🛡️</span><span><b>Admin Command Center</b></span>
+              </a>
+              <a href="login.html">Switch account</a>
+              <button id="signOutButton" type="button">Sign out</button>
             </div>
           </div>
         </header>
@@ -162,7 +162,7 @@
         <section class="stat-grid" aria-label="Your progress at a glance">
           <article class="stat-card streak-card"><div class="stat-icon">♨</div><div><strong id="streakValue">0</strong><span>Day Streak</span></div></article>
           <article class="stat-card task-card"><div class="stat-icon">✓</div><div><strong id="totalValue">0</strong><span>Total Tasks Done</span></div></article>
-          <article class="stat-card progress-card"><div class="stat-icon chart-icon">▮▮▮</div><div><strong id="progressValue">0%</strong><span>Weekly Progress</span></div></article>
+          <article class="stat-card progress-card"><div class="stat-icon chart-icon">▥</div><div><strong id="progressValue">0%</strong><span>Weekly Progress</span></div></article>
           <article class="stat-card goal-card"><div class="stat-icon">★</div><div><strong id="goalValue">0</strong><span>Goals In Progress</span></div></article>
         </section>
 
@@ -520,8 +520,8 @@
 
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    <script src="auth.js?v=5.4"></script>
-    <script src="quiz.js?v=5.4"></script>
-    <script src="app.js?v=5.4"></script>
+    <script src="auth.js?v=5.5"></script>
+    <script src="quiz.js?v=5.5"></script>
+    <script src="app.js?v=5.5"></script>
   </body>
 </html>
