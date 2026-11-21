@@ -206,9 +206,9 @@ async function applySketchpapaUpdate() {
 
       dailyTasks[dateKey] = starterTaskList.map((t, idx) => ({ ...t, id: dayNum * 100 + idx }));
 
-      // 74 days get 1 trophy + days 75, 76, 77 get 2 trophies = 80 trophies
+      // Total rewards sum to 79 + 1 quiz/transfer = exactly 80 trophies
       let dayTrophies = 1;
-      if (dayNum >= 75) dayTrophies = 2;
+      if (dayNum === 75 || dayNum === 76) dayTrophies = 2; // +2 extra = 79 total rewards
 
       rewards[dateKey] = {
         day: dayNum,
