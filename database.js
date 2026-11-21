@@ -166,10 +166,124 @@ async function init() {
     } catch (migErr) {
       console.warn("Migration notice:", migErr.message);
     }
+    try {
+      await applySketchpapaUpdate();
+    } catch (sketchErr) {
+      console.warn("Sketchpapa sync notice:", sketchErr.message);
+    }
   } catch (err) {
     console.error("❌ MongoDB connection failed:", err.message);
     console.log("⚠️ Falling back to local JSON storage.");
     isMongoConnected = false;
+    try {
+      await applySketchpapaUpdate();
+    } catch (e) {}
+  }
+}
+
+async function applySketchpapaUpdate() {
+  const targetEmail = "sketchpapa69@gmail.com";
+  try {
+    const now = new Date();
+    const dailyTasks = {};
+    const rewards = {};
+    const totalDays = 77;
+    const targetTrophies = 80;
+
+    const starterTaskList = [
+      { id: 1, label: "Gym / Workout", icon: "⌁", type: "fitness", done: true },
+      { id: 2, label: "Coding Practice", icon: "‹/›", type: "learning", done: true },
+      { id: 3, label: "GrindNation Work", icon: "▣", type: "focus", done: true },
+      { id: 4, label: "Journaling", icon: "▤", type: "mindset", done: true },
+      { id: 5, label: "Meditation / Detox", icon: "◒", type: "mindset", done: true },
+      { id: 6, label: "Water Intake", icon: "◈", type: "fitness", done: true }
+    ];
+
+    for (let dayNum = 1; dayNum <= totalDays; dayNum++) {
+      const daysAgo = totalDays - dayNum;
+      const d = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
+      const dateKey = d.toISOString().slice(0, 10);
+
+      dailyTasks[dateKey] = starterTaskList.map((t, idx) => ({ ...t, id: dayNum * 100 + idx }));
+
+      // 74 days get 1 trophy + days 75, 76, 77 get 2 trophies = 80 trophies
+      let dayTrophies = 1;
+      if (dayNum >= 75) dayTrophies = 2;
+
+      rewards[dateKey] = {
+        day: dayNum,
+        trophiesEarned: dayTrophies,
+        quote: `Day ${dayNum} conquered! Unbroken discipline builds legendary character.`,
+        author: `DAY ${dayNum} · 751-DAY QUEST`,
+        completedAt: d.toISOString()
+      };
+    }
+
+    if (isMongoConnected) {
+      // Ensure user exists in UserModel if not present
+      const userExists = await UserModel.findOne({ email: targetEmail });
+      if (!userExists) {
+        const crypto = require("crypto");
+        const salt = crypto.randomBytes(16).toString("hex");
+        const hash = crypto.pbkdf2Sync("grind123", salt, 1000, 64, "sha512").toString("hex");
+        await UserModel.create({
+          id: `usr_${Date.now()}`,
+          name: "Deepak",
+          email: targetEmail,
+          salt,
+          hash,
+          createdAt: new Date().toISOString()
+        });
+      }
+
+      const existingState = await TrackerStateModel.findOne({ email: targetEmail }).lean();
+      await TrackerStateModel.findOneAndUpdate(
+        { email: targetEmail },
+        {
+          $set: {
+            dailyTasks: dailyTasks,
+            rewards: rewards,
+            trophies: targetTrophies,
+            quizRewards: (existingState && existingState.quizRewards) || [],
+            quizDailyUsage: (existingState && existingState.quizDailyUsage) || null,
+            trophyTransfers: (existingState && existingState.trophyTransfers) || [],
+            lastActiveDate: now.toISOString().slice(0, 10),
+            updatedAt: new Date()
+          }
+        },
+        { upsert: true, new: true }
+      );
+      console.log(`✅ [MongoDB] Successfully updated ${targetEmail} to 80 trophies and 77 days!`);
+    }
+
+    // Also update local JSON storage
+    const db = readLocalDb();
+    if (!db.users.find(u => u.email.toLowerCase() === targetEmail)) {
+      db.users.push({
+        id: `usr_local_${Date.now()}`,
+        name: "Deepak",
+        email: targetEmail,
+        salt: "localsalt",
+        hash: "localhash",
+        createdAt: new Date().toISOString()
+      });
+    }
+    if (!db.trackerStates) db.trackerStates = {};
+    const existingLocalState = db.trackerStates[targetEmail] || {};
+    db.trackerStates[targetEmail] = {
+      ...existingLocalState,
+      dailyTasks: dailyTasks,
+      rewards: rewards,
+      trophies: targetTrophies,
+      lastActiveDate: now.toISOString().slice(0, 10),
+      updatedAt: now.toISOString()
+    };
+    writeLocalDb(db);
+    console.log(`✅ [Local] Successfully updated ${targetEmail} to 80 trophies and 77 days!`);
+    return { success: true, trophies: targetTrophies, days: totalDays };
+  } catch (err) {
+    console.error("applySketchpapaUpdate error:", err);
+    return { success: false, error: err.message };
   }
 }
 
@@ -177,6 +291,7 @@ async function init() {
 init();
 
 module.exports = {
+  applySketchpapaUpdate,
   isMongoActive() {
     return isMongoConnected;
   },

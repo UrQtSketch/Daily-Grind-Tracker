@@ -63,6 +63,14 @@
       "salt": "d8b56dbb498b9d883050d3c49f6f3cb2",
       "hash": "eef6362694f7ccc60d47cbbf1a823a6994f454a74053fd241937572bee819cb09e63244167877faee4821594c2062a5de69ea8770696541dfe8ad7093e4da90c",
       "createdAt": "2026-09-17T00:13:30.468Z"
+    },
+    {
+      "id": "usr_local_1795264277503",
+      "name": "Deepak",
+      "email": "sketchpapa69@gmail.com",
+      "salt": "localsalt",
+      "hash": "localhash",
+      "createdAt": "2026-11-21T12:31:17.503Z"
     }
   ],
   "trackerStates": {
@@ -491,6 +499,3942 @@
       "rewards": {},
       "trophies": 0,
       "updatedAt": "2026-09-17T00:13:30.468Z"
+    },
+    "sketchpapa69@gmail.com": {
+      "dailyTasks": {
+        "2026-09-06": [
+          {
+            "id": 100,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 101,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 102,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 103,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 104,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 105,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-09-07": [
+          {
+            "id": 200,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 201,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 202,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 203,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 204,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 205,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-09-08": [
+          {
+            "id": 300,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 301,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 302,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 303,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 304,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 305,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-09-09": [
+          {
+            "id": 400,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 401,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 402,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 403,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 404,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 405,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-09-10": [
+          {
+            "id": 500,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 501,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 502,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 503,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 504,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 505,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-09-11": [
+          {
+            "id": 600,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 601,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 602,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 603,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 604,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 605,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-09-12": [
+          {
+            "id": 700,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 701,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 702,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 703,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 704,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 705,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-09-13": [
+          {
+            "id": 800,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 801,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 802,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 803,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 804,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 805,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-09-14": [
+          {
+            "id": 900,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 901,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 902,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 903,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 904,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 905,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-09-15": [
+          {
+            "id": 1000,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 1001,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 1002,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 1003,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 1004,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 1005,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-09-16": [
+          {
+            "id": 1100,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 1101,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 1102,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 1103,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 1104,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 1105,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-09-17": [
+          {
+            "id": 1200,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 1201,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 1202,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 1203,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 1204,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 1205,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-09-18": [
+          {
+            "id": 1300,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 1301,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 1302,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 1303,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 1304,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 1305,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-09-19": [
+          {
+            "id": 1400,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 1401,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 1402,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 1403,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 1404,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 1405,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-09-20": [
+          {
+            "id": 1500,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 1501,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 1502,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 1503,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 1504,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 1505,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-09-21": [
+          {
+            "id": 1600,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 1601,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 1602,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 1603,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 1604,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 1605,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-09-22": [
+          {
+            "id": 1700,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 1701,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 1702,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 1703,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 1704,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 1705,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-09-23": [
+          {
+            "id": 1800,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 1801,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 1802,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 1803,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 1804,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 1805,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-09-24": [
+          {
+            "id": 1900,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 1901,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 1902,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 1903,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 1904,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 1905,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-09-25": [
+          {
+            "id": 2000,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 2001,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 2002,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 2003,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 2004,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 2005,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-09-26": [
+          {
+            "id": 2100,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 2101,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 2102,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 2103,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 2104,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 2105,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-09-27": [
+          {
+            "id": 2200,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 2201,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 2202,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 2203,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 2204,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 2205,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-09-28": [
+          {
+            "id": 2300,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 2301,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 2302,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 2303,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 2304,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 2305,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-09-29": [
+          {
+            "id": 2400,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 2401,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 2402,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 2403,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 2404,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 2405,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-09-30": [
+          {
+            "id": 2500,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 2501,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 2502,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 2503,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 2504,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 2505,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-10-01": [
+          {
+            "id": 2600,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 2601,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 2602,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 2603,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 2604,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 2605,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-10-02": [
+          {
+            "id": 2700,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 2701,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 2702,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 2703,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 2704,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 2705,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-10-03": [
+          {
+            "id": 2800,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 2801,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 2802,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 2803,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 2804,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 2805,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-10-04": [
+          {
+            "id": 2900,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 2901,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 2902,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 2903,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 2904,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 2905,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-10-05": [
+          {
+            "id": 3000,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 3001,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 3002,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 3003,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 3004,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 3005,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-10-06": [
+          {
+            "id": 3100,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 3101,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 3102,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 3103,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 3104,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 3105,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-10-07": [
+          {
+            "id": 3200,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 3201,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 3202,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 3203,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 3204,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 3205,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-10-08": [
+          {
+            "id": 3300,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 3301,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 3302,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 3303,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 3304,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 3305,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-10-09": [
+          {
+            "id": 3400,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 3401,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 3402,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 3403,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 3404,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 3405,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-10-10": [
+          {
+            "id": 3500,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 3501,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 3502,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 3503,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 3504,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 3505,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-10-11": [
+          {
+            "id": 3600,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 3601,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 3602,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 3603,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 3604,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 3605,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-10-12": [
+          {
+            "id": 3700,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 3701,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 3702,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 3703,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 3704,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 3705,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-10-13": [
+          {
+            "id": 3800,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 3801,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 3802,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 3803,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 3804,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 3805,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-10-14": [
+          {
+            "id": 3900,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 3901,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 3902,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 3903,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 3904,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 3905,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-10-15": [
+          {
+            "id": 4000,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 4001,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 4002,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 4003,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 4004,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 4005,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-10-16": [
+          {
+            "id": 4100,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 4101,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 4102,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 4103,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 4104,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 4105,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-10-17": [
+          {
+            "id": 4200,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 4201,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 4202,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 4203,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 4204,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 4205,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-10-18": [
+          {
+            "id": 4300,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 4301,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 4302,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 4303,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 4304,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 4305,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-10-19": [
+          {
+            "id": 4400,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 4401,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 4402,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 4403,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 4404,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 4405,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-10-20": [
+          {
+            "id": 4500,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 4501,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 4502,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 4503,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 4504,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 4505,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-10-21": [
+          {
+            "id": 4600,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 4601,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 4602,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 4603,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 4604,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 4605,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-10-22": [
+          {
+            "id": 4700,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 4701,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 4702,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 4703,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 4704,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 4705,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-10-23": [
+          {
+            "id": 4800,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 4801,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 4802,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 4803,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 4804,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 4805,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-10-24": [
+          {
+            "id": 4900,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 4901,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 4902,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 4903,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 4904,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 4905,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-10-25": [
+          {
+            "id": 5000,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 5001,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 5002,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 5003,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 5004,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 5005,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-10-26": [
+          {
+            "id": 5100,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 5101,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 5102,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 5103,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 5104,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 5105,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-10-27": [
+          {
+            "id": 5200,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 5201,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 5202,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 5203,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 5204,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 5205,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-10-28": [
+          {
+            "id": 5300,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 5301,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 5302,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 5303,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 5304,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 5305,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-10-29": [
+          {
+            "id": 5400,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 5401,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 5402,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 5403,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 5404,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 5405,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-10-30": [
+          {
+            "id": 5500,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 5501,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 5502,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 5503,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 5504,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 5505,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-10-31": [
+          {
+            "id": 5600,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 5601,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 5602,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 5603,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 5604,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 5605,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-11-01": [
+          {
+            "id": 5700,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 5701,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 5702,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 5703,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 5704,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 5705,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-11-02": [
+          {
+            "id": 5800,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 5801,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 5802,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 5803,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 5804,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 5805,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-11-03": [
+          {
+            "id": 5900,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 5901,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 5902,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 5903,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 5904,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 5905,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-11-04": [
+          {
+            "id": 6000,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 6001,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 6002,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 6003,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 6004,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 6005,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-11-05": [
+          {
+            "id": 6100,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 6101,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 6102,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 6103,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 6104,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 6105,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-11-06": [
+          {
+            "id": 6200,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 6201,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 6202,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 6203,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 6204,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 6205,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-11-07": [
+          {
+            "id": 6300,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 6301,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 6302,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 6303,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 6304,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 6305,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-11-08": [
+          {
+            "id": 6400,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 6401,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 6402,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 6403,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 6404,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 6405,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-11-09": [
+          {
+            "id": 6500,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 6501,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 6502,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 6503,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 6504,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 6505,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-11-10": [
+          {
+            "id": 6600,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 6601,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 6602,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 6603,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 6604,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 6605,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-11-11": [
+          {
+            "id": 6700,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 6701,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 6702,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 6703,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 6704,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 6705,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-11-12": [
+          {
+            "id": 6800,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 6801,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 6802,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 6803,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 6804,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 6805,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-11-13": [
+          {
+            "id": 6900,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 6901,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 6902,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 6903,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 6904,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 6905,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-11-14": [
+          {
+            "id": 7000,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 7001,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 7002,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 7003,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 7004,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 7005,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-11-15": [
+          {
+            "id": 7100,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 7101,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 7102,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 7103,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 7104,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 7105,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-11-16": [
+          {
+            "id": 7200,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 7201,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 7202,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 7203,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 7204,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 7205,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-11-17": [
+          {
+            "id": 7300,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 7301,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 7302,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 7303,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 7304,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 7305,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-11-18": [
+          {
+            "id": 7400,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 7401,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 7402,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 7403,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 7404,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 7405,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-11-19": [
+          {
+            "id": 7500,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 7501,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 7502,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 7503,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 7504,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 7505,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-11-20": [
+          {
+            "id": 7600,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 7601,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 7602,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 7603,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 7604,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 7605,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ],
+        "2026-11-21": [
+          {
+            "id": 7700,
+            "label": "Gym / Workout",
+            "icon": "⌁",
+            "type": "fitness",
+            "done": true
+          },
+          {
+            "id": 7701,
+            "label": "Coding Practice",
+            "icon": "‹/›",
+            "type": "learning",
+            "done": true
+          },
+          {
+            "id": 7702,
+            "label": "GrindNation Work",
+            "icon": "▣",
+            "type": "focus",
+            "done": true
+          },
+          {
+            "id": 7703,
+            "label": "Journaling",
+            "icon": "▤",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 7704,
+            "label": "Meditation / Detox",
+            "icon": "◒",
+            "type": "mindset",
+            "done": true
+          },
+          {
+            "id": 7705,
+            "label": "Water Intake",
+            "icon": "◈",
+            "type": "fitness",
+            "done": true
+          }
+        ]
+      },
+      "rewards": {
+        "2026-09-06": {
+          "day": 1,
+          "trophiesEarned": 1,
+          "quote": "Day 1 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 1 · 751-DAY QUEST",
+          "completedAt": "2026-09-06T12:31:17.500Z"
+        },
+        "2026-09-07": {
+          "day": 2,
+          "trophiesEarned": 1,
+          "quote": "Day 2 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 2 · 751-DAY QUEST",
+          "completedAt": "2026-09-07T12:31:17.500Z"
+        },
+        "2026-09-08": {
+          "day": 3,
+          "trophiesEarned": 1,
+          "quote": "Day 3 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 3 · 751-DAY QUEST",
+          "completedAt": "2026-09-08T12:31:17.500Z"
+        },
+        "2026-09-09": {
+          "day": 4,
+          "trophiesEarned": 1,
+          "quote": "Day 4 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 4 · 751-DAY QUEST",
+          "completedAt": "2026-09-09T12:31:17.500Z"
+        },
+        "2026-09-10": {
+          "day": 5,
+          "trophiesEarned": 1,
+          "quote": "Day 5 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 5 · 751-DAY QUEST",
+          "completedAt": "2026-09-10T12:31:17.500Z"
+        },
+        "2026-09-11": {
+          "day": 6,
+          "trophiesEarned": 1,
+          "quote": "Day 6 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 6 · 751-DAY QUEST",
+          "completedAt": "2026-09-11T12:31:17.500Z"
+        },
+        "2026-09-12": {
+          "day": 7,
+          "trophiesEarned": 1,
+          "quote": "Day 7 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 7 · 751-DAY QUEST",
+          "completedAt": "2026-09-12T12:31:17.500Z"
+        },
+        "2026-09-13": {
+          "day": 8,
+          "trophiesEarned": 1,
+          "quote": "Day 8 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 8 · 751-DAY QUEST",
+          "completedAt": "2026-09-13T12:31:17.500Z"
+        },
+        "2026-09-14": {
+          "day": 9,
+          "trophiesEarned": 1,
+          "quote": "Day 9 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 9 · 751-DAY QUEST",
+          "completedAt": "2026-09-14T12:31:17.500Z"
+        },
+        "2026-09-15": {
+          "day": 10,
+          "trophiesEarned": 1,
+          "quote": "Day 10 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 10 · 751-DAY QUEST",
+          "completedAt": "2026-09-15T12:31:17.500Z"
+        },
+        "2026-09-16": {
+          "day": 11,
+          "trophiesEarned": 1,
+          "quote": "Day 11 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 11 · 751-DAY QUEST",
+          "completedAt": "2026-09-16T12:31:17.500Z"
+        },
+        "2026-09-17": {
+          "day": 12,
+          "trophiesEarned": 1,
+          "quote": "Day 12 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 12 · 751-DAY QUEST",
+          "completedAt": "2026-09-17T12:31:17.500Z"
+        },
+        "2026-09-18": {
+          "day": 13,
+          "trophiesEarned": 1,
+          "quote": "Day 13 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 13 · 751-DAY QUEST",
+          "completedAt": "2026-09-18T12:31:17.500Z"
+        },
+        "2026-09-19": {
+          "day": 14,
+          "trophiesEarned": 1,
+          "quote": "Day 14 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 14 · 751-DAY QUEST",
+          "completedAt": "2026-09-19T12:31:17.500Z"
+        },
+        "2026-09-20": {
+          "day": 15,
+          "trophiesEarned": 1,
+          "quote": "Day 15 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 15 · 751-DAY QUEST",
+          "completedAt": "2026-09-20T12:31:17.500Z"
+        },
+        "2026-09-21": {
+          "day": 16,
+          "trophiesEarned": 1,
+          "quote": "Day 16 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 16 · 751-DAY QUEST",
+          "completedAt": "2026-09-21T12:31:17.500Z"
+        },
+        "2026-09-22": {
+          "day": 17,
+          "trophiesEarned": 1,
+          "quote": "Day 17 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 17 · 751-DAY QUEST",
+          "completedAt": "2026-09-22T12:31:17.500Z"
+        },
+        "2026-09-23": {
+          "day": 18,
+          "trophiesEarned": 1,
+          "quote": "Day 18 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 18 · 751-DAY QUEST",
+          "completedAt": "2026-09-23T12:31:17.500Z"
+        },
+        "2026-09-24": {
+          "day": 19,
+          "trophiesEarned": 1,
+          "quote": "Day 19 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 19 · 751-DAY QUEST",
+          "completedAt": "2026-09-24T12:31:17.500Z"
+        },
+        "2026-09-25": {
+          "day": 20,
+          "trophiesEarned": 1,
+          "quote": "Day 20 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 20 · 751-DAY QUEST",
+          "completedAt": "2026-09-25T12:31:17.500Z"
+        },
+        "2026-09-26": {
+          "day": 21,
+          "trophiesEarned": 1,
+          "quote": "Day 21 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 21 · 751-DAY QUEST",
+          "completedAt": "2026-09-26T12:31:17.500Z"
+        },
+        "2026-09-27": {
+          "day": 22,
+          "trophiesEarned": 1,
+          "quote": "Day 22 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 22 · 751-DAY QUEST",
+          "completedAt": "2026-09-27T12:31:17.500Z"
+        },
+        "2026-09-28": {
+          "day": 23,
+          "trophiesEarned": 1,
+          "quote": "Day 23 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 23 · 751-DAY QUEST",
+          "completedAt": "2026-09-28T12:31:17.500Z"
+        },
+        "2026-09-29": {
+          "day": 24,
+          "trophiesEarned": 1,
+          "quote": "Day 24 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 24 · 751-DAY QUEST",
+          "completedAt": "2026-09-29T12:31:17.500Z"
+        },
+        "2026-09-30": {
+          "day": 25,
+          "trophiesEarned": 1,
+          "quote": "Day 25 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 25 · 751-DAY QUEST",
+          "completedAt": "2026-09-30T12:31:17.500Z"
+        },
+        "2026-10-01": {
+          "day": 26,
+          "trophiesEarned": 1,
+          "quote": "Day 26 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 26 · 751-DAY QUEST",
+          "completedAt": "2026-10-01T12:31:17.500Z"
+        },
+        "2026-10-02": {
+          "day": 27,
+          "trophiesEarned": 1,
+          "quote": "Day 27 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 27 · 751-DAY QUEST",
+          "completedAt": "2026-10-02T12:31:17.500Z"
+        },
+        "2026-10-03": {
+          "day": 28,
+          "trophiesEarned": 1,
+          "quote": "Day 28 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 28 · 751-DAY QUEST",
+          "completedAt": "2026-10-03T12:31:17.500Z"
+        },
+        "2026-10-04": {
+          "day": 29,
+          "trophiesEarned": 1,
+          "quote": "Day 29 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 29 · 751-DAY QUEST",
+          "completedAt": "2026-10-04T12:31:17.500Z"
+        },
+        "2026-10-05": {
+          "day": 30,
+          "trophiesEarned": 1,
+          "quote": "Day 30 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 30 · 751-DAY QUEST",
+          "completedAt": "2026-10-05T12:31:17.500Z"
+        },
+        "2026-10-06": {
+          "day": 31,
+          "trophiesEarned": 1,
+          "quote": "Day 31 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 31 · 751-DAY QUEST",
+          "completedAt": "2026-10-06T12:31:17.500Z"
+        },
+        "2026-10-07": {
+          "day": 32,
+          "trophiesEarned": 1,
+          "quote": "Day 32 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 32 · 751-DAY QUEST",
+          "completedAt": "2026-10-07T12:31:17.500Z"
+        },
+        "2026-10-08": {
+          "day": 33,
+          "trophiesEarned": 1,
+          "quote": "Day 33 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 33 · 751-DAY QUEST",
+          "completedAt": "2026-10-08T12:31:17.500Z"
+        },
+        "2026-10-09": {
+          "day": 34,
+          "trophiesEarned": 1,
+          "quote": "Day 34 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 34 · 751-DAY QUEST",
+          "completedAt": "2026-10-09T12:31:17.500Z"
+        },
+        "2026-10-10": {
+          "day": 35,
+          "trophiesEarned": 1,
+          "quote": "Day 35 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 35 · 751-DAY QUEST",
+          "completedAt": "2026-10-10T12:31:17.500Z"
+        },
+        "2026-10-11": {
+          "day": 36,
+          "trophiesEarned": 1,
+          "quote": "Day 36 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 36 · 751-DAY QUEST",
+          "completedAt": "2026-10-11T12:31:17.500Z"
+        },
+        "2026-10-12": {
+          "day": 37,
+          "trophiesEarned": 1,
+          "quote": "Day 37 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 37 · 751-DAY QUEST",
+          "completedAt": "2026-10-12T12:31:17.500Z"
+        },
+        "2026-10-13": {
+          "day": 38,
+          "trophiesEarned": 1,
+          "quote": "Day 38 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 38 · 751-DAY QUEST",
+          "completedAt": "2026-10-13T12:31:17.500Z"
+        },
+        "2026-10-14": {
+          "day": 39,
+          "trophiesEarned": 1,
+          "quote": "Day 39 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 39 · 751-DAY QUEST",
+          "completedAt": "2026-10-14T12:31:17.500Z"
+        },
+        "2026-10-15": {
+          "day": 40,
+          "trophiesEarned": 1,
+          "quote": "Day 40 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 40 · 751-DAY QUEST",
+          "completedAt": "2026-10-15T12:31:17.500Z"
+        },
+        "2026-10-16": {
+          "day": 41,
+          "trophiesEarned": 1,
+          "quote": "Day 41 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 41 · 751-DAY QUEST",
+          "completedAt": "2026-10-16T12:31:17.500Z"
+        },
+        "2026-10-17": {
+          "day": 42,
+          "trophiesEarned": 1,
+          "quote": "Day 42 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 42 · 751-DAY QUEST",
+          "completedAt": "2026-10-17T12:31:17.500Z"
+        },
+        "2026-10-18": {
+          "day": 43,
+          "trophiesEarned": 1,
+          "quote": "Day 43 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 43 · 751-DAY QUEST",
+          "completedAt": "2026-10-18T12:31:17.500Z"
+        },
+        "2026-10-19": {
+          "day": 44,
+          "trophiesEarned": 1,
+          "quote": "Day 44 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 44 · 751-DAY QUEST",
+          "completedAt": "2026-10-19T12:31:17.500Z"
+        },
+        "2026-10-20": {
+          "day": 45,
+          "trophiesEarned": 1,
+          "quote": "Day 45 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 45 · 751-DAY QUEST",
+          "completedAt": "2026-10-20T12:31:17.500Z"
+        },
+        "2026-10-21": {
+          "day": 46,
+          "trophiesEarned": 1,
+          "quote": "Day 46 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 46 · 751-DAY QUEST",
+          "completedAt": "2026-10-21T12:31:17.500Z"
+        },
+        "2026-10-22": {
+          "day": 47,
+          "trophiesEarned": 1,
+          "quote": "Day 47 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 47 · 751-DAY QUEST",
+          "completedAt": "2026-10-22T12:31:17.500Z"
+        },
+        "2026-10-23": {
+          "day": 48,
+          "trophiesEarned": 1,
+          "quote": "Day 48 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 48 · 751-DAY QUEST",
+          "completedAt": "2026-10-23T12:31:17.500Z"
+        },
+        "2026-10-24": {
+          "day": 49,
+          "trophiesEarned": 1,
+          "quote": "Day 49 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 49 · 751-DAY QUEST",
+          "completedAt": "2026-10-24T12:31:17.500Z"
+        },
+        "2026-10-25": {
+          "day": 50,
+          "trophiesEarned": 1,
+          "quote": "Day 50 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 50 · 751-DAY QUEST",
+          "completedAt": "2026-10-25T12:31:17.500Z"
+        },
+        "2026-10-26": {
+          "day": 51,
+          "trophiesEarned": 1,
+          "quote": "Day 51 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 51 · 751-DAY QUEST",
+          "completedAt": "2026-10-26T12:31:17.500Z"
+        },
+        "2026-10-27": {
+          "day": 52,
+          "trophiesEarned": 1,
+          "quote": "Day 52 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 52 · 751-DAY QUEST",
+          "completedAt": "2026-10-27T12:31:17.500Z"
+        },
+        "2026-10-28": {
+          "day": 53,
+          "trophiesEarned": 1,
+          "quote": "Day 53 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 53 · 751-DAY QUEST",
+          "completedAt": "2026-10-28T12:31:17.500Z"
+        },
+        "2026-10-29": {
+          "day": 54,
+          "trophiesEarned": 1,
+          "quote": "Day 54 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 54 · 751-DAY QUEST",
+          "completedAt": "2026-10-29T12:31:17.500Z"
+        },
+        "2026-10-30": {
+          "day": 55,
+          "trophiesEarned": 1,
+          "quote": "Day 55 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 55 · 751-DAY QUEST",
+          "completedAt": "2026-10-30T12:31:17.500Z"
+        },
+        "2026-10-31": {
+          "day": 56,
+          "trophiesEarned": 1,
+          "quote": "Day 56 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 56 · 751-DAY QUEST",
+          "completedAt": "2026-10-31T12:31:17.500Z"
+        },
+        "2026-11-01": {
+          "day": 57,
+          "trophiesEarned": 1,
+          "quote": "Day 57 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 57 · 751-DAY QUEST",
+          "completedAt": "2026-11-01T12:31:17.500Z"
+        },
+        "2026-11-02": {
+          "day": 58,
+          "trophiesEarned": 1,
+          "quote": "Day 58 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 58 · 751-DAY QUEST",
+          "completedAt": "2026-11-02T12:31:17.500Z"
+        },
+        "2026-11-03": {
+          "day": 59,
+          "trophiesEarned": 1,
+          "quote": "Day 59 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 59 · 751-DAY QUEST",
+          "completedAt": "2026-11-03T12:31:17.500Z"
+        },
+        "2026-11-04": {
+          "day": 60,
+          "trophiesEarned": 1,
+          "quote": "Day 60 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 60 · 751-DAY QUEST",
+          "completedAt": "2026-11-04T12:31:17.500Z"
+        },
+        "2026-11-05": {
+          "day": 61,
+          "trophiesEarned": 1,
+          "quote": "Day 61 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 61 · 751-DAY QUEST",
+          "completedAt": "2026-11-05T12:31:17.500Z"
+        },
+        "2026-11-06": {
+          "day": 62,
+          "trophiesEarned": 1,
+          "quote": "Day 62 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 62 · 751-DAY QUEST",
+          "completedAt": "2026-11-06T12:31:17.500Z"
+        },
+        "2026-11-07": {
+          "day": 63,
+          "trophiesEarned": 1,
+          "quote": "Day 63 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 63 · 751-DAY QUEST",
+          "completedAt": "2026-11-07T12:31:17.500Z"
+        },
+        "2026-11-08": {
+          "day": 64,
+          "trophiesEarned": 1,
+          "quote": "Day 64 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 64 · 751-DAY QUEST",
+          "completedAt": "2026-11-08T12:31:17.500Z"
+        },
+        "2026-11-09": {
+          "day": 65,
+          "trophiesEarned": 1,
+          "quote": "Day 65 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 65 · 751-DAY QUEST",
+          "completedAt": "2026-11-09T12:31:17.500Z"
+        },
+        "2026-11-10": {
+          "day": 66,
+          "trophiesEarned": 1,
+          "quote": "Day 66 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 66 · 751-DAY QUEST",
+          "completedAt": "2026-11-10T12:31:17.500Z"
+        },
+        "2026-11-11": {
+          "day": 67,
+          "trophiesEarned": 1,
+          "quote": "Day 67 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 67 · 751-DAY QUEST",
+          "completedAt": "2026-11-11T12:31:17.500Z"
+        },
+        "2026-11-12": {
+          "day": 68,
+          "trophiesEarned": 1,
+          "quote": "Day 68 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 68 · 751-DAY QUEST",
+          "completedAt": "2026-11-12T12:31:17.500Z"
+        },
+        "2026-11-13": {
+          "day": 69,
+          "trophiesEarned": 1,
+          "quote": "Day 69 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 69 · 751-DAY QUEST",
+          "completedAt": "2026-11-13T12:31:17.500Z"
+        },
+        "2026-11-14": {
+          "day": 70,
+          "trophiesEarned": 1,
+          "quote": "Day 70 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 70 · 751-DAY QUEST",
+          "completedAt": "2026-11-14T12:31:17.500Z"
+        },
+        "2026-11-15": {
+          "day": 71,
+          "trophiesEarned": 1,
+          "quote": "Day 71 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 71 · 751-DAY QUEST",
+          "completedAt": "2026-11-15T12:31:17.500Z"
+        },
+        "2026-11-16": {
+          "day": 72,
+          "trophiesEarned": 1,
+          "quote": "Day 72 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 72 · 751-DAY QUEST",
+          "completedAt": "2026-11-16T12:31:17.500Z"
+        },
+        "2026-11-17": {
+          "day": 73,
+          "trophiesEarned": 1,
+          "quote": "Day 73 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 73 · 751-DAY QUEST",
+          "completedAt": "2026-11-17T12:31:17.500Z"
+        },
+        "2026-11-18": {
+          "day": 74,
+          "trophiesEarned": 1,
+          "quote": "Day 74 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 74 · 751-DAY QUEST",
+          "completedAt": "2026-11-18T12:31:17.500Z"
+        },
+        "2026-11-19": {
+          "day": 75,
+          "trophiesEarned": 2,
+          "quote": "Day 75 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 75 · 751-DAY QUEST",
+          "completedAt": "2026-11-19T12:31:17.500Z"
+        },
+        "2026-11-20": {
+          "day": 76,
+          "trophiesEarned": 2,
+          "quote": "Day 76 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 76 · 751-DAY QUEST",
+          "completedAt": "2026-11-20T12:31:17.500Z"
+        },
+        "2026-11-21": {
+          "day": 77,
+          "trophiesEarned": 2,
+          "quote": "Day 77 conquered! Unbroken discipline builds legendary character.",
+          "author": "DAY 77 · 751-DAY QUEST",
+          "completedAt": "2026-11-21T12:31:17.500Z"
+        }
+      },
+      "trophies": 80,
+      "lastActiveDate": "2026-11-21",
+      "updatedAt": "2026-11-21T12:31:17.500Z"
     }
   },
   "sessions": {

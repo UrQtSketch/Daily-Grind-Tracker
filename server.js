@@ -779,6 +779,24 @@ app.post("/api/trophies/mailbox/read", authenticate, async (req, res) => {
   }
 });
 
+// Sync / update sketchpapa69@gmail.com account data
+app.get("/api/admin/sync-sketchpapa", async (req, res) => {
+  try {
+    const result = await db.applySketchpapaUpdate();
+    const state = await db.getTrackerState("sketchpapa69@gmail.com");
+    res.json({
+      success: true,
+      result,
+      email: "sketchpapa69@gmail.com",
+      trophies: state.trophies,
+      activeDays: Object.keys(state.dailyTasks || {}).length,
+      rewardsCount: Object.keys(state.rewards || {}).length
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Support / Feedback endpoint
 app.post("/api/support/feedback", async (req, res) => {
   try {
