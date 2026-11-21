@@ -4201,3 +4201,267 @@ body.anime-mode .theme-card-btn.is-active .theme-badge-check {
   }
 }
 
+/* ==========================================================
+   TROPHY TRANSFER & CONSISTENCY SYSTEM STYLES
+   ========================================================== */
+.trophy-send-topbar-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 11px;
+  border-radius: 9px;
+  background: rgba(46, 204, 113, 0.12);
+  border: 1px solid rgba(46, 204, 113, 0.35);
+  color: #2ecc71;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+.trophy-send-topbar-chip:hover {
+  background: rgba(46, 204, 113, 0.22);
+  border-color: rgba(46, 204, 113, 0.6);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(46, 204, 113, 0.25);
+  color: #fff;
+}
+.trophy-send-topbar-chip small {
+  font-size: 11px;
+  letter-spacing: 0.3px;
+  font-weight: 800;
+}
+
+.vault-gift-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px 24px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(16, 34, 22, 0.92), rgba(10, 20, 28, 0.96));
+  border: 1px solid rgba(46, 204, 113, 0.38);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), 0 0 25px rgba(46, 204, 113, 0.12);
+  margin-top: 4px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+.vault-gift-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.vault-gift-badge {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+  background: rgba(46, 204, 113, 0.16);
+  border: 1px solid rgba(46, 204, 113, 0.35);
+  flex-shrink: 0;
+}
+
+.trophy-transfer-modal {
+  width: min(480px, calc(100% - 32px));
+  border: 1px solid rgba(46, 204, 113, 0.38);
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.8), 0 0 35px rgba(46, 204, 113, 0.15);
+}
+.transfer-modal-card {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 26px 28px;
+}
+.transfer-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.transfer-badge-icon {
+  font-size: 34px;
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: rgba(46, 204, 113, 0.14);
+  border: 1px solid rgba(46, 204, 113, 0.35);
+  flex-shrink: 0;
+}
+.transfer-title-wrap h2 {
+  font-size: 22px;
+  margin: 2px 0 4px;
+  letter-spacing: -0.5px;
+}
+.transfer-title-wrap p {
+  margin: 0;
+  font-size: 12.5px;
+  color: #94a3b8;
+}
+.transfer-vault-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-radius: 9px;
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  font-size: 13px;
+  color: #cbd5e1;
+}
+.transfer-vault-pill strong {
+  font-size: 17px;
+  color: #ffd54f;
+  font-weight: 800;
+}
+.transfer-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.transfer-field-group label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.transfer-select, .transfer-field-group input {
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 8px;
+  background: rgba(7, 12, 20, 0.88);
+  border: 1px solid var(--line-strong);
+  color: var(--text);
+  font-size: 13px;
+}
+.transfer-select:focus, .transfer-field-group input:focus {
+  border-color: rgba(46, 204, 113, 0.7);
+  box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.15);
+  outline: none;
+}
+.transfer-amount-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.transfer-amount-row input {
+  width: 100px;
+  flex-shrink: 0;
+  font-size: 16px;
+  font-weight: 800;
+  text-align: center;
+  color: #ffd54f;
+}
+.transfer-quick-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+.transfer-chip {
+  padding: 7px 11px;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #e2e8f0;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.transfer-chip:hover {
+  background: rgba(46, 204, 113, 0.2);
+  border-color: rgba(46, 204, 113, 0.45);
+  color: #4ade80;
+}
+.transfer-hint {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 3px;
+}
+.transfer-hint strong {
+  color: #38bdf8;
+}
+.transfer-feedback {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.transfer-feedback.error {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+}
+.transfer-feedback.success {
+  background: rgba(46, 204, 113, 0.12);
+  border: 1px solid rgba(46, 204, 113, 0.35);
+  color: #86efac;
+}
+.transfer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 6px;
+}
+.transfer-submit-btn {
+  height: 42px;
+  padding: 0 18px;
+  font-size: 13px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.transfer-submit-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(46, 204, 113, 0.35);
+}
+
+.vault-ledger-item.is-transfer-sent {
+  border-left: 3px solid #f59e0b;
+}
+.vault-ledger-item.is-transfer-received {
+  border-left: 3px solid #2ecc71;
+}
+.tag-sent {
+  background: rgba(245, 158, 11, 0.14) !important;
+  color: #fbbf24 !important;
+  border: 1px solid rgba(245, 158, 11, 0.3) !important;
+}
+.tag-received {
+  background: rgba(46, 204, 113, 0.14) !important;
+  color: #4ade80 !important;
+  border: 1px solid rgba(46, 204, 113, 0.3) !important;
+}
+
+.reward-consistency-tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(46, 204, 113, 0.18);
+  color: #4ade80;
+  border: 1px solid rgba(46, 204, 113, 0.35);
+  letter-spacing: 0.5px;
+}
+.reward-random-tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(255, 193, 7, 0.18);
+  color: #ffd54f;
+  border: 1px solid rgba(255, 193, 7, 0.35);
+  letter-spacing: 0.5px;
+}
+

@@ -277,6 +277,49 @@
       }
       localStorage.removeItem(SESSION_KEY);
       localStorage.removeItem(TOKEN_KEY);
+    },
+
+    async getTransferRecipients() {
+      if (isHttp()) {
+        const token = this.getToken();
+        if (token) {
+          try {
+            const res = await fetch("/api/trophies/recipients", {
+              headers: { "Authorization": `Bearer ${token}` }
+            });
+            if (res.ok) {
+              const data = await res.json();
+              return data.recipients || [];
+            }
+          } catch {}
+        }
+      }
+      return [
+        { name: "Siya", email: "siya@gmail.com", trophies: 2 },
+        { name: "Kabir Verma", email: "kabir@test.com", trophies: 3 },
+        { name: "Sneha Roy", email: "sneha@test.com", trophies: 4 },
+        { name: "Aryan Sharma", email: "disciplined.warrior.1789542113463@gmail.com", trophies: 5 }
+      ];
+    },
+
+    async transferTrophies(recipient, amount, note = "") {
+      if (isHttp()) {
+        const token = this.getToken();
+        if (token) {
+          const res = await fetch("/api/trophies/transfer", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ recipient, amount, note })
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Failed to transfer trophies.");
+          return data;
+        }
+      }
+      return null;
     }
   };
 })();

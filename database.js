@@ -68,6 +68,7 @@ const trackerStateSchema = new mongoose.Schema({
   quizRewards: { type: mongoose.Schema.Types.Mixed, default: [] },
   quizDailyUsage: { type: mongoose.Schema.Types.Mixed, default: null },
   trophies: { type: Number, default: 0 },
+  trophyTransfers: { type: mongoose.Schema.Types.Mixed, default: [] },
   lastActiveDate: { type: String },
   lastReminderDate: { type: String, default: null },
   recentPenalty: { type: mongoose.Schema.Types.Mixed, default: null },
@@ -349,6 +350,7 @@ module.exports = {
       quizRewards: [],
       quizDailyUsage: null,
       trophies: 0,
+      trophyTransfers: [],
       lastActiveDate: todayStr,
       lastReminderDate: null,
       recentPenalty: null,
@@ -375,8 +377,15 @@ module.exports = {
     for (const q of quizRewards) {
       ledgerTrophies += (Number(q.trophies) || 0);
     }
+    const transfers = Array.isArray(state.trophyTransfers) ? state.trophyTransfers : [];
+    let netTransfers = 0;
+    for (const t of transfers) {
+      if (t.type === "received") netTransfers += (Number(t.amount) || 0);
+      else if (t.type === "sent") netTransfers -= (Number(t.amount) || 0);
+    }
+    const minLegitimateTrophies = Math.max(0, ledgerTrophies + netTransfers);
     const storedTrophies = Number(state.trophies) || 0;
-    const finalTrophies = Math.max(storedTrophies, ledgerTrophies);
+    const finalTrophies = Math.max(storedTrophies, minLegitimateTrophies);
 
     if (storedTrophies < finalTrophies) {
       state.trophies = finalTrophies;
@@ -403,6 +412,7 @@ module.exports = {
       quizRewards: state.quizRewards || [],
       quizDailyUsage: state.quizDailyUsage || null,
       trophies: finalTrophies,
+      trophyTransfers: transfers,
       lastActiveDate: state.lastActiveDate || todayStr,
       lastReminderDate: state.lastReminderDate || null,
       recentPenalty: null,
@@ -424,8 +434,15 @@ module.exports = {
     for (const q of quizRewards) {
       ledgerTrophies += (Number(q.trophies) || 0);
     }
+    const transfers = Array.isArray(state.trophyTransfers) ? state.trophyTransfers : [];
+    let netTransfers = 0;
+    for (const t of transfers) {
+      if (t.type === "received") netTransfers += (Number(t.amount) || 0);
+      else if (t.type === "sent") netTransfers -= (Number(t.amount) || 0);
+    }
+    const minLegitimateTrophies = Math.max(0, ledgerTrophies + netTransfers);
     const givenTrophies = Number(state.trophies) || 0;
-    const finalTrophies = Math.max(givenTrophies, ledgerTrophies);
+    const finalTrophies = Math.max(givenTrophies, minLegitimateTrophies);
 
     const payload = {
       dailyTasks: state.dailyTasks || {},
@@ -436,6 +453,7 @@ module.exports = {
       quizRewards: state.quizRewards || [],
       quizDailyUsage: state.quizDailyUsage !== undefined ? state.quizDailyUsage : null,
       trophies: finalTrophies,
+      trophyTransfers: transfers,
       lastActiveDate: state.lastActiveDate || todayStr,
       lastReminderDate: state.lastReminderDate !== undefined ? state.lastReminderDate : null,
       recentPenalty: null,
@@ -934,5 +952,189 @@ module.exports = {
     if (!state) return state;
     state.recentPenalty = null;
     return state;
+  },
+
+  async getTransferRecipients(excludeEmail = "") {
+    const cleanExclude = (excludeEmail || "").trim().toLowerCase();
+    const users = await this.getAllUsers();
+    let statesMap = {};
+
+    if (isMongoConnected) {
+      const dbStates = await TrackerStateModel.find({}, "email trophies").lean();
+      for (const s of dbStates || []) {
+        if (s && s.email) statesMap[s.email.toLowerCase()] = s;
+      }
+    } else {
+      const db = readLocalDb();
+      statesMap = db.trackerStates || {};
+    }
+
+    const recipients = [];
+    for (const u of users) {
+      const email = (u.email || "").toLowerCase();
+      if (email === cleanExclude) continue;
+      const state = statesMap[email] || {};
+      recipients.push({
+        id: u.id,
+        name: u.name || email.split("@")[0],
+        email: email,
+        trophies: Number(state.trophies) || 0
+      });
+    }
+
+    for (const [sEmail, sState] of Object.entries(statesMap)) {
+      const cleanSEmail = sEmail.toLowerCase();
+      if (cleanSEmail === cleanExclude) continue;
+      if (!recipients.some(r => r.email === cleanSEmail)) {
+        recipients.push({
+          id: cleanSEmail,
+          name: cleanSEmail.split("@")[0],
+          email: cleanSEmail,
+          trophies: Number(sState.trophies) || 0
+        });
+      }
+    }
+
+    recipients.sort((a, b) => a.name.localeCompare(b.name));
+    return recipients;
+  },
+
+  async transferTrophies(senderEmail, recipientIdentifier, amount, note = "") {
+    const cleanSenderEmail = (senderEmail || "").trim().toLowerCase();
+    const cleanRecipientId = (recipientIdentifier || "").trim();
+    const numAmount = parseInt(amount, 10);
+
+    if (!cleanSenderEmail) {
+      throw new Error("Authentication required to transfer trophies.");
+    }
+    if (!cleanRecipientId) {
+      throw new Error("Please specify a recipient by name or email.");
+    }
+    if (isNaN(numAmount) || numAmount < 1) {
+      throw new Error("Transfer amount must be at least 1 trophy.");
+    }
+
+    // 1. Get Sender info & balance
+    const sender = await this.findUserByEmail(cleanSenderEmail);
+    const senderState = await this.getTrackerState(cleanSenderEmail);
+    const senderTrophies = Number(senderState.trophies) || 0;
+
+    if (senderTrophies < numAmount) {
+      throw new Error(`Insufficient trophies in your vault. You currently have ${senderTrophies} ${senderTrophies === 1 ? 'trophy' : 'trophies'}, but tried to transfer ${numAmount}.`);
+    }
+
+    // 2. Identify Recipient
+    let recipient = null;
+    let recipientEmail = "";
+
+    if (cleanRecipientId.includes("@")) {
+      recipient = await this.findUserByEmail(cleanRecipientId);
+      if (recipient) recipientEmail = recipient.email.toLowerCase();
+    } else {
+      const allUsers = await this.getAllUsers();
+      recipient = allUsers.find(u => u.name && u.name.trim().toLowerCase() === cleanRecipientId.toLowerCase());
+      if (recipient) recipientEmail = recipient.email.toLowerCase();
+    }
+
+    if (!recipient) {
+      if (cleanRecipientId.includes("@")) {
+        recipientEmail = cleanRecipientId.toLowerCase();
+      } else {
+        throw new Error(`Grinder "${cleanRecipientId}" was not found. Please verify the name or Gmail.`);
+      }
+    }
+
+    if (recipientEmail === cleanSenderEmail) {
+      throw new Error("You cannot send trophies to yourself.");
+    }
+
+    const recipientName = recipient ? recipient.name : recipientEmail.split("@")[0];
+    const senderName = sender ? sender.name : cleanSenderEmail.split("@")[0];
+
+    const recipientState = await this.getTrackerState(recipientEmail);
+    const recipientCurrentTrophies = Number(recipientState.trophies) || 0;
+
+    // 3. Transactions
+    const txId = `tx_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    const nowIso = new Date().toISOString();
+    const cleanNote = (note || "").trim().slice(0, 140);
+
+    const senderTx = {
+      id: txId,
+      type: "sent",
+      counterpartyEmail: recipientEmail,
+      counterpartyName: recipientName,
+      amount: numAmount,
+      note: cleanNote,
+      timestamp: nowIso
+    };
+
+    const recipientTx = {
+      id: txId,
+      type: "received",
+      counterpartyEmail: cleanSenderEmail,
+      counterpartyName: senderName,
+      amount: numAmount,
+      note: cleanNote,
+      timestamp: nowIso
+    };
+
+    const newSenderTrophies = Math.max(0, senderTrophies - numAmount);
+    const newRecipientTrophies = recipientCurrentTrophies + numAmount;
+
+    senderState.trophies = newSenderTrophies;
+    senderState.trophyTransfers = senderState.trophyTransfers || [];
+    senderState.trophyTransfers.unshift(senderTx);
+
+    recipientState.trophies = newRecipientTrophies;
+    recipientState.trophyTransfers = recipientState.trophyTransfers || [];
+    recipientState.trophyTransfers.unshift(recipientTx);
+
+    if (isMongoConnected) {
+      await TrackerStateModel.findOneAndUpdate(
+        { email: cleanSenderEmail },
+        {
+          $set: { trophies: newSenderTrophies, updatedAt: new Date() },
+          $push: { trophyTransfers: { $each: [senderTx], $position: 0 } }
+        },
+        { upsert: true }
+      );
+      await TrackerStateModel.findOneAndUpdate(
+        { email: recipientEmail },
+        {
+          $set: { trophies: newRecipientTrophies, updatedAt: new Date() },
+          $push: { trophyTransfers: { $each: [recipientTx], $position: 0 } }
+        },
+        { upsert: true }
+      );
+    } else {
+      const db = readLocalDb();
+      if (!db.trackerStates[cleanSenderEmail]) {
+        db.trackerStates[cleanSenderEmail] = senderState;
+      } else {
+        db.trackerStates[cleanSenderEmail].trophies = newSenderTrophies;
+        db.trackerStates[cleanSenderEmail].trophyTransfers = senderState.trophyTransfers;
+      }
+
+      if (!db.trackerStates[recipientEmail]) {
+        db.trackerStates[recipientEmail] = recipientState;
+      } else {
+        db.trackerStates[recipientEmail].trophies = newRecipientTrophies;
+        db.trackerStates[recipientEmail].trophyTransfers = recipientState.trophyTransfers;
+      }
+      writeLocalDb(db);
+    }
+
+    return {
+      success: true,
+      senderTrophies: newSenderTrophies,
+      recipientTrophies: newRecipientTrophies,
+      senderName,
+      senderEmail: cleanSenderEmail,
+      recipientName,
+      recipientEmail,
+      amount: numAmount,
+      transaction: senderTx
+    };
   }
 };

@@ -766,6 +766,26 @@
       });
     }
 
+    if (trackerState && Array.isArray(trackerState.trophyTransfers)) {
+      trackerState.trophyTransfers.forEach((tx) => {
+        const isSent = tx.type === "sent";
+        records.push({
+          id: tx.id || `tx-${tx.timestamp}`,
+          date: (tx.timestamp || new Date().toISOString()).slice(0, 10),
+          day: "Transfer",
+          type: isSent ? "transfer_sent" : "transfer_received",
+          trophies: isSent ? -Math.abs(Number(tx.amount)) : Math.abs(Number(tx.amount)),
+          source: isSent
+            ? `Gifted ${tx.amount} 🏆 to ${tx.counterpartyName || tx.counterpartyEmail}`
+            : `Received ${tx.amount} 🏆 gift from ${tx.counterpartyName || tx.counterpartyEmail}`,
+          quote: tx.note || (isSent ? "A gift of discipline and encouragement." : "Honored by a fellow grinder's generosity."),
+          author: isSent ? "TROPHY SENT" : "TROPHY RECEIVED",
+          timestamp: tx.timestamp || new Date().toISOString(),
+          counterparty: tx.counterpartyName || tx.counterpartyEmail
+        });
+      });
+    }
+
     records.sort((a, b) => new Date(b.timestamp || b.date).getTime() - new Date(a.timestamp || a.date).getTime());
     return records;
   }
@@ -775,13 +795,19 @@
   function isDemo() { return !!user().isDemo; }
   function localDateKey(date = new Date()) { const local = new Date(date); return `${local.getFullYear()}-${String(local.getMonth() + 1).padStart(2, "0")}-${String(local.getDate()).padStart(2, "0")}`; }
   function dateKeyAtOffset(days) { const date = new Date(); date.setDate(date.getDate() + days); return localDateKey(date); }
+  function getPreviousDateKey(dateStr) {
+    if (!dateStr) return dateKeyAtOffset(-1);
+    const parts = dateStr.split("-");
+    if (parts.length === 3) {
+      const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+      d.setDate(d.getDate() - 1);
+      return localDateKey(d);
+    }
+    return dateKeyAtOffset(-1);
+  }
   function starterTasks(markComplete = false) { return seededTasks.map((task) => ({ ...task, done: markComplete ? task.done : false })); }
   function getTrophiesForDay(dayNum) {
-    const d = Number(dayNum) || 1;
-    if (d >= 601) return 6;
-    if (d >= 401) return 5;
-    if (d >= 201) return 4;
-    if (d >= 101) return 3;
+    // Standard minimum quest reward
     return 2;
   }
 
@@ -828,15 +854,23 @@
 
   function calculateTotalTrophies() {
     const rewards = (typeof trackerState !== "undefined" && trackerState?.rewards) || {};
-    let ledgerTotal = Object.values(rewards).reduce((acc, r) => acc + (Number(r.trophiesEarned) || getTrophiesForDay(r.day || 1)), 0);
+    let ledgerTotal = Object.values(rewards).reduce((acc, r) => acc + (Number(r.trophiesEarned) || 2), 0);
     const quizRewards = (typeof trackerState !== "undefined" && trackerState?.quizRewards) || [];
     ledgerTotal += quizRewards.reduce((acc, q) => acc + (Number(q.trophies) || 1), 0);
+
+    const transfers = (typeof trackerState !== "undefined" && Array.isArray(trackerState?.trophyTransfers)) ? trackerState.trophyTransfers : [];
+    let netTransfers = 0;
+    for (const t of transfers) {
+      if (t.type === "received") netTransfers += (Number(t.amount) || 0);
+      else if (t.type === "sent") netTransfers -= (Number(t.amount) || 0);
+    }
+    const minLegitimate = Math.max(0, ledgerTotal + netTransfers);
 
     const direct = (typeof trackerState !== "undefined" && trackerState && trackerState.trophies != null && !isNaN(trackerState.trophies))
       ? Number(trackerState.trophies)
       : 0;
 
-    const finalTrophies = Math.max(direct, ledgerTotal);
+    const finalTrophies = Math.max(direct, minLegitimate);
     if (typeof trackerState !== "undefined" && trackerState && trackerState.trophies !== finalTrophies) {
       trackerState.trophies = finalTrophies;
     }
@@ -860,7 +894,7 @@
   }
 
   function trackerStorageKey() { return `daily-grind-tracker:${user().email.toLowerCase()}`; }
-  function freshTrackerState() { return { dailyTasks: {}, goals: [], notes: [], journal: [], rewards: {}, quizRewards: [], quizDailyUsage: null, trophies: 0, lastActiveDate: localDateKey(), recentPenalty: null, songBaseOffset: null }; }
+  function freshTrackerState() { return { dailyTasks: {}, goals: [], notes: [], journal: [], rewards: {}, quizRewards: [], quizDailyUsage: null, trophies: 0, trophyTransfers: [], lastActiveDate: localDateKey(), recentPenalty: null, songBaseOffset: null }; }
   function freshDemoState() {
     return {
       dailyTasks: {
@@ -875,11 +909,12 @@
       notes: demoNotes.map((note) => ({ ...note })),
       quizRewards: [],
       quizDailyUsage: null,
-      trophies: 1,
+      trophies: 20,
+      trophyTransfers: [],
       lastActiveDate: localDateKey(),
       recentPenalty: null,
       rewards: {
-        "2026-09-13": { day: 8, quote: "Victory is not an event—it is a daily collection of small, disciplined wins.", author: "DAY 8 · MASTERY", trophiesEarned: 1 }
+        "2026-09-13": { day: 8, quote: "Victory is not an event—it is a daily collection of small, disciplined wins.", author: "DAY 8 · MASTERY", trophiesEarned: 5, isConsistent: true }
       },
       journal: [
         { date: "WED · SEP 16", title: "Discipline compounds.", text: "Kept momentum high today with zero excuses." },
@@ -902,11 +937,20 @@
     try {
       const saved = JSON.parse(localStorage.getItem(trackerStorageKey()));
       const rewards = saved?.rewards || {};
-      let computedTrophies = Object.values(rewards).reduce((acc, r) => acc + (Number(r.trophiesEarned) || getTrophiesForDay(r.day || 1)), 0);
+      let computedTrophies = Object.values(rewards).reduce((acc, r) => acc + (Number(r.trophiesEarned) || 2), 0);
       const quizRewards = saved?.quizRewards || [];
       computedTrophies += quizRewards.reduce((acc, q) => acc + (Number(q.trophies) || 1), 0);
+
+      const transfers = Array.isArray(saved?.trophyTransfers) ? saved.trophyTransfers : [];
+      let netTransfers = 0;
+      for (const t of transfers) {
+        if (t.type === "received") netTransfers += (Number(t.amount) || 0);
+        else if (t.type === "sent") netTransfers -= (Number(t.amount) || 0);
+      }
+      const minLegitimate = Math.max(0, computedTrophies + netTransfers);
+
       const stored = (saved?.trophies != null && !isNaN(saved.trophies)) ? Number(saved.trophies) : 0;
-      const finalTrophies = Math.max(stored, computedTrophies);
+      const finalTrophies = Math.max(stored, minLegitimate);
       const state = {
         dailyTasks: saved?.dailyTasks || {},
         goals: saved?.goals || [],
@@ -916,6 +960,7 @@
         quizRewards: quizRewards,
         quizDailyUsage: saved?.quizDailyUsage || null,
         trophies: finalTrophies,
+        trophyTransfers: transfers,
         lastActiveDate: localDateKey(),
         recentPenalty: null
       };
@@ -983,6 +1028,9 @@
             const existingIds = new Set((trackerState.quizRewards || []).map((r) => r.id || r.completedAt));
             const newRewards = data.state.quizRewards.filter((r) => !existingIds.has(r.id || r.completedAt));
             trackerState.quizRewards = [...(trackerState.quizRewards || []), ...newRewards];
+          }
+          if (Array.isArray(data.state.trophyTransfers)) {
+            trackerState.trophyTransfers = data.state.trophyTransfers;
           }
           const ledgerTotal = calculateTotalTrophies();
           const backendTrophies = (data.state.trophies != null && !isNaN(data.state.trophies)) ? Number(data.state.trophies) : 0;
@@ -1274,11 +1322,27 @@
     const metrics = trackerMetrics();
     const dayNum = metrics.day || 1;
     const quote = getDailyQuote(dayNum, date);
-    const earnedTrophies = getTrophiesForDay(dayNum);
+
+    // Daily consistency check:
+    // User is daily consistent if yesterday had completed tasks/rewards, or active streak >= 2
+    const prevDateKey = getPreviousDateKey(date);
+    const yesterdayDone = hasCompletedTasks(prevDateKey) || !!(trackerState.rewards && trackerState.rewards[prevDateKey]);
+    const streak = calculateStreak();
+    const isDailyConsistent = yesterdayDone || streak >= 2;
+
+    let earnedTrophies;
+    if (isDailyConsistent) {
+      earnedTrophies = 5; // Maximum 5 trophies for daily consistency
+    } else {
+      // Random between 2 and 4 trophies (2, 3, or 4)
+      earnedTrophies = Math.floor(Math.random() * 3) + 2;
+    }
 
     const alreadyRewarded = !!trackerState.rewards[date];
     if (!alreadyRewarded) {
       trackerState.trophies = (Number(trackerState.trophies) || calculateTotalTrophies()) + earnedTrophies;
+    } else if (trackerState.rewards[date].trophiesEarned) {
+      earnedTrophies = Number(trackerState.rewards[date].trophiesEarned);
     }
 
     trackerState.rewards[date] = {
@@ -1286,6 +1350,7 @@
       quote: quote.text,
       author: quote.author,
       trophiesEarned: earnedTrophies,
+      isConsistent: isDailyConsistent,
       completedAt: new Date().toISOString()
     };
     saveTrackerState();
@@ -1302,8 +1367,18 @@
     $("#rewardDayVal").textContent = `Day ${dayNum}`;
     $("#rewardTasksVal").textContent = `${tasks.length} / ${tasks.length}`;
     if ($("#rewardEyebrow")) $("#rewardEyebrow").textContent = `QUEST DAY ${dayNum} CONQUERED · 100% COMPLETE`;
-    if ($("#rewardTrophiesEarned")) $("#rewardTrophiesEarned").textContent = `+${earnedTrophies} Trophy${earnedTrophies > 1 ? 's' : ''} Added to Vault!`;
-    if ($("#rewardTotalTrophies")) $("#rewardTotalTrophies").textContent = `You now have ${totalTrophies} ${totalTrophies === 1 ? 'Trophy' : 'Trophies'} in your vault`;
+    if ($("#rewardTrophiesEarned")) {
+      if (isDailyConsistent) {
+        $("#rewardTrophiesEarned").innerHTML = `+5 Trophies Added to Vault!<br /><span class="reward-consistency-tag">⚡ DAILY CONSISTENCY MASTER REWARD (MAX 5 🏆)</span>`;
+      } else {
+        $("#rewardTrophiesEarned").innerHTML = `+${earnedTrophies} Trophies Added to Vault!<br /><span class="reward-random-tag">🎲 DAILY REWARD (+${earnedTrophies} 🏆) · STAY CONSISTENT TOMORROW FOR 5 🏆</span>`;
+      }
+    }
+    if ($("#rewardTotalTrophies")) {
+      $("#rewardTotalTrophies").textContent = isDailyConsistent
+        ? `Streak honored! You now have ${totalTrophies} Trophies in your vault.`
+        : `Stay consistent tomorrow to earn the maximum 5 trophies! Vault balance: ${totalTrophies} 🏆`;
+    }
 
     modal.showModal();
     startConfetti();
@@ -2042,25 +2117,55 @@
 
       const ledgerRowsHtml = ledger.length ? ledger.map((rec) => {
         const isReward = rec.type === "reward";
+        const isPenalty = rec.type === "penalty";
+        const isTransferSent = rec.type === "transfer_sent";
+        const isTransferReceived = rec.type === "transfer_received";
         const formattedDate = formatDate(rec.date);
+
+        let itemClass = "is-reward";
+        let tagClass = "tag-reward";
+        let tagText = "🏆 QUEST CONQUERED";
+        let amountClass = "amount-plus";
+        let subtext = "Added to Vault";
+
+        if (isPenalty) {
+          itemClass = "is-penalty";
+          tagClass = "tag-penalty";
+          tagText = "⚠️ INACTIVITY PENALTY";
+          amountClass = "amount-minus";
+          subtext = "Deducted";
+        } else if (isTransferSent) {
+          itemClass = "is-transfer-sent";
+          tagClass = "tag-sent";
+          tagText = "📤 TROPHY SENT";
+          amountClass = "amount-minus";
+          subtext = `Sent to ${escapeHtml(rec.counterparty || 'Grinder')}`;
+        } else if (isTransferReceived) {
+          itemClass = "is-transfer-received";
+          tagClass = "tag-received";
+          tagText = "🎁 TROPHY RECEIVED";
+          amountClass = "amount-plus";
+          subtext = `Gift from ${escapeHtml(rec.counterparty || 'Friend')}`;
+        }
+
         return `
-          <div class="vault-ledger-item ${isReward ? 'is-reward' : 'is-penalty'}">
+          <div class="vault-ledger-item ${itemClass}">
             <div class="ledger-col-date">
               <strong>${escapeHtml(formattedDate)}</strong>
-              <small>${rec.day !== "—" ? `Quest Day ${rec.day}` : "Account Audit"}</small>
+              <small>${rec.day !== "—" ? (rec.day === "Transfer" ? "Peer Gift" : `Quest Day ${rec.day}`) : "Account Audit"}</small>
             </div>
             <div class="ledger-col-source">
-              <span class="ledger-source-tag ${isReward ? 'tag-reward' : 'tag-penalty'}">
-                ${isReward ? '🏆 QUEST CONQUERED' : '⚠️ INACTIVITY PENALTY'}
+              <span class="ledger-source-tag ${tagClass}">
+                ${tagText}
               </span>
               <p class="ledger-source-desc">${escapeHtml(rec.source)}</p>
               ${rec.quote ? `<span class="ledger-quote-snippet">“${escapeHtml(rec.quote)}”</span>` : ''}
             </div>
             <div class="ledger-col-amount">
-              <strong class="${isReward ? 'amount-plus' : 'amount-minus'}">
-                ${isReward ? `+${rec.trophies}` : `${rec.trophies}`} 🏆
+              <strong class="${amountClass}">
+                ${rec.trophies > 0 ? `+${rec.trophies}` : `${rec.trophies}`} 🏆
               </strong>
-              <small>${isReward ? 'Added to Vault' : 'Deducted'}</small>
+              <small>${subtext}</small>
             </div>
           </div>
         `;
@@ -2112,6 +2217,21 @@
                 <span>PENALTY DEDUCTIONS</span>
               </div>
             </div>
+          </div>
+
+          <!-- Peer Trophy Gift Banner -->
+          <div class="vault-gift-banner">
+            <div class="vault-gift-left">
+              <div class="vault-gift-badge">🎁</div>
+              <div>
+                <span class="eyebrow" style="color:#ffd54f;">GRIND BROTHERHOOD & SISTERHOOD</span>
+                <h3 style="margin:2px 0 4px; font-size:18px;">Gift Trophies to Another Grinder</h3>
+                <p style="margin:0; font-size:12.5px; color:#a6b9d0;">Send trophies from your vault to Siya or any fellow grinder to keep their fire burning.</p>
+              </div>
+            </div>
+            <button type="button" class="button button-accent" id="vaultOpenSendModalBtn" style="white-space:nowrap; padding:10px 18px; font-weight:800; cursor:pointer;">
+              <span>🎁 Send Trophies</span>
+            </button>
           </div>
 
           <!-- Next Title Progression Card -->
@@ -4384,6 +4504,235 @@
         navigate("quiz");
       }
     });
+
+    initSendTrophySystem();
+  }
+
+  function initSendTrophySystem() {
+    const modal = $("#sendTrophyModal");
+    if (!modal) return;
+
+    const selectEl = $("#transferRecipientSelect");
+    const inputEl = $("#transferRecipientInput");
+    const amountEl = $("#transferAmountInput");
+    const noteEl = $("#transferNoteInput");
+    const balanceEl = $("#transferSenderBalance");
+    const remainingCountEl = $("#transferRemainingCount");
+    const feedbackEl = $("#transferFeedback");
+    const submitBtn = $("#confirmSendTrophyBtn");
+
+    function updateRemainingHint() {
+      const currentVault = calculateTotalTrophies();
+      const amt = parseInt(amountEl ? amountEl.value : 0, 10) || 0;
+      const remaining = Math.max(0, currentVault - amt);
+      if (remainingCountEl) remainingCountEl.textContent = remaining;
+      if (balanceEl) balanceEl.textContent = `${currentVault} 🏆`;
+    }
+
+    async function openModal(preselected = "") {
+      const currentVault = calculateTotalTrophies();
+      if (balanceEl) balanceEl.textContent = `${currentVault} 🏆`;
+      if (feedbackEl) {
+        feedbackEl.style.display = "none";
+        feedbackEl.textContent = "";
+        feedbackEl.className = "transfer-feedback";
+      }
+
+      // Default amount: 5 trophies (or current vault if less)
+      const defaultAmt = currentVault >= 5 ? 5 : (currentVault >= 1 ? currentVault : 1);
+      if (amountEl) {
+        amountEl.value = defaultAmt;
+        amountEl.max = Math.max(1, currentVault);
+      }
+      if (noteEl) noteEl.value = "";
+      updateRemainingHint();
+
+      // Populate recipients
+      if (selectEl) {
+        selectEl.innerHTML = `<option value="">— Loading fellow grinders... —</option>`;
+        try {
+          const recipients = await auth.getTransferRecipients();
+          selectEl.innerHTML = `<option value="">— Choose a fellow grinder —</option>`;
+          (recipients || []).forEach(r => {
+            const opt = document.createElement("option");
+            opt.value = r.email;
+            opt.dataset.name = r.name;
+            opt.textContent = `${r.name} (${r.email}) · ${r.trophies || 0} 🏆`;
+            if (preselected && (r.name.toLowerCase() === preselected.toLowerCase() || r.email.toLowerCase() === preselected.toLowerCase())) {
+              opt.selected = true;
+            }
+            selectEl.appendChild(opt);
+          });
+        } catch (e) {
+          selectEl.innerHTML = `
+            <option value="">— Choose a fellow grinder —</option>
+            <option value="siya@gmail.com" data-name="Siya">Siya (siya@gmail.com) · 2 🏆</option>
+            <option value="kabir@test.com" data-name="Kabir Verma">Kabir Verma (kabir@test.com) · 3 🏆</option>
+            <option value="sneha@test.com" data-name="Sneha Roy">Sneha Roy (sneha@test.com) · 4 🏆</option>
+          `;
+        }
+      }
+
+      if (preselected && inputEl) {
+        inputEl.value = preselected;
+      }
+
+      try {
+        modal.showModal();
+      } catch {
+        modal.setAttribute("open", "true");
+      }
+    }
+
+    if (selectEl && inputEl) {
+      selectEl.addEventListener("change", () => {
+        const selected = selectEl.options[selectEl.selectedIndex];
+        if (selected && selected.value) {
+          inputEl.value = selected.dataset.name || selected.value;
+        }
+      });
+    }
+
+    if (amountEl) {
+      amountEl.addEventListener("input", updateRemainingHint);
+    }
+
+    modal.querySelectorAll(".transfer-chip[data-amt]").forEach(chip => {
+      chip.addEventListener("click", () => {
+        const amt = parseInt(chip.dataset.amt, 10);
+        if (amountEl) {
+          amountEl.value = amt;
+          updateRemainingHint();
+        }
+      });
+    });
+
+    const chipAll = $("#transferChipAll");
+    if (chipAll) {
+      chipAll.addEventListener("click", () => {
+        const currentVault = calculateTotalTrophies();
+        if (amountEl) {
+          amountEl.value = Math.max(1, currentVault);
+          updateRemainingHint();
+        }
+      });
+    }
+
+    async function handleTransfer() {
+      const currentVault = calculateTotalTrophies();
+      const recipient = (inputEl.value || selectEl.value || "").trim();
+      const amt = parseInt(amountEl.value, 10);
+      const note = (noteEl ? noteEl.value : "").trim();
+
+      if (!recipient) {
+        showError("Please select or enter a recipient (e.g. Siya or siya@gmail.com).");
+        return;
+      }
+      if (isNaN(amt) || amt < 1) {
+        showError("Please enter a valid transfer amount (at least 1 trophy).");
+        return;
+      }
+      if (amt > currentVault) {
+        showError(`Insufficient trophies! Your vault has ${currentVault} 🏆, but you tried to send ${amt} 🏆.`);
+        return;
+      }
+
+      const currentUser = user();
+      if (currentUser && currentUser.email && recipient.toLowerCase() === currentUser.email.toLowerCase()) {
+        showError("You cannot send trophies to yourself.");
+        return;
+      }
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `<span>⏳ Transferring...</span>`;
+      }
+
+      try {
+        if (isDemo() || !auth.getToken()) {
+          // Demo mode transfer
+          trackerState.trophies = Math.max(0, currentVault - amt);
+          const targetName = recipient.includes("@") ? recipient.split("@")[0] : recipient;
+          const tx = {
+            id: `tx_${Date.now()}`,
+            type: "sent",
+            counterpartyName: targetName,
+            counterpartyEmail: recipient.includes("@") ? recipient : `${recipient.toLowerCase()}@grind.local`,
+            amount: amt,
+            note: note,
+            timestamp: new Date().toISOString()
+          };
+          trackerState.trophyTransfers = trackerState.trophyTransfers || [];
+          trackerState.trophyTransfers.unshift(tx);
+          saveTrackerState(false);
+          updateTrophyDisplay();
+          if (currentView === "vault") renderSecondaryView("vault");
+          showToast(`🎁 Gift sent! Transferred ${amt} trophies to ${targetName}.`);
+          modal.close();
+          startConfetti();
+        } else {
+          // Live API transfer
+          const res = await auth.transferTrophies(recipient, amt, note);
+          if (res && res.success) {
+            trackerState.trophies = res.newSenderTrophies;
+            trackerState.trophyTransfers = trackerState.trophyTransfers || [];
+            if (res.transaction) {
+              trackerState.trophyTransfers.unshift(res.transaction);
+            }
+            saveTrackerState(false);
+            updateTrophyDisplay();
+            if (currentView === "vault") renderSecondaryView("vault");
+            showToast(`🎁 Transferred ${amt} trophies to ${res.recipientName}!`);
+            modal.close();
+            startConfetti();
+          } else {
+            showError((res && res.error) || "Transfer failed. Please check recipient details.");
+          }
+        }
+      } catch (err) {
+        showError(err.message || "Failed to transfer trophies.");
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = `<span>🚀 Transfer Trophies Now</span>`;
+        }
+      }
+    }
+
+    function showError(msg) {
+      if (feedbackEl) {
+        feedbackEl.style.display = "block";
+        feedbackEl.className = "transfer-feedback error";
+        feedbackEl.textContent = msg;
+      } else {
+        alert(msg);
+      }
+    }
+
+    if (submitBtn) {
+      submitBtn.addEventListener("click", handleTransfer);
+    }
+
+    if ($("#topbarSendTrophyBtn")) {
+      $("#topbarSendTrophyBtn").addEventListener("click", () => openModal());
+    }
+    if ($("#profileSendTrophyBtn")) {
+      $("#profileSendTrophyBtn").addEventListener("click", () => {
+        if ($("#profileMenu")) $("#profileMenu").hidden = true;
+        openModal();
+      });
+    }
+
+    document.addEventListener("click", (e) => {
+      const btn = e.target.closest("#vaultOpenSendModalBtn, [data-action='send-trophies']");
+      if (btn) {
+        e.preventDefault();
+        const prefill = btn.dataset.recipient || "";
+        openModal(prefill);
+      }
+    });
+
+    window.openSendTrophyModal = openModal;
   }
 
   // Ensure sidebar is always visible and expanded by default

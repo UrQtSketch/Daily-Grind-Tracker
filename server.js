@@ -720,6 +720,46 @@ app.put("/api/tracker", authenticate, async (req, res) => {
   }
 });
 
+// Trophy Transfer & Gift Endpoints
+app.get("/api/trophies/recipients", authenticate, async (req, res) => {
+  try {
+    const recipients = await db.getTransferRecipients(req.user.email);
+    res.json({ success: true, recipients });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to load recipient list" });
+  }
+});
+
+app.post("/api/trophies/transfer", authenticate, async (req, res) => {
+  try {
+    const { recipient, amount, note } = req.body || {};
+    if (!recipient) {
+      return res.status(400).json({ error: "Recipient name or email is required." });
+    }
+    const amt = parseInt(amount, 10);
+    if (isNaN(amt) || amt < 1) {
+      return res.status(400).json({ error: "Transfer amount must be at least 1 trophy." });
+    }
+
+    const result = await db.transferTrophies(req.user.email, recipient, amt, note);
+
+    // Broadcast real-time update to live leaderboard
+    broadcastLeaderboardUpdate();
+
+    res.json({
+      success: true,
+      message: `Successfully transferred ${amt} ${amt === 1 ? 'trophy' : 'trophies'} to ${result.recipientName}!`,
+      newSenderTrophies: result.senderTrophies,
+      recipientName: result.recipientName,
+      recipientEmail: result.recipientEmail,
+      amount: result.amount,
+      transaction: result.transaction
+    });
+  } catch (err) {
+    res.status(400).json({ error: err.message || "Failed to transfer trophies." });
+  }
+});
+
 // Support / Feedback endpoint
 app.post("/api/support/feedback", async (req, res) => {
   try {
