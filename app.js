@@ -853,6 +853,10 @@
   }
 
   function calculateTotalTrophies() {
+    if (!isDemo() && trackerState && trackerState.trophies != null && !isNaN(trackerState.trophies)) {
+      return Number(trackerState.trophies);
+    }
+
     const rewards = (typeof trackerState !== "undefined" && trackerState?.rewards) || {};
     let ledgerTotal = Object.values(rewards).reduce((acc, r) => acc + (Number(r.trophiesEarned) || 2), 0);
     const quizRewards = (typeof trackerState !== "undefined" && trackerState?.quizRewards) || [];
@@ -1030,22 +1034,24 @@
       if (res.ok) {
         const data = await res.json();
         if (data && data.state) {
-          trackerState.dailyTasks = { ...data.state.dailyTasks, ...trackerState.dailyTasks };
+          if (data.state.dailyTasks && Object.keys(data.state.dailyTasks).length > 0) {
+            trackerState.dailyTasks = data.state.dailyTasks;
+          }
+          if (data.state.rewards && Object.keys(data.state.rewards).length > 0) {
+            trackerState.rewards = data.state.rewards;
+          }
           if (data.state.goals && data.state.goals.length) trackerState.goals = data.state.goals;
           if (data.state.notes && data.state.notes.length) trackerState.notes = data.state.notes;
           if (data.state.journal && data.state.journal.length) trackerState.journal = data.state.journal;
-          trackerState.rewards = { ...data.state.rewards, ...trackerState.rewards };
           if (Array.isArray(data.state.quizRewards)) {
-            const existingIds = new Set((trackerState.quizRewards || []).map((r) => r.id || r.completedAt));
-            const newRewards = data.state.quizRewards.filter((r) => !existingIds.has(r.id || r.completedAt));
-            trackerState.quizRewards = [...(trackerState.quizRewards || []), ...newRewards];
+            trackerState.quizRewards = data.state.quizRewards;
           }
           if (Array.isArray(data.state.trophyTransfers)) {
             trackerState.trophyTransfers = data.state.trophyTransfers;
           }
-          const ledgerTotal = calculateTotalTrophies();
-          const backendTrophies = (data.state.trophies != null && !isNaN(data.state.trophies)) ? Number(data.state.trophies) : 0;
-          trackerState.trophies = Math.max(backendTrophies, ledgerTotal);
+          if (data.state.trophies != null && !isNaN(data.state.trophies)) {
+            trackerState.trophies = Number(data.state.trophies);
+          }
           if (data.state.quizDailyUsage) {
             const today = localDateKey();
             if (data.state.quizDailyUsage.date === today) {
@@ -1636,7 +1642,9 @@
   }
 
   function taskCompletion(taskList) { return taskList.length ? Math.round((taskList.filter((task) => task.done).length / taskList.length) * 100) : 0; }
-  function hasCompletedTasks(date) { return (trackerState.dailyTasks[date] || []).some((task) => task.done); }
+  function hasCompletedTasks(date) {
+    return (trackerState.dailyTasks[date] || []).some((task) => task.done) || !!(trackerState.rewards && trackerState.rewards[date]);
+  }
   function getWeekProgress() {
     if (isDemo()) return demoWeekly;
     const today = new Date();
@@ -1659,10 +1667,13 @@
   }
   function trackerMetrics() {
     const complete = tasks.filter((task) => task.done).length;
-    const activeDates = Object.keys(trackerState.dailyTasks).filter((date) => hasCompletedTasks(date));
-    const totalDone = Object.values(trackerState.dailyTasks).flat().filter((task) => task.done).length;
+    const activeDates = new Set([
+      ...Object.keys(trackerState.dailyTasks || {}).filter((date) => hasCompletedTasks(date)),
+      ...Object.keys(trackerState.rewards || {})
+    ]);
+    const totalDone = Object.values(trackerState.dailyTasks || {}).flat().filter((task) => task.done).length;
     const weeklyValues = getWeekProgress().filter((value) => value > 0);
-    const questDays = isDemo() ? 9 : activeDates.length;
+    const questDays = isDemo() ? 9 : activeDates.size;
     const questPercent = Math.min(100, Math.round((questDays / 751) * 1000) / 10);
     return {
       complete,

@@ -202,13 +202,13 @@ async function applySketchpapaUpdate() {
     for (let dayNum = 1; dayNum <= totalDays; dayNum++) {
       const daysAgo = totalDays - dayNum;
       const d = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
-      const dateKey = d.toISOString().slice(0, 10);
+      const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
-      dailyTasks[dateKey] = starterTaskList.map((t, idx) => ({ ...t, id: dayNum * 100 + idx }));
+      dailyTasks[dateKey] = starterTaskList.map((t, idx) => ({ ...t, id: dayNum * 100 + idx, done: true }));
 
-      // Total rewards sum to 79 + 1 quiz/transfer = exactly 80 trophies
+      // 74 days of 1 trophy + 3 days of 2 trophies = exactly 80 trophies
       let dayTrophies = 1;
-      if (dayNum === 75 || dayNum === 76) dayTrophies = 2; // +2 extra = 79 total rewards
+      if (dayNum >= 75) dayTrophies = 2;
 
       rewards[dateKey] = {
         day: dayNum,
@@ -236,7 +236,6 @@ async function applySketchpapaUpdate() {
         });
       }
 
-      const existingState = await TrackerStateModel.findOne({ email: targetEmail }).lean();
       await TrackerStateModel.findOneAndUpdate(
         { email: targetEmail },
         {
@@ -244,9 +243,9 @@ async function applySketchpapaUpdate() {
             dailyTasks: dailyTasks,
             rewards: rewards,
             trophies: targetTrophies,
-            quizRewards: (existingState && existingState.quizRewards) || [],
-            quizDailyUsage: (existingState && existingState.quizDailyUsage) || null,
-            trophyTransfers: (existingState && existingState.trophyTransfers) || [],
+            quizRewards: [],
+            quizDailyUsage: null,
+            trophyTransfers: [],
             lastActiveDate: now.toISOString().slice(0, 10),
             updatedAt: new Date()
           }
@@ -275,6 +274,8 @@ async function applySketchpapaUpdate() {
       dailyTasks: dailyTasks,
       rewards: rewards,
       trophies: targetTrophies,
+      quizRewards: [],
+      trophyTransfers: [],
       lastActiveDate: now.toISOString().slice(0, 10),
       updatedAt: now.toISOString()
     };
