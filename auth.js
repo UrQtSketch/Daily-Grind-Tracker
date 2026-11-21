@@ -352,6 +352,40 @@
           } catch {}
         }
       }
+    },
+
+    async getMysteryBoxStatus() {
+      if (isHttp()) {
+        const token = this.getToken();
+        if (token) {
+          try {
+            const res = await fetch("/api/mystery-box/status", {
+              headers: { "Authorization": `Bearer ${token}` }
+            });
+            if (res.ok) return await res.json();
+          } catch {}
+        }
+      }
+      return null;
+    },
+
+    async openMysteryBox() {
+      if (isHttp()) {
+        const token = this.getToken();
+        if (token) {
+          const res = await fetch("/api/mystery-box/open", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            }
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Failed to open mystery box.");
+          return data;
+        }
+      }
+      throw new Error("You must be logged in to open the Mystery Box.");
     }
   };
 })();

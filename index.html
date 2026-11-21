@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=5.5" />
+    <link rel="stylesheet" href="styles.css?v=5.6" />
   </head>
   <body class="app-body">
     <div class="ambient ambient-one"></div>
@@ -518,10 +518,50 @@
       </div>
     </dialog>
 
+    <!-- Daily Mystery Box Reveal Modal -->
+    <dialog class="modal mystery-box-modal" id="mysteryBoxModal">
+      <div class="modal-card mystery-modal-card">
+        <button class="modal-close" type="button" id="closeMysteryModalBtn" aria-label="Close" onclick="document.getElementById('mysteryBoxModal').close()">×</button>
+        
+        <!-- Opening Stage (Chest shaking, aura radiating) -->
+        <div class="mystery-stage-opening" id="mysteryStageOpening">
+          <div class="mystery-portal-glow"></div>
+          <div class="mystery-animated-chest" id="mysteryAnimatedChest">
+            <span class="chest-icon">🎁</span>
+            <div class="chest-sparkle-rings"></div>
+          </div>
+          <h2 class="mystery-opening-title">Unlocking Daily Fate...</h2>
+          <p class="mystery-opening-sub" id="mysteryOpeningSub">Rolling between 1 and 50 Trophies based on your daily consistency...</p>
+        </div>
+
+        <!-- Reveal Stage (Burst, won trophies, rarity tier, claim button) -->
+        <div class="mystery-stage-reveal" id="mysteryStageReveal" style="display:none;">
+          <div class="mystery-reward-burst-glow"></div>
+          <div class="mystery-rarity-pill" id="mysteryRarityPill">EPIC FORTUNE 🔥</div>
+          <div class="mystery-trophy-display">
+            <span class="reward-trophy-symbol">🏆</span>
+            <span class="reward-plus-text">+<strong id="mysteryWonAmount">0</strong></span>
+          </div>
+          <h2 class="mystery-reward-title">Trophies Discovered!</h2>
+          <p class="mystery-reward-desc" id="mysteryRewardDesc">Your discipline has rewarded you with bonus trophies!</p>
+          
+          <div class="mystery-streak-reward-pill">
+            <span>🔥 Daily Mystery Streak: <strong id="mysteryRewardStreak">1 Day</strong></span>
+            <span>·</span>
+            <span>Vault: <strong id="mysteryNewVaultBalance">0 🏆</strong></span>
+          </div>
+
+          <button type="button" class="primary-button mystery-claim-reward-btn" id="claimMysteryRewardBtn">
+            <span>Collect Trophies & Add to Vault 🏆</span>
+          </button>
+        </div>
+      </div>
+    </dialog>
+
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    <script src="auth.js?v=5.5"></script>
-    <script src="quiz.js?v=5.5"></script>
-    <script src="app.js?v=5.5"></script>
+    <script src="auth.js?v=5.6"></script>
+    <script src="quiz.js?v=5.6"></script>
+    <script src="app.js?v=5.6"></script>
   </body>
 </html>

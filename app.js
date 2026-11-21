@@ -886,7 +886,7 @@
   }
 
   function trackerStorageKey() { return `daily-grind-tracker:${user().email.toLowerCase()}`; }
-  function freshTrackerState() { return { dailyTasks: {}, goals: [], notes: [], journal: [], rewards: {}, quizRewards: [], quizDailyUsage: null, trophies: 0, trophyTransfers: [], lastActiveDate: localDateKey(), recentPenalty: null, songBaseOffset: null }; }
+  function freshTrackerState() { return { dailyTasks: {}, goals: [], notes: [], journal: [], rewards: {}, quizRewards: [], quizDailyUsage: null, trophies: 0, trophyTransfers: [], mysteryBox: { lastOpenedDate: null, streak: 0, totalOpened: 0, history: [] }, lastActiveDate: localDateKey(), recentPenalty: null, songBaseOffset: null }; }
 
   function checkLocalInactivity(state) {
     if (!state) return state;
@@ -995,6 +995,9 @@
           }
           if (data.state.trophies != null && !isNaN(data.state.trophies)) {
             trackerState.trophies = Number(data.state.trophies);
+          }
+          if (data.state.mysteryBox) {
+            trackerState.mysteryBox = data.state.mysteryBox;
           }
           if (data.state.quizDailyUsage) {
             const today = localDateKey();
@@ -2146,6 +2149,38 @@
         </div>
       `;
 
+      // Mystery Box Status & Luck Computation
+      const todayDateStr = localDateKey();
+      const prevDateObj = new Date(todayDateStr + "T12:00:00Z");
+      prevDateObj.setUTCDate(prevDateObj.getUTCDate() - 1);
+      const yesterdayDateStr = prevDateObj.toISOString().slice(0, 10);
+
+      const mb = trackerState.mysteryBox || { lastOpenedDate: null, streak: 0, totalOpened: 0, history: [] };
+      const canOpenMb = (mb.lastOpenedDate !== todayDateStr);
+      let mbStreak = mb.streak || 0;
+      if (canOpenMb) {
+        mbStreak = (mb.lastOpenedDate === yesterdayDateStr) ? ((mb.streak || 0) + 1) : 1;
+      }
+
+      let mbTierName = "STARTER ✦";
+      let mbLuckPercent = 25;
+      let mbLuckMultiplier = "1.0x (1 — 50 🏆 Chance)";
+      if (mbStreak >= 8) {
+        mbTierName = "RELENTLESS MASTER 👑";
+        mbLuckPercent = 95;
+        mbLuckMultiplier = "3.5x Luck (High Epic & Jackpot Odds)";
+      } else if (mbStreak >= 5) {
+        mbTierName = "HARDCORE GRINDER 🔥";
+        mbLuckPercent = 75;
+        mbLuckMultiplier = "2.5x Luck (Boosted Rare & Epic)";
+      } else if (mbStreak >= 2) {
+        mbTierName = "STEADY DISCIPLINE ⚡";
+        mbLuckPercent = 50;
+        mbLuckMultiplier = "1.8x Luck (Enhanced Odds)";
+      }
+
+      const mbLastReward = (mb.history && mb.history[0] && mb.history[0].date === todayDateStr) ? mb.history[0].trophies : (mb.history && mb.history[0] ? mb.history[0].trophies : null);
+
       content = `
         <div class="vault-layout">
           <!-- Vault Hero Banner -->
@@ -2184,6 +2219,53 @@
               <div class="vault-stat-box">
                 <strong style="color:${totalPenalties > 0 ? '#ff5252' : '#8899aa'};">-${totalPenalties}</strong>
                 <span>PENALTY DEDUCTIONS</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Daily Mystery Box Card -->
+          <div class="vault-mystery-card ${canOpenMb ? 'is-available' : 'is-claimed'}" id="vaultMysteryCard">
+            <div class="mystery-glow-aura"></div>
+            <div class="mystery-card-inner">
+              <div class="mystery-left">
+                <div class="mystery-box-symbol ${canOpenMb ? 'pulse-anim' : ''}">
+                  <span class="box-emoji">${canOpenMb ? '🎁' : '📦'}</span>
+                  <span class="box-sparkles">✨</span>
+                </div>
+                <div class="mystery-info">
+                  <div class="mystery-badge-row">
+                    <span class="mystery-tag">✦ DAILY LUCK CHEST</span>
+                    <span class="mystery-streak-pill ${mbStreak > 0 ? 'active' : ''}">🔥 Streak: ${mbStreak} ${mbStreak === 1 ? 'Day' : 'Days'}</span>
+                    <span class="mystery-tier-pill">${mbTierName}</span>
+                  </div>
+                  <h3>The Grinder's Mystery Box</h3>
+                  <p>Win <strong>1 to 50 Trophies</strong> every day! Daily consistency increases your luck ratio & jackpot odds.</p>
+                  <div class="mystery-luck-meter">
+                    <div class="luck-meter-track">
+                      <div class="luck-meter-fill" style="width: ${mbLuckPercent}%;"></div>
+                    </div>
+                    <span class="luck-meter-text">🍀 Luck Tier: <strong>${mbLuckMultiplier}</strong></span>
+                  </div>
+                </div>
+              </div>
+              <div class="mystery-right">
+                ${canOpenMb ? `
+                  <button type="button" class="mystery-open-btn" id="claimMysteryBoxBtn">
+                    <span class="btn-box-icon">🎁</span>
+                    <div class="btn-box-texts">
+                      <strong>Open Mystery Box</strong>
+                      <small>Win 1 — 50 Trophies 🎲</small>
+                    </div>
+                  </button>
+                ` : `
+                  <div class="mystery-claimed-box">
+                    <span class="claimed-check">✓</span>
+                    <div class="claimed-texts">
+                      <strong>Claimed Today ${mbLastReward ? `(+${mbLastReward} 🏆)` : ''}</strong>
+                      <small>Next Box in <strong id="mysteryCountdownClock">--:--:--</strong></small>
+                    </div>
+                  </div>
+                `}
               </div>
             </div>
           </div>
@@ -3537,6 +3619,7 @@
     }
 
     secondary.innerHTML = `<header class="view-header"><span class="view-icon">${icon}</span><div><p class="eyebrow">DAILY GRIND TRACKER</p><h1>${title}</h1><p>${subtitle}</p></div><button class="view-back" type="button" data-page-action="dashboard">⌂ Dashboard</button></header>${content}`;
+    if (view === "vault" && window.startMysteryCountdown) window.startMysteryCountdown();
     secondary.querySelectorAll("[data-page-task]").forEach((button) => button.addEventListener("click", () => toggleTask(Number(button.dataset.pageTask))));
     secondary.querySelectorAll("[data-page-action]").forEach((button) => button.addEventListener("click", () => {
       const action = button.dataset.pageAction;
@@ -4533,6 +4616,7 @@
 
     initSendTrophySystem();
     initMailboxSystem();
+    initMysteryBoxSystem();
   }
 
   function renderMailboxItemsHtml(transfers, filter = "all") {
@@ -5035,6 +5119,148 @@
     });
 
     window.openSendTrophyModal = openModal;
+  }
+
+  function initMysteryBoxSystem() {
+    const modal = $("#mysteryBoxModal");
+    let isOpening = false;
+
+    function startMysteryCountdown() {
+      if (window._mbCountdownTimer) clearInterval(window._mbCountdownTimer);
+      const update = () => {
+        const el = document.getElementById("mysteryCountdownClock");
+        if (!el) return;
+        const now = new Date();
+        const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
+        const diff = midnight.getTime() - now.getTime();
+        if (diff <= 0) {
+          if (currentView === "vault") renderSecondaryView("vault");
+          return;
+        }
+        const h = String(Math.floor(diff / 3600000)).padStart(2, "0");
+        const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2, "0");
+        const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, "0");
+        el.textContent = `${h}h ${m}m ${s}s`;
+      };
+      update();
+      window._mbCountdownTimer = setInterval(update, 1000);
+    }
+
+    async function handleOpenMysteryBox() {
+      if (isOpening) return;
+      if (!modal) return;
+
+      const stageOpening = $("#mysteryStageOpening");
+      const stageReveal = $("#mysteryStageReveal");
+      const chest = $("#mysteryAnimatedChest");
+
+      if (stageOpening) stageOpening.style.display = "flex";
+      if (stageReveal) stageReveal.style.display = "none";
+      if (chest) chest.classList.add("is-shaking");
+
+      try {
+        modal.showModal();
+      } catch {
+        modal.setAttribute("open", "true");
+      }
+
+      isOpening = true;
+
+      try {
+        const res = await DailyGrindAuth.openMysteryBox();
+        if (res && res.success) {
+          trackerState.trophies = res.newTotalTrophies;
+          trackerState.mysteryBox = trackerState.mysteryBox || {};
+          trackerState.mysteryBox.lastOpenedDate = localDateKey();
+          trackerState.mysteryBox.streak = res.streak;
+          trackerState.mysteryBox.totalOpened = res.totalOpened;
+          trackerState.mysteryBox.history = trackerState.mysteryBox.history || [];
+          trackerState.mysteryBox.history.unshift({
+            date: localDateKey(),
+            trophies: res.trophiesWon,
+            rarity: res.rarity,
+            streak: res.streak,
+            timestamp: new Date().toISOString()
+          });
+          if (res.transaction) {
+            trackerState.trophyTransfers = trackerState.trophyTransfers || [];
+            trackerState.trophyTransfers.unshift(res.transaction);
+          }
+
+          saveTrackerState(false);
+          updateTrophyDisplay();
+          refreshMailboxBadges();
+
+          // Suspense timing for thrilling opening effect
+          setTimeout(() => {
+            if (stageOpening) stageOpening.style.display = "none";
+            if (stageReveal) stageReveal.style.display = "flex";
+            if (chest) chest.classList.remove("is-shaking");
+
+            startConfetti();
+
+            const wonAmtEl = $("#mysteryWonAmount");
+            if (wonAmtEl) wonAmtEl.textContent = res.trophiesWon;
+
+            const rarityEl = $("#mysteryRarityPill");
+            if (rarityEl) {
+              rarityEl.className = `mystery-rarity-pill rarity-${res.rarity.toLowerCase()}`;
+              if (res.rarity === "LEGENDARY") {
+                rarityEl.textContent = `👑 LEGENDARY JACKPOT! (+${res.trophiesWon} 🏆)`;
+              } else if (res.rarity === "EPIC") {
+                rarityEl.textContent = `🔥 EPIC FORTUNE! (+${res.trophiesWon} 🏆)`;
+              } else if (res.rarity === "RARE") {
+                rarityEl.textContent = `⚡ RARE BLESSING! (+${res.trophiesWon} 🏆)`;
+              } else {
+                rarityEl.textContent = `✦ DAILY REWARD (+${res.trophiesWon} 🏆)`;
+              }
+            }
+
+            const streakEl = $("#mysteryRewardStreak");
+            if (streakEl) streakEl.textContent = `${res.streak} ${res.streak === 1 ? 'Day' : 'Days'}`;
+
+            const vaultEl = $("#mysteryNewVaultBalance");
+            if (vaultEl) vaultEl.textContent = `${res.newTotalTrophies} 🏆`;
+
+            const descEl = $("#mysteryRewardDesc");
+            if (descEl) {
+              if (res.streak >= 2) {
+                descEl.textContent = `Consistency pays off! Your ${res.streak}-day streak amplified your luck ratio for this reward.`;
+              } else {
+                descEl.textContent = `Congratulations on your daily reward! Open every consecutive day to boost your high-roll odds.`;
+              }
+            }
+          }, 1200);
+        } else {
+          modal.close();
+          showToast((res && res.error) || "Unable to open Mystery Box right now.");
+        }
+      } catch (err) {
+        modal.close();
+        showToast(err.message || "Failed to open Mystery Box.");
+      } finally {
+        isOpening = false;
+      }
+    }
+
+    document.addEventListener("click", (e) => {
+      const openBtn = e.target.closest("#claimMysteryBoxBtn, [data-action='open-mystery-box']");
+      if (openBtn) {
+        e.preventDefault();
+        handleOpenMysteryBox();
+        return;
+      }
+
+      const claimRewardBtn = e.target.closest("#claimMysteryRewardBtn");
+      if (claimRewardBtn) {
+        e.preventDefault();
+        if (modal) modal.close();
+        if (currentView === "vault") renderSecondaryView("vault");
+        showToast("🎁 Mystery Box reward deposited into your vault!");
+      }
+    });
+
+    window.startMysteryCountdown = startMysteryCountdown;
   }
 
   // Ensure sidebar is always visible and expanded by default

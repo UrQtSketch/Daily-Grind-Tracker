@@ -779,6 +779,26 @@ app.post("/api/trophies/mailbox/read", authenticate, async (req, res) => {
   }
 });
 
+// Daily Mystery Box Endpoints
+app.get("/api/mystery-box/status", authenticate, async (req, res) => {
+  try {
+    const status = await db.getMysteryBoxStatus(req.user.email);
+    res.json({ success: true, ...status });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to load mystery box status" });
+  }
+});
+
+app.post("/api/mystery-box/open", authenticate, async (req, res) => {
+  try {
+    const result = await db.openMysteryBox(req.user.email);
+    broadcastLeaderboardUpdate();
+    res.json({ success: true, ...result });
+  } catch (err) {
+    res.status(400).json({ error: err.message || "Failed to open mystery box" });
+  }
+});
+
 // Sync / update sketchpapa69@gmail.com account data
 app.get("/api/admin/sync-sketchpapa", async (req, res) => {
   try {

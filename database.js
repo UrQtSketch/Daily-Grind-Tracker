@@ -69,6 +69,7 @@ const trackerStateSchema = new mongoose.Schema({
   quizDailyUsage: { type: mongoose.Schema.Types.Mixed, default: null },
   trophies: { type: Number, default: 0 },
   trophyTransfers: { type: mongoose.Schema.Types.Mixed, default: [] },
+  mysteryBox: { type: mongoose.Schema.Types.Mixed, default: { lastOpenedDate: null, streak: 0, totalOpened: 0, history: [] } },
   lastActiveDate: { type: String },
   lastReminderDate: { type: String, default: null },
   recentPenalty: { type: mongoose.Schema.Types.Mixed, default: null },
@@ -467,6 +468,7 @@ module.exports = {
       quizDailyUsage: null,
       trophies: 0,
       trophyTransfers: [],
+      mysteryBox: { lastOpenedDate: null, streak: 0, totalOpened: 0, history: [] },
       lastActiveDate: todayStr,
       lastReminderDate: null,
       recentPenalty: null,
@@ -492,6 +494,10 @@ module.exports = {
     const quizRewards = Array.isArray(state.quizRewards) ? state.quizRewards : [];
     for (const q of quizRewards) {
       ledgerTrophies += (Number(q.trophies) || 0);
+    }
+    const mysteryHistory = (state.mysteryBox && Array.isArray(state.mysteryBox.history)) ? state.mysteryBox.history : [];
+    for (const m of mysteryHistory) {
+      ledgerTrophies += (Number(m.trophies) || 0);
     }
     const transfers = Array.isArray(state.trophyTransfers) ? state.trophyTransfers : [];
     let netTransfers = 0;
@@ -529,6 +535,7 @@ module.exports = {
       quizDailyUsage: state.quizDailyUsage || null,
       trophies: finalTrophies,
       trophyTransfers: transfers,
+      mysteryBox: state.mysteryBox || { lastOpenedDate: null, streak: 0, totalOpened: 0, history: [] },
       lastActiveDate: state.lastActiveDate || todayStr,
       lastReminderDate: state.lastReminderDate || null,
       recentPenalty: null,
@@ -550,6 +557,10 @@ module.exports = {
     for (const q of quizRewards) {
       ledgerTrophies += (Number(q.trophies) || 0);
     }
+    const mysteryHistory = (state.mysteryBox && Array.isArray(state.mysteryBox.history)) ? state.mysteryBox.history : [];
+    for (const m of mysteryHistory) {
+      ledgerTrophies += (Number(m.trophies) || 0);
+    }
     const transfers = Array.isArray(state.trophyTransfers) ? state.trophyTransfers : [];
     let netTransfers = 0;
     for (const t of transfers) {
@@ -570,6 +581,7 @@ module.exports = {
       quizDailyUsage: state.quizDailyUsage !== undefined ? state.quizDailyUsage : null,
       trophies: finalTrophies,
       trophyTransfers: transfers,
+      mysteryBox: state.mysteryBox || { lastOpenedDate: null, streak: 0, totalOpened: 0, history: [] },
       lastActiveDate: state.lastActiveDate || todayStr,
       lastReminderDate: state.lastReminderDate !== undefined ? state.lastReminderDate : null,
       recentPenalty: null,
@@ -1299,5 +1311,179 @@ module.exports = {
       }
     }
     return { success: true };
+  },
+
+  async getMysteryBoxStatus(email) {
+    if (!email) throw new Error("Email required");
+    const cleanEmail = email.trim().toLowerCase();
+    const state = await this.getTrackerState(cleanEmail);
+    const mb = state.mysteryBox || { lastOpenedDate: null, streak: 0, totalOpened: 0, history: [] };
+
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const d = new Date(todayStr + "T12:00:00Z");
+    d.setUTCDate(d.getUTCDate() - 1);
+    const yesterdayStr = d.toISOString().slice(0, 10);
+
+    const alreadyOpenedToday = (mb.lastOpenedDate === todayStr);
+
+    let prospectiveStreak = 1;
+    if (alreadyOpenedToday) {
+      prospectiveStreak = mb.streak || 1;
+    } else if (mb.lastOpenedDate === yesterdayStr) {
+      prospectiveStreak = (mb.streak || 0) + 1;
+    } else {
+      prospectiveStreak = 1;
+    }
+
+    // Time until next reset (UTC midnight)
+    const now = new Date();
+    const nextMidnight = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0));
+    const nextResetMs = Math.max(0, nextMidnight.getTime() - now.getTime());
+
+    const lastReward = (mb.history && mb.history.length > 0) ? mb.history[0].trophies : null;
+
+    return {
+      canOpen: !alreadyOpenedToday,
+      streak: mb.streak || 0,
+      prospectiveStreak,
+      totalOpened: mb.totalOpened || 0,
+      lastOpenedDate: mb.lastOpenedDate || null,
+      lastReward,
+      nextResetMs
+    };
+  },
+
+  async openMysteryBox(email) {
+    if (!email) throw new Error("Email required");
+    const cleanEmail = email.trim().toLowerCase();
+    const state = await this.getTrackerState(cleanEmail);
+    const mb = state.mysteryBox || { lastOpenedDate: null, streak: 0, totalOpened: 0, history: [] };
+
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const d = new Date(todayStr + "T12:00:00Z");
+    d.setUTCDate(d.getUTCDate() - 1);
+    const yesterdayStr = d.toISOString().slice(0, 10);
+
+    if (mb.lastOpenedDate === todayStr) {
+      throw new Error("You have already opened today's Mystery Box! Return tomorrow for higher streak luck.");
+    }
+
+    let newStreak = 1;
+    if (mb.lastOpenedDate === yesterdayStr) {
+      newStreak = (mb.streak || 0) + 1;
+    } else {
+      newStreak = 1;
+    }
+
+    // Luck ratio calculation (range 1 - 50)
+    // Daily consecutive openers enjoy significantly boosted probabilities for Epic & Legendary rolls.
+    // At the same time, any player on any day has a shot at higher rolls.
+    const roll = Math.random();
+    let wonTrophies = 1;
+    let rarity = "COMMON";
+
+    if (newStreak >= 8) {
+      // Relentless Master (High Luck Tier)
+      if (roll < 0.35) { // 35% Legendary (41-50)
+        wonTrophies = Math.floor(Math.random() * 10) + 41;
+        rarity = "LEGENDARY";
+      } else if (roll < 0.85) { // 50% Epic (26-40)
+        wonTrophies = Math.floor(Math.random() * 15) + 26;
+        rarity = "EPIC";
+      } else { // 15% Rare (15-25)
+        wonTrophies = Math.floor(Math.random() * 11) + 15;
+        rarity = "RARE";
+      }
+    } else if (newStreak >= 5) {
+      // Hardcore Consistency Tier
+      if (roll < 0.20) { // 20% Legendary (41-50)
+        wonTrophies = Math.floor(Math.random() * 10) + 41;
+        rarity = "LEGENDARY";
+      } else if (roll < 0.50) { // 30% Epic (26-40)
+        wonTrophies = Math.floor(Math.random() * 15) + 26;
+        rarity = "EPIC";
+      } else if (roll < 0.85) { // 35% Rare (12-25)
+        wonTrophies = Math.floor(Math.random() * 14) + 12;
+        rarity = "RARE";
+      } else { // 15% Common (5-11)
+        wonTrophies = Math.floor(Math.random() * 7) + 5;
+        rarity = "COMMON";
+      }
+    } else if (newStreak >= 2) {
+      // Consistent Grinder Tier
+      if (roll < 0.12) { // 12% Legendary (41-50)
+        wonTrophies = Math.floor(Math.random() * 10) + 41;
+        rarity = "LEGENDARY";
+      } else if (roll < 0.32) { // 20% Epic (26-40)
+        wonTrophies = Math.floor(Math.random() * 15) + 26;
+        rarity = "EPIC";
+      } else if (roll < 0.70) { // 38% Rare (10-25)
+        wonTrophies = Math.floor(Math.random() * 16) + 10;
+        rarity = "RARE";
+      } else { // 30% Common (2-9)
+        wonTrophies = Math.floor(Math.random() * 8) + 2;
+        rarity = "COMMON";
+      }
+    } else {
+      // Day 1 / Reset Tier (Anyone can get lucky!)
+      if (roll < 0.06) { // 6% Legendary Jackpot (41-50)
+        wonTrophies = Math.floor(Math.random() * 10) + 41;
+        rarity = "LEGENDARY";
+      } else if (roll < 0.18) { // 12% Epic (26-40)
+        wonTrophies = Math.floor(Math.random() * 15) + 26;
+        rarity = "EPIC";
+      } else if (roll < 0.45) { // 27% Rare (11-25)
+        wonTrophies = Math.floor(Math.random() * 15) + 11;
+        rarity = "RARE";
+      } else { // 55% Common (1-10)
+        wonTrophies = Math.floor(Math.random() * 10) + 1;
+        rarity = "COMMON";
+      }
+    }
+
+    wonTrophies = Math.max(1, Math.min(50, wonTrophies));
+
+    const historyEntry = {
+      date: todayStr,
+      trophies: wonTrophies,
+      rarity,
+      streak: newStreak,
+      timestamp: new Date().toISOString()
+    };
+
+    mb.lastOpenedDate = todayStr;
+    mb.streak = newStreak;
+    mb.totalOpened = (mb.totalOpened || 0) + 1;
+    mb.history = Array.isArray(mb.history) ? mb.history : [];
+    mb.history.unshift(historyEntry);
+    if (mb.history.length > 50) mb.history.length = 50;
+
+    const mbTx = {
+      id: `mb_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      type: "received",
+      counterpartyName: "Daily Mystery Box 🎁",
+      counterpartyEmail: "mysterybox@dailygrind.local",
+      amount: wonTrophies,
+      note: `Daily Mystery Box (${rarity} · ${newStreak}-Day Streak)`,
+      timestamp: new Date().toISOString(),
+      isRead: false
+    };
+
+    state.trophies = (Number(state.trophies) || 0) + wonTrophies;
+    state.mysteryBox = mb;
+    state.trophyTransfers = Array.isArray(state.trophyTransfers) ? state.trophyTransfers : [];
+    state.trophyTransfers.unshift(mbTx);
+
+    await this.saveTrackerState(cleanEmail, state);
+
+    return {
+      success: true,
+      trophiesWon: wonTrophies,
+      rarity,
+      streak: newStreak,
+      totalOpened: mb.totalOpened,
+      newTotalTrophies: state.trophies,
+      transaction: mbTx
+    };
   }
 };
