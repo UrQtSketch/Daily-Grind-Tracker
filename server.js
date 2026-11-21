@@ -782,7 +782,8 @@ app.post("/api/trophies/mailbox/read", authenticate, async (req, res) => {
 // Daily Mystery Box Endpoints
 app.get("/api/mystery-box/status", authenticate, async (req, res) => {
   try {
-    const status = await db.getMysteryBoxStatus(req.user.email);
+    const clientDate = typeof req.query?.date === "string" ? req.query.date : null;
+    const status = await db.getMysteryBoxStatus(req.user.email, clientDate);
     res.json({ success: true, ...status });
   } catch (err) {
     res.status(500).json({ error: "Failed to load mystery box status" });
@@ -791,7 +792,8 @@ app.get("/api/mystery-box/status", authenticate, async (req, res) => {
 
 app.post("/api/mystery-box/open", authenticate, async (req, res) => {
   try {
-    const result = await db.openMysteryBox(req.user.email);
+    const clientDate = typeof req.body?.date === "string" ? req.body.date : null;
+    const result = await db.openMysteryBox(req.user.email, clientDate);
     broadcastLeaderboardUpdate();
     res.json({ success: true, ...result });
   } catch (err) {

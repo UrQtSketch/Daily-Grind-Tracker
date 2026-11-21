@@ -502,6 +502,7 @@ module.exports = {
     const transfers = Array.isArray(state.trophyTransfers) ? state.trophyTransfers : [];
     let netTransfers = 0;
     for (const t of transfers) {
+      if (t.id && String(t.id).startsWith("mb_")) continue;
       if (t.type === "received") netTransfers += (Number(t.amount) || 0);
       else if (t.type === "sent") netTransfers -= (Number(t.amount) || 0);
     }
@@ -564,6 +565,7 @@ module.exports = {
     const transfers = Array.isArray(state.trophyTransfers) ? state.trophyTransfers : [];
     let netTransfers = 0;
     for (const t of transfers) {
+      if (t.id && String(t.id).startsWith("mb_")) continue;
       if (t.type === "received") netTransfers += (Number(t.amount) || 0);
       else if (t.type === "sent") netTransfers -= (Number(t.amount) || 0);
     }
@@ -1313,13 +1315,20 @@ module.exports = {
     return { success: true };
   },
 
-  async getMysteryBoxStatus(email) {
+  async getMysteryBoxStatus(email, clientDate = null) {
     if (!email) throw new Error("Email required");
     const cleanEmail = email.trim().toLowerCase();
     const state = await this.getTrackerState(cleanEmail);
     const mb = state.mysteryBox || { lastOpenedDate: null, streak: 0, totalOpened: 0, history: [] };
 
-    const todayStr = new Date().toISOString().slice(0, 10);
+    const serverDate = new Date().toISOString().slice(0, 10);
+    let todayStr = serverDate;
+    if (clientDate && typeof clientDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(clientDate)) {
+      const diffHours = Math.abs(new Date(clientDate + "T12:00:00Z").getTime() - new Date(serverDate + "T12:00:00Z").getTime()) / 3600000;
+      if (diffHours <= 36) {
+        todayStr = clientDate;
+      }
+    }
     const d = new Date(todayStr + "T12:00:00Z");
     d.setUTCDate(d.getUTCDate() - 1);
     const yesterdayStr = d.toISOString().slice(0, 10);
@@ -1353,13 +1362,20 @@ module.exports = {
     };
   },
 
-  async openMysteryBox(email) {
+  async openMysteryBox(email, clientDate = null) {
     if (!email) throw new Error("Email required");
     const cleanEmail = email.trim().toLowerCase();
     const state = await this.getTrackerState(cleanEmail);
     const mb = state.mysteryBox || { lastOpenedDate: null, streak: 0, totalOpened: 0, history: [] };
 
-    const todayStr = new Date().toISOString().slice(0, 10);
+    const serverDate = new Date().toISOString().slice(0, 10);
+    let todayStr = serverDate;
+    if (clientDate && typeof clientDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(clientDate)) {
+      const diffHours = Math.abs(new Date(clientDate + "T12:00:00Z").getTime() - new Date(serverDate + "T12:00:00Z").getTime()) / 3600000;
+      if (diffHours <= 36) {
+        todayStr = clientDate;
+      }
+    }
     const d = new Date(todayStr + "T12:00:00Z");
     d.setUTCDate(d.getUTCDate() - 1);
     const yesterdayStr = d.toISOString().slice(0, 10);
@@ -1483,7 +1499,8 @@ module.exports = {
       streak: newStreak,
       totalOpened: mb.totalOpened,
       newTotalTrophies: state.trophies,
-      transaction: mbTx
+      transaction: mbTx,
+      lastOpenedDate: todayStr
     };
   }
 };

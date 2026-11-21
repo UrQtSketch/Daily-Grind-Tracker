@@ -354,12 +354,13 @@
       }
     },
 
-    async getMysteryBoxStatus() {
+    async getMysteryBoxStatus(clientDate = null) {
       if (isHttp()) {
         const token = this.getToken();
         if (token) {
           try {
-            const res = await fetch("/api/mystery-box/status", {
+            const dateQuery = clientDate ? `?date=${encodeURIComponent(clientDate)}` : "";
+            const res = await fetch(`/api/mystery-box/status${dateQuery}`, {
               headers: { "Authorization": `Bearer ${token}` }
             });
             if (res.ok) return await res.json();
@@ -369,7 +370,7 @@
       return null;
     },
 
-    async openMysteryBox() {
+    async openMysteryBox(clientDate = null) {
       if (isHttp()) {
         const token = this.getToken();
         if (token) {
@@ -378,7 +379,8 @@
             headers: {
               "Content-Type": "application/json",
               "Authorization": `Bearer ${token}`
-            }
+            },
+            body: JSON.stringify({ date: clientDate })
           });
           const data = await res.json();
           if (!res.ok) throw new Error(data.error || "Failed to open mystery box.");

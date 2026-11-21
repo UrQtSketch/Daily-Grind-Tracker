@@ -850,9 +850,13 @@
     const quizRewards = (typeof trackerState !== "undefined" && trackerState?.quizRewards) || [];
     ledgerTotal += quizRewards.reduce((acc, q) => acc + (Number(q.trophies) || 1), 0);
 
+    const mysteryHistory = (typeof trackerState !== "undefined" && trackerState?.mysteryBox && Array.isArray(trackerState.mysteryBox.history)) ? trackerState.mysteryBox.history : [];
+    ledgerTotal += mysteryHistory.reduce((acc, m) => acc + (Number(m.trophies) || 0), 0);
+
     const transfers = (typeof trackerState !== "undefined" && Array.isArray(trackerState?.trophyTransfers)) ? trackerState.trophyTransfers : [];
     let netTransfers = 0;
     for (const t of transfers) {
+      if (t.id && String(t.id).startsWith("mb_")) continue;
       if (t.type === "received") netTransfers += (Number(t.amount) || 0);
       else if (t.type === "sent") netTransfers -= (Number(t.amount) || 0);
     }
@@ -5167,16 +5171,18 @@
       isOpening = true;
 
       try {
-        const res = await DailyGrindAuth.openMysteryBox();
+        const clientDate = localDateKey();
+        const res = await DailyGrindAuth.openMysteryBox(clientDate);
         if (res && res.success) {
+          const openedDate = res.lastOpenedDate || clientDate;
           trackerState.trophies = res.newTotalTrophies;
           trackerState.mysteryBox = trackerState.mysteryBox || {};
-          trackerState.mysteryBox.lastOpenedDate = localDateKey();
+          trackerState.mysteryBox.lastOpenedDate = openedDate;
           trackerState.mysteryBox.streak = res.streak;
           trackerState.mysteryBox.totalOpened = res.totalOpened;
           trackerState.mysteryBox.history = trackerState.mysteryBox.history || [];
           trackerState.mysteryBox.history.unshift({
-            date: localDateKey(),
+            date: openedDate,
             trophies: res.trophiesWon,
             rarity: res.rarity,
             streak: res.streak,
