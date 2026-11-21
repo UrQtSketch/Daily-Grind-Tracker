@@ -2026,10 +2026,14 @@
 
     const rowsHtml = top3.map((u, i) => {
       const medal = i === 0 ? '🥇' : (i === 1 ? '🥈' : '🥉');
+      const rankNum = i + 1;
       return `
         <div class="lb-widget-row ${u.isCurrentUser ? 'is-self' : ''}">
           <span class="lb-widget-medal">${medal}</span>
-          <span class="lb-widget-name">${escapeHtml(u.name)}</span>
+          <span class="lb-widget-name top3-shine-name rank-${rankNum}-shine">
+            <span class="shine-text">${escapeHtml(u.name)}</span>
+            <span class="shine-sparkle">✨</span>
+          </span>
           <strong class="lb-widget-trophies">${u.trophies} 🏆</strong>
         </div>`;
     }).join("");
@@ -3231,7 +3235,11 @@
           <div class="podium-card podium-${modifier} ${isCurrent ? 'is-self' : ''}">
             <div class="podium-rank-crown">${rankNum === 1 ? '👑' : (rankNum === 2 ? '🥈' : '🥉')}</div>
             <div class="podium-avatar">${initial}</div>
-            <h3 class="podium-name">${escapeHtml(user.name)}${isCurrent ? ' <span class="self-tag">(You)</span>' : ''}</h3>
+            <h3 class="podium-name top3-shine-name rank-${rankNum}-shine">
+              <span class="shine-text">${escapeHtml(user.name)}</span>
+              ${isCurrent ? ' <span class="self-tag">(You)</span>' : ''}
+              <span class="shine-sparkle">✨</span>
+            </h3>
             <p class="podium-email">${user.emailMasked}</p>
             <div class="podium-trophies">${user.trophies} <span>🏆</span></div>
             <div class="podium-pedestal">
@@ -3246,15 +3254,26 @@
         const initial = (u.name || "G").charAt(0).toUpperCase();
         const todayStr = new Date().toISOString().slice(0, 10);
         const isActiveToday = u.lastActive === todayStr;
+        const rankNum = Number(u.rank);
+        const isTop3 = rankNum >= 1 && rankNum <= 3;
+        const top3Class = isTop3 ? `top3-shine-name rank-${rankNum}-shine` : "";
+        const rankRowClass = isTop3 ? `is-top-3 rank-row-${rankNum}` : "";
+
         return `
-          <div class="leaderboard-row ${isSelf ? 'is-self' : ''}">
+          <div class="leaderboard-row ${isSelf ? 'is-self' : ''} ${rankRowClass}">
             <div class="lb-rank-col">
-              <span class="lb-rank-badge">#${u.rank}</span>
+              <span class="lb-rank-badge ${isTop3 ? `lb-rank-badge-top3 badge-rank-${rankNum}` : ''}">
+                ${rankNum === 1 ? '👑 #1' : (rankNum === 2 ? '🥈 #2' : (rankNum === 3 ? '🥉 #3' : `#${u.rank}`))}
+              </span>
             </div>
             <div class="lb-user-col">
-              <div class="lb-avatar">${initial}</div>
+              <div class="lb-avatar ${isTop3 ? `lb-avatar-top3 avatar-rank-${rankNum}` : ''}">${initial}</div>
               <div class="lb-user-info">
-                <strong>${escapeHtml(u.name)}${isSelf ? ' <em class="self-tag">(You)</em>' : ''}</strong>
+                <strong class="${top3Class}">
+                  <span class="shine-text">${escapeHtml(u.name)}</span>
+                  ${isSelf ? ' <em class="self-tag">(You)</em>' : ''}
+                  ${isTop3 ? '<span class="shine-sparkle">✨</span>' : ''}
+                </strong>
                 <small>${u.emailMasked}</small>
               </div>
             </div>

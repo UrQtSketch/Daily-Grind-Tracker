@@ -4850,3 +4850,193 @@ body.anime-mode .theme-card-btn.is-active .theme-badge-check {
   border-radius: 6px;
 }
 
+/* ==========================================================
+   TOP 3 LEADERBOARD ANIMATED SHINE EFFECT
+   ========================================================== */
+
+/* Shimmer Animation Keyframe */
+@keyframes topShineSweep {
+  0% {
+    background-position: 120% center;
+  }
+  50% {
+    background-position: -20% center;
+  }
+  100% {
+    background-position: -20% center;
+  }
+}
+
+@keyframes sparkleTwinkle {
+  0%, 100% {
+    transform: scale(0.8) rotate(0deg);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.2) rotate(15deg);
+    opacity: 1;
+  }
+}
+
+/* Base top3-shine-name container */
+.top3-shine-name {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  max-width: 100%;
+}
+
+.top3-shine-name .shine-text {
+  font-weight: 800;
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  background-size: 240% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* RANK 1: Radiant Championship Gold Shine */
+.top3-shine-name.rank-1-shine .shine-text {
+  background-image: linear-gradient(
+    115deg,
+    #eab308 0%,
+    #fef08a 22%,
+    #ffffff 45%,
+    #fef08a 62%,
+    #ca8a04 80%,
+    #eab308 100%
+  );
+  animation: topShineSweep 2.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.55));
+  letter-spacing: 0.2px;
+}
+
+/* RANK 2: Platinum Luminous Silver Shine */
+.top3-shine-name.rank-2-shine .shine-text {
+  background-image: linear-gradient(
+    115deg,
+    #94a3b8 0%,
+    #e2e8f0 25%,
+    #ffffff 48%,
+    #cbd5e1 68%,
+    #64748b 85%,
+    #94a3b8 100%
+  );
+  animation: topShineSweep 3.1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-delay: 0.35s;
+  filter: drop-shadow(0 0 6px rgba(226, 232, 240, 0.5));
+  letter-spacing: 0.2px;
+}
+
+/* RANK 3: Flaming Amber Bronze Shine */
+.top3-shine-name.rank-3-shine .shine-text {
+  background-image: linear-gradient(
+    115deg,
+    #c2410c 0%,
+    #f97316 22%,
+    #ffffff 46%,
+    #fdba74 65%,
+    #9a3412 85%,
+    #c2410c 100%
+  );
+  animation: topShineSweep 3.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-delay: 0.7s;
+  filter: drop-shadow(0 0 6px rgba(249, 115, 22, 0.5));
+  letter-spacing: 0.2px;
+}
+
+/* Sparkle icon beside name */
+.shine-sparkle {
+  display: inline-block;
+  font-size: 11px;
+  line-height: 1;
+  margin-left: 4px;
+  flex-shrink: 0;
+  vertical-align: middle;
+  animation: sparkleTwinkle 2.2s ease-in-out infinite;
+  pointer-events: none;
+}
+.rank-1-shine .shine-sparkle {
+  color: #ffd700;
+  filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.8));
+}
+.rank-2-shine .shine-sparkle {
+  color: #e2e8f0;
+  filter: drop-shadow(0 0 4px rgba(226, 232, 240, 0.8));
+  animation-delay: 0.4s;
+}
+.rank-3-shine .shine-sparkle {
+  color: #fb923c;
+  filter: drop-shadow(0 0 4px rgba(251, 146, 60, 0.8));
+  animation-delay: 0.8s;
+}
+
+/* Self tag inside top3 shining name */
+.top3-shine-name .self-tag {
+  -webkit-text-fill-color: #38bdf8;
+  margin-left: 4px;
+}
+
+/* Leaderboard Row Top 3 Rank Badges */
+.lb-rank-badge-top3.badge-rank-1 {
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.25), rgba(161, 98, 7, 0.35)) !important;
+  border: 1px solid rgba(250, 204, 21, 0.65) !important;
+  color: #fef08a !important;
+  box-shadow: 0 0 12px rgba(234, 179, 8, 0.35) !important;
+  font-weight: 800 !important;
+}
+.lb-rank-badge-top3.badge-rank-2 {
+  background: linear-gradient(135deg, rgba(148, 163, 184, 0.2), rgba(71, 85, 105, 0.3)) !important;
+  border: 1px solid rgba(226, 232, 240, 0.55) !important;
+  color: #f8fafc !important;
+  box-shadow: 0 0 10px rgba(226, 232, 240, 0.3) !important;
+  font-weight: 800 !important;
+}
+.lb-rank-badge-top3.badge-rank-3 {
+  background: linear-gradient(135deg, rgba(194, 65, 12, 0.2), rgba(124, 45, 18, 0.3)) !important;
+  border: 1px solid rgba(249, 115, 22, 0.55) !important;
+  color: #fed7aa !important;
+  box-shadow: 0 0 10px rgba(249, 115, 22, 0.3) !important;
+  font-weight: 800 !important;
+}
+
+/* Leaderboard Row Top 3 Avatar Glows */
+.lb-avatar-top3.avatar-rank-1 {
+  background: linear-gradient(135deg, #eab308, #ca8a04) !important;
+  border: 1px solid #fde047 !important;
+  color: #422006 !important;
+  box-shadow: 0 0 10px rgba(234, 179, 8, 0.4) !important;
+}
+.lb-avatar-top3.avatar-rank-2 {
+  background: linear-gradient(135deg, #94a3b8, #64748b) !important;
+  border: 1px solid #f1f5f9 !important;
+  color: #0f172a !important;
+  box-shadow: 0 0 10px rgba(226, 232, 240, 0.35) !important;
+}
+.lb-avatar-top3.avatar-rank-3 {
+  background: linear-gradient(135deg, #ea580c, #9a3412) !important;
+  border: 1px solid #fed7aa !important;
+  color: #fff !important;
+  box-shadow: 0 0 10px rgba(234, 88, 12, 0.35) !important;
+}
+
+/* Leaderboard Row Top 3 Row Accent */
+.leaderboard-row.is-top-3 {
+  position: relative;
+}
+.leaderboard-row.rank-row-1 {
+  background: linear-gradient(90deg, rgba(234, 179, 8, 0.08) 0%, rgba(15, 23, 42, 0.7) 30%) !important;
+  border-left: 3px solid #eab308 !important;
+}
+.leaderboard-row.rank-row-2 {
+  background: linear-gradient(90deg, rgba(226, 232, 240, 0.07) 0%, rgba(15, 23, 42, 0.7) 30%) !important;
+  border-left: 3px solid #cbd5e1 !important;
+}
+.leaderboard-row.rank-row-3 {
+  background: linear-gradient(90deg, rgba(249, 115, 22, 0.07) 0%, rgba(15, 23, 42, 0.7) 30%) !important;
+  border-left: 3px solid #ea580c !important;
+}
+
