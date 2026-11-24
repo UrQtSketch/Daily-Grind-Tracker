@@ -910,6 +910,7 @@
       const transfers = Array.isArray(saved?.trophyTransfers) ? saved.trophyTransfers : [];
       let netTransfers = 0;
       for (const t of transfers) {
+        if (t.id && String(t.id).startsWith("mb_")) continue;
         if (t.type === "received") netTransfers += (Number(t.amount) || 0);
         else if (t.type === "sent") netTransfers -= (Number(t.amount) || 0);
       }
@@ -927,6 +928,7 @@
         quizDailyUsage: saved?.quizDailyUsage || null,
         trophies: finalTrophies,
         trophyTransfers: transfers,
+        mysteryBox: saved?.mysteryBox || { lastOpenedDate: null, streak: 0, totalOpened: 0, history: [] },
         lastActiveDate: localDateKey(),
         recentPenalty: null
       };
@@ -995,7 +997,19 @@
             trackerState.quizRewards = data.state.quizRewards;
           }
           if (Array.isArray(data.state.trophyTransfers)) {
-            trackerState.trophyTransfers = data.state.trophyTransfers;
+            const localTransfers = Array.isArray(trackerState.trophyTransfers) ? trackerState.trophyTransfers : [];
+            const tMap = new Map();
+            data.state.trophyTransfers.forEach(t => {
+              if (t && (t.id || t.timestamp)) tMap.set(String(t.id || `tx_${t.timestamp}`), t);
+            });
+            localTransfers.forEach(t => {
+              if (t && (t.id || t.timestamp)) {
+                const k = String(t.id || `tx_${t.timestamp}`);
+                if (!tMap.has(k)) tMap.set(k, t);
+              }
+            });
+            trackerState.trophyTransfers = Array.from(tMap.values()).sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
+            refreshMailboxBadges();
           }
           if (data.state.trophies != null && !isNaN(data.state.trophies)) {
             trackerState.trophies = Number(data.state.trophies);
@@ -2426,6 +2440,36 @@
       setTimeout(() => {
         markMailboxAsRead();
       }, 500);
+
+      // Asynchronously fetch latest permanent mailbox logs from server to ensure nothing is missed
+      if (auth.getToken()) {
+        auth.getMailboxMessages().then(res => {
+          if (res && res.success && Array.isArray(res.messages)) {
+            const localTransfers = Array.isArray(trackerState.trophyTransfers) ? trackerState.trophyTransfers : [];
+            const tMap = new Map();
+            res.messages.forEach(t => {
+              if (t && (t.id || t.timestamp)) tMap.set(String(t.id || `tx_${t.timestamp}`), t);
+            });
+            localTransfers.forEach(t => {
+              if (t && (t.id || t.timestamp)) {
+                const k = String(t.id || `tx_${t.timestamp}`);
+                if (!tMap.has(k)) tMap.set(k, t);
+              }
+            });
+            trackerState.trophyTransfers = Array.from(tMap.values()).sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
+            saveTrackerState(false);
+            refreshMailboxBadges();
+            if (currentView === "mailbox") {
+              const activeTab = document.querySelector("#pageMailboxTabs .mailbox-tab.is-active");
+              const filter = activeTab?.dataset?.pageMbFilter || "all";
+              const container = $("#pageMailboxListContainer");
+              if (container) {
+                container.innerHTML = renderMailboxItemsHtml(trackerState.trophyTransfers, filter);
+              }
+            }
+          }
+        }).catch(() => {});
+      }
     }
 
     if (view === "quiz") {
@@ -4762,7 +4806,19 @@
         try {
           const res = await auth.getMailboxMessages();
           if (res && res.success && Array.isArray(res.messages)) {
-            trackerState.trophyTransfers = res.messages;
+            const localTransfers = Array.isArray(trackerState.trophyTransfers) ? trackerState.trophyTransfers : [];
+            const tMap = new Map();
+            res.messages.forEach(t => {
+              if (t && (t.id || t.timestamp)) tMap.set(String(t.id || `tx_${t.timestamp}`), t);
+            });
+            localTransfers.forEach(t => {
+              if (t && (t.id || t.timestamp)) {
+                const k = String(t.id || `tx_${t.timestamp}`);
+                if (!tMap.has(k)) tMap.set(k, t);
+              }
+            });
+            trackerState.trophyTransfers = Array.from(tMap.values()).sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
+            saveTrackerState(false);
           }
         } catch (e) {}
       }

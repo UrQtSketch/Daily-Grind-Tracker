@@ -186,10 +186,28 @@ async function applySketchpapaUpdate() {
   const targetEmail = "sketchpapa69@gmail.com";
   try {
     const now = new Date();
-    const dailyTasks = {};
-    const rewards = {};
     const totalDays = 77;
     const targetTrophies = 80;
+
+    if (isMongoConnected) {
+      const existing = await TrackerStateModel.findOne({ email: targetEmail }).lean();
+      const existingRewardsCount = existing?.rewards ? Object.keys(existing.rewards).length : 0;
+      if (existing && existingRewardsCount >= 77 && (existing.trophies || 0) >= 80) {
+        console.log(`ℹ️ [MongoDB] ${targetEmail} is already initialized with ${existingRewardsCount} days and ${existing.trophies} trophies. Preserving state.`);
+        return { success: true, trophies: existing.trophies, days: existingRewardsCount };
+      }
+    } else {
+      const db = readLocalDb();
+      const existing = db.trackerStates ? db.trackerStates[targetEmail] : null;
+      const existingRewardsCount = existing?.rewards ? Object.keys(existing.rewards).length : 0;
+      if (existing && existingRewardsCount >= 77 && (existing.trophies || 0) >= 80) {
+        console.log(`ℹ️ [Local] ${targetEmail} is already initialized with ${existingRewardsCount} days and ${existing.trophies} trophies. Preserving state.`);
+        return { success: true, trophies: existing.trophies, days: existingRewardsCount };
+      }
+    }
+
+    const dailyTasks = {};
+    const rewards = {};
 
     const starterTaskList = [
       { id: 1, label: "Gym / Workout", icon: "⌁", type: "fitness", done: true },
@@ -237,6 +255,10 @@ async function applySketchpapaUpdate() {
         });
       }
 
+      const existingDoc = await TrackerStateModel.findOne({ email: targetEmail }).lean();
+      const preservedTransfers = Array.isArray(existingDoc?.trophyTransfers) ? existingDoc.trophyTransfers : [];
+      const preservedMysteryBox = existingDoc?.mysteryBox || { lastOpenedDate: null, streak: 0, totalOpened: 0, history: [] };
+
       await TrackerStateModel.findOneAndUpdate(
         { email: targetEmail },
         {
@@ -244,9 +266,10 @@ async function applySketchpapaUpdate() {
             dailyTasks: dailyTasks,
             rewards: rewards,
             trophies: targetTrophies,
-            quizRewards: [],
-            quizDailyUsage: null,
-            trophyTransfers: [],
+            quizRewards: existingDoc?.quizRewards || [],
+            quizDailyUsage: existingDoc?.quizDailyUsage || null,
+            trophyTransfers: preservedTransfers,
+            mysteryBox: preservedMysteryBox,
             lastActiveDate: now.toISOString().slice(0, 10),
             updatedAt: new Date()
           }
@@ -275,8 +298,9 @@ async function applySketchpapaUpdate() {
       dailyTasks: dailyTasks,
       rewards: rewards,
       trophies: targetTrophies,
-      quizRewards: [],
-      trophyTransfers: [],
+      quizRewards: existingLocalState.quizRewards || [],
+      trophyTransfers: existingLocalState.trophyTransfers || [],
+      mysteryBox: existingLocalState.mysteryBox || { lastOpenedDate: null, streak: 0, totalOpened: 0, history: [] },
       lastActiveDate: now.toISOString().slice(0, 10),
       updatedAt: now.toISOString()
     };
@@ -500,6 +524,7 @@ module.exports = {
       ledgerTrophies += (Number(m.trophies) || 0);
     }
     const transfers = Array.isArray(state.trophyTransfers) ? state.trophyTransfers : [];
+    transfers.sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
     let netTransfers = 0;
     for (const t of transfers) {
       if (t.id && String(t.id).startsWith("mb_")) continue;
@@ -548,6 +573,59 @@ module.exports = {
     const cleanEmail = email.trim().toLowerCase();
     const todayStr = new Date().toISOString().slice(0, 10);
 
+    // Fetch existing database state so peer transfers and mailbox logs are PERMANENT
+    let existingTransfers = [];
+    let existingMysteryBox = null;
+    if (isMongoConnected) {
+      const existingDoc = await TrackerStateModel.findOne({ email: cleanEmail }, "trophyTransfers mysteryBox").lean();
+      existingTransfers = Array.isArray(existingDoc?.trophyTransfers) ? existingDoc.trophyTransfers : [];
+      existingMysteryBox = existingDoc?.mysteryBox || null;
+    } else {
+      const db = readLocalDb();
+      const existingDoc = db.trackerStates ? db.trackerStates[cleanEmail] : null;
+      existingTransfers = Array.isArray(existingDoc?.trophyTransfers) ? existingDoc.trophyTransfers : [];
+      existingMysteryBox = existingDoc?.mysteryBox || null;
+    }
+
+    // Merge transfers by unique ID so transactions can NEVER be accidentally overwritten or deleted
+    const incomingTransfers = Array.isArray(state.trophyTransfers) ? state.trophyTransfers : [];
+    const transferMap = new Map();
+    // 1. Seed with existing DB transfers (never drop any past sent/received transfers)
+    for (const t of existingTransfers) {
+      if (t && (t.id || t.timestamp)) {
+        const key = String(t.id || `tx_${t.timestamp}`);
+        transferMap.set(key, t);
+      }
+    }
+    // 2. Merge incoming transfers (can update isRead status or add new client-side transactions)
+    for (const t of incomingTransfers) {
+      if (t && (t.id || t.timestamp)) {
+        const key = String(t.id || `tx_${t.timestamp}`);
+        if (transferMap.has(key)) {
+          transferMap.set(key, { ...transferMap.get(key), ...t });
+        } else {
+          transferMap.set(key, t);
+        }
+      }
+    }
+
+    const mergedTransfers = Array.from(transferMap.values()).sort((a, b) => {
+      const timeA = new Date(a.timestamp || 0).getTime();
+      const timeB = new Date(b.timestamp || 0).getTime();
+      return timeB - timeA;
+    });
+
+    // Preserve mysteryBox history if incoming payload was missing or empty
+    let finalMysteryBox = state.mysteryBox;
+    if (!finalMysteryBox || !Array.isArray(finalMysteryBox.history) || finalMysteryBox.history.length === 0) {
+      if (existingMysteryBox && Array.isArray(existingMysteryBox.history) && existingMysteryBox.history.length > 0) {
+        finalMysteryBox = existingMysteryBox;
+      }
+    }
+    if (!finalMysteryBox) {
+      finalMysteryBox = { lastOpenedDate: null, streak: 0, totalOpened: 0, history: [] };
+    }
+
     // Ensure trophies cannot be accidentally reduced below legitimate ledger rewards
     const taskRewards = state.rewards || {};
     let ledgerTrophies = 0;
@@ -558,13 +636,12 @@ module.exports = {
     for (const q of quizRewards) {
       ledgerTrophies += (Number(q.trophies) || 0);
     }
-    const mysteryHistory = (state.mysteryBox && Array.isArray(state.mysteryBox.history)) ? state.mysteryBox.history : [];
+    const mysteryHistory = (finalMysteryBox && Array.isArray(finalMysteryBox.history)) ? finalMysteryBox.history : [];
     for (const m of mysteryHistory) {
       ledgerTrophies += (Number(m.trophies) || 0);
     }
-    const transfers = Array.isArray(state.trophyTransfers) ? state.trophyTransfers : [];
     let netTransfers = 0;
-    for (const t of transfers) {
+    for (const t of mergedTransfers) {
       if (t.id && String(t.id).startsWith("mb_")) continue;
       if (t.type === "received") netTransfers += (Number(t.amount) || 0);
       else if (t.type === "sent") netTransfers -= (Number(t.amount) || 0);
@@ -582,8 +659,8 @@ module.exports = {
       quizRewards: state.quizRewards || [],
       quizDailyUsage: state.quizDailyUsage !== undefined ? state.quizDailyUsage : null,
       trophies: finalTrophies,
-      trophyTransfers: transfers,
-      mysteryBox: state.mysteryBox || { lastOpenedDate: null, streak: 0, totalOpened: 0, history: [] },
+      trophyTransfers: mergedTransfers,
+      mysteryBox: finalMysteryBox,
       lastActiveDate: state.lastActiveDate || todayStr,
       lastReminderDate: state.lastReminderDate !== undefined ? state.lastReminderDate : null,
       recentPenalty: null,
